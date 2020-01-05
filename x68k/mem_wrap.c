@@ -81,7 +81,7 @@ BYTE (*MemReadTable[])(DWORD) = {
 	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
 	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
 	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-/* SCSI の場合は rm_buserr になる？ */
+/* SCSI 鐃塾常申鐃緒申 rm_buserr 鐃祝なる？ */
 	rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl,
 	rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl,
 	rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl,
@@ -109,7 +109,7 @@ void (*MemWriteTable[])(DWORD, BYTE) = {
 	SRAM_Write, SRAM_Write, SRAM_Write, SRAM_Write, SRAM_Write, SRAM_Write, SRAM_Write, SRAM_Write,
 	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
 	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-/* ROMエリアへの書きこみは全てバスエラー */
+/* ROM鐃緒申鐃所ア鐃舜の書きわ申鐃淳わ申鐃緒申鐃銃バワ申鐃緒申鐃初ー */
 	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
 	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
 	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
@@ -493,13 +493,13 @@ void Memory_Init(void)
 {
 
 //        cpu_setOPbase24((DWORD)C68k_Get_Reg(&C68K, C68K_PC));
-	#ifdef CYCLONE
-
+#ifdef HAVE_CYCLONE
 	cpu_setOPbase24((DWORD)m68000_get_reg(M68K_PC));
+#endif /* HAVE_CYCLONE */
 
-	#else
+#ifdef HAVE_C68K
     cpu_setOPbase24((DWORD)C68k_Get_PC(&C68K));
-#endif
+#endif /* HAVE_C68K */
 }
 
 void 

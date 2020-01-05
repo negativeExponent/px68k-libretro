@@ -2,22 +2,24 @@
 
 	m68000.c
 
-	M68000 CPU¥¤¥ó¥¿¥Õ¥§¡¼¥¹´Ø¿ô
+	M68000 CPUï¿½ï¿½ï¿½ó¥¿¥Õ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¿ï¿½
 
 ******************************************************************************/
 
 #ifndef M68000_H
 #define M68000_H
 
-#ifndef CYCLONE
 #include "common.h"
-#include "c68k/c68k.h"
-#else
-#include "common.h"
-#include "cyclone.h"
-#endif
 
-// MAME¸ß´¹¤Î¥ì¥¸¥¹¥¿ÈÖ¹æ (°ìÉôÌ¤ÂÐ±þ)
+#ifdef HAVE_C68K
+#include "c68k/c68k.h"
+#endif /* HAVE_C68K */
+
+#ifdef HAVE_CYCLONE
+#include "cyclone.h"
+#endif /* HAVE_CYCLONE */
+
+// MAMEï¿½ß´ï¿½ï¿½Î¥ì¥¸ï¿½ï¿½ï¿½ï¿½ï¿½Ö¹ï¿½ (ï¿½ï¿½ï¿½ï¿½Ì¤ï¿½Ð±ï¿½)
 enum
 {
 	/* NOTE: M68K_SP fetches the current SP, be it USP, ISP, or MSP */

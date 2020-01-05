@@ -2,25 +2,27 @@
 
 	m68000.c
 
-	M68000 CPU¥¤¥ó¥¿¥Õ¥§¡¼¥¹´Ø¿ô
+	M68000 CPUï¿½ï¿½ï¿½ó¥¿¥Õ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¿ï¿½
 
 ******************************************************************************/
 
 #include "m68000.h"
 
-#ifndef CYCLONE
+#ifdef HAVE_C68K
 #include "c68k/c68k.h"
-#else
+#endif /* HAVE_C68K */
+
+#ifdef HAVE_CYCLONE
 struct Cyclone m68k;
 typedef signed int s32;
-#endif
+#endif /* HAVE_CYCLONE */
 
 #include "../x68k/x68kmemory.h"
 
 int m68000_ICountBk;
 int ICount;
 
-#ifdef CYCLONE
+#ifdef HAVE_CYCLONE
 
 unsigned int read8(unsigned int a) {
 	return (unsigned int) cpu_readmem24(a);
@@ -51,21 +53,21 @@ unsigned int MyCheckPc(unsigned int pc)
   return m68k.membase+pc; // New program counter
 }
 
-#endif
+#endif /* HAVE_CYCLONE */
 
 
 /******************************************************************************
-	M68000¥¤¥ó¥¿¥Õ¥§¡¼¥¹´Ø¿ô
+	M68000ï¿½ï¿½ï¿½ó¥¿¥Õ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¿ï¿½
 ******************************************************************************/
 
 /*--------------------------------------------------------
-	CPU½é´ü²½
+	CPUï¿½ï¿½ï¿½ï¿½ï¿½
 --------------------------------------------------------*/
 s32 my_irqh_callback(s32 level);
 
 void m68000_init(void)
 {
-#ifdef CYCLONE
+#ifdef HAVE_CYCLONE
 
 	m68k.read8  = read8;
 	m68k.read16 = read16;
@@ -84,10 +86,9 @@ void m68000_init(void)
 	m68k.IrqCallback = my_irqh_callback;
 
 	CycloneInit();
+#endif /* HAVE_CYCLONE */
 
-#else
-
-
+#ifdef HAVE_C68K
     C68k_Init(&C68K, my_irqh_callback);
 #if 0
     C68k_Set_ReadB(&C68K, Memory_ReadB);
@@ -99,39 +100,38 @@ void m68000_init(void)
     C68k_Set_ReadW(&C68K, Memory_ReadW);
     C68k_Set_WriteB(&C68K, Memory_WriteB);
     C68k_Set_WriteW(&C68K, Memory_WriteW);
-#endif
-        C68k_Set_Fetch(&C68K, 0x000000, 0xbfffff, (pointer)MEM);
-        C68k_Set_Fetch(&C68K, 0xc00000, 0xc7ffff, (pointer)GVRAM);
-        C68k_Set_Fetch(&C68K, 0xe00000, 0xe7ffff, (pointer)TVRAM);
-        C68k_Set_Fetch(&C68K, 0xea0000, 0xea1fff, (pointer)SCSIIPL);
-        C68k_Set_Fetch(&C68K, 0xed0000, 0xed3fff, (pointer)SRAM);
-        C68k_Set_Fetch(&C68K, 0xf00000, 0xfbffff, (pointer)FONT);
-        C68k_Set_Fetch(&C68K, 0xfc0000, 0xffffff, (pointer)IPL);
-
-#endif
+#endif /* if 0 */
+	C68k_Set_Fetch(&C68K, 0x000000, 0xbfffff, (pointer)MEM);
+    C68k_Set_Fetch(&C68K, 0xc00000, 0xc7ffff, (pointer)GVRAM);
+    C68k_Set_Fetch(&C68K, 0xe00000, 0xe7ffff, (pointer)TVRAM);
+    C68k_Set_Fetch(&C68K, 0xea0000, 0xea1fff, (pointer)SCSIIPL);
+    C68k_Set_Fetch(&C68K, 0xed0000, 0xed3fff, (pointer)SRAM);
+    C68k_Set_Fetch(&C68K, 0xf00000, 0xfbffff, (pointer)FONT);
+    C68k_Set_Fetch(&C68K, 0xfc0000, 0xffffff, (pointer)IPL);
+#endif /* HAVE_C68K */
 }
 
 
 /*--------------------------------------------------------
-	CPU¥ê¥»¥Ã¥È
+	CPUï¿½ê¥»ï¿½Ã¥ï¿½
 --------------------------------------------------------*/
 
 void m68000_reset(void)
 {
-#ifdef CYCLONE
-
+#ifdef HAVE_CYCLONE
 	CycloneReset(&m68k);
 	m68k.state_flags = 0; // Go to default state (not stopped, halted, etc.)
 	m68k.srh = 0x27; // Set supervisor mode
+#endif /* HAVE_CYCLONE */
 
-	#else
+#ifdef HAVE_C68K
 	C68k_Reset(&C68K);
-#endif
+#endif /* HAVE_C68K */
 }
 
 
 /*--------------------------------------------------------
-	CPUÄä»ß
+	CPUï¿½ï¿½ï¿½
 --------------------------------------------------------*/
 
 void m68000_exit(void)
@@ -140,45 +140,46 @@ void m68000_exit(void)
 
 
 /*--------------------------------------------------------
-	CPU¼Â¹Ô
+	CPUï¿½Â¹ï¿½
 --------------------------------------------------------*/
 
 int m68000_execute(int cycles)
 {	
-#ifdef CYCLONE
+#ifdef HAVE_CYCLONE
 	m68k.cycles = cycles;
 	CycloneRun(&m68k);
 	return m68k.cycles ;
-#else
-	return C68k_Exec(&C68K, cycles);
+#endif /* HAVE_CYCLONE */
 
-#endif
+#ifdef HAVE_C68K
+	return C68k_Exec(&C68K, cycles);
+#endif /* HAVE_C68K */
 }
 
 
 
 /*--------------------------------------------------------
-	³ä¤ê¹þ¤ß½èÍý
+	ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½
 --------------------------------------------------------*/
 
 void m68000_set_irq_line(int irqline, int state)
 {
-	#ifdef CYCLONE
-
+#ifdef HAVE_CYCLONE
 	m68k.irq = irqline;
+#endif /* HAVE_CYCLONE */
 	
-	#else
+#ifdef HAVE_C68K
 //	if (irqline == IRQ_LINE_NMI)
 //		irqline = 7;
 
 //	C68k_Set_IRQ(&C68K, irqline, state);
 	C68k_Set_IRQ(&C68K, irqline);
-#endif
+#endif /* HAVE_C68K */
 }
 
 
 /*--------------------------------------------------------
-	³ä¤ê¹þ¤ß¥³¡¼¥ë¥Ð¥Ã¥¯´Ø¿ôÀßÄê
+	ï¿½ï¿½ï¿½ï¿½ï¿½ß¥ï¿½ï¿½ï¿½ï¿½ï¿½Ð¥Ã¥ï¿½ï¿½Ø¿ï¿½ï¿½ï¿½ï¿½ï¿½
 --------------------------------------------------------*/
 
 void m68000_set_irq_callback(int (*callback)(int line))
@@ -188,13 +189,12 @@ void m68000_set_irq_callback(int (*callback)(int line))
 
 
 /*--------------------------------------------------------
-	¥ì¥¸¥¹¥¿¼èÆÀ
+	ï¿½ì¥¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 --------------------------------------------------------*/
 
 UINT32 m68000_get_reg(int regnum)
 {
-	#ifdef CYCLONE
-
+#ifdef HAVE_CYCLONE
 	switch (regnum)
 	{
 		case M68K_PC: return m68k.pc - m68k.membase;
@@ -219,7 +219,9 @@ UINT32 m68000_get_reg(int regnum)
 			break;
 	}
 	return 0x0BADC0DE;
-#else
+#endif /* HAVE_CYCLONE */
+
+#ifdef HAVE_C68K
 	switch (regnum)
 	{
 #if 0
@@ -268,17 +270,17 @@ UINT32 m68000_get_reg(int regnum)
 
 	default: return 0;
 	}
-#endif
+#endif /* HAVE_C68K */
 }
 
 
 /*--------------------------------------------------------
-	¥ì¥¸¥¹¥¿ÀßÄê
+	ï¿½ì¥¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 --------------------------------------------------------*/
 
 void m68000_set_reg(int regnum, UINT32 val)
 {
-	#ifdef CYCLONE
+#ifdef HAVE_CYCLONE
 	switch (regnum)
 	{
 		case M68K_PC:
@@ -307,9 +309,9 @@ void m68000_set_reg(int regnum, UINT32 val)
 		
 		default: break;
 	}
+#endif /* HAVE_CYCLONE */
 	
-	#else
-
+#ifdef HAVE_C68k
 	switch (regnum)
 	{
 #if 0
@@ -357,22 +359,22 @@ void m68000_set_reg(int regnum, UINT32 val)
 #endif
 	default: break;
 	}
-#endif
+#endif /* HAVE_C68K */
 }
 
 
 /*------------------------------------------------------
-	¥»¡¼¥Ö/¥í¡¼¥É ¥¹¥Æ¡¼¥È
+	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¡ï¿½ï¿½ï¿½
 ------------------------------------------------------*/
 
 #ifdef SAVE_STATE
 
 STATE_SAVE( m68000 )
 {
-	#ifdef CYCLONE
+#ifdef HAVE_CYCLONE
+#endif
 	
-	#else
-
+#ifdef HAVE_C68K
 	int i;
 	UINT32 pc = C68k_Get_Reg(&C68K, C68K_PC);
 
@@ -393,15 +395,15 @@ STATE_SAVE( m68000 )
 	state_save_long(&C68K.HaltState, 1);
 	state_save_long(&C68K.IRQLine, 1);
 	state_save_long(&C68K.IRQState, 1);
-	#endif
+#endif /* HAVE_C68K */
 }
 
 STATE_LOAD( m68000 )
 {
-	#ifdef CYCLONE
-	
-	#else
+#ifdef HAVE_CYCLONE
+#endif
 
+#ifdef HAVE_C68K
 	int i;
 	UINT32 pc;
 
@@ -424,7 +426,7 @@ STATE_LOAD( m68000 )
 	state_load_long(&C68K.IRQState, 1);
 
 	C68k_Set_Reg(&C68K, C68K_PC, pc);
-	#endif
+#endif /* HAVE_C68K */
 }
 
 #endif /* SAVE_STATE */
