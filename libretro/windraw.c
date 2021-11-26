@@ -480,9 +480,6 @@ INLINE void WinDraw_DrawPriLine(void)
 	WD_LOOP(0, TextDotX, _DPL_SUB);
 }
 
-#ifdef _WIN32
-#define bzero(s,d) memset(s,0,d)
-#endif
 void WinDraw_DrawLine(void)
 {
 	int opaq, ton=0, gon=0, bgon=0, tron=0, pron=0, tdrawed=0;
@@ -650,7 +647,7 @@ if(VLINE==-1){
 			ton = 1;
 		}
 		else
-			ZeroMemory(Text_TrFlag, TextDotX+16);
+			memset(Text_TrFlag, 0, TextDotX+16);
 
 		if ((VCReg2[1]&0x40)&&(BG_Regs[8]&2)&&(!(BG_Regs[0x11]&2))&&(Debug_Sp))
 		{
@@ -676,7 +673,7 @@ if(VLINE==-1){
 			VLINEBG <<= s1;
 			VLINEBG >>= s2;
 			if ( !(BG_Regs[0x11]&16) ) VLINEBG -= ((BG_Regs[0x0f]>>s1)-(CRTC_Regs[0x0d]>>s2));
-			ZeroMemory(Text_TrFlag, TextDotX+16);
+			memset(Text_TrFlag, 0, TextDotX+16);
 			BG_DrawLine(1, 1);
 			bgon = 1;
 		}
@@ -688,9 +685,9 @@ if(VLINE==-1){
 				for (i = 16; i < TextDotX + 16; ++i)
 					BG_LineBuf[i] = TextPal[0];
 			} else {		// 20010120 ¡Êàèàá¿§¡Ë
-				bzero(&BG_LineBuf[16], TextDotX * 2);
+				memset(&BG_LineBuf[16], 0, TextDotX * 2);
 			}
-			ZeroMemory(Text_TrFlag, TextDotX+16);
+			memset(Text_TrFlag, 0, TextDotX+16);
 			bgon = 1;
 		}
 
@@ -895,14 +892,14 @@ if(VLINE==-1){
 		DWORD adr = VLINE*FULLSCREEN_WIDTH;
 #ifdef PSP
 		if (TextDotX > 512) {
-			bzero(&ScrBufL[adr], TextDotX * 2);
+			memset(&ScrBufL[adr], 0, TextDotX * 2);
 			adr = VLINE * 256;
-			bzero(&ScrBufR[adr], (TextDotX - 512) * 2);
+			memset(&ScrBufR[adr], 0, (TextDotX - 512) * 2);
 		} else {
-			bzero(&ScrBufL[adr], TextDotX * 2);
+			memset(&ScrBufL[adr], 0, TextDotX * 2);
 		}
 #else
-		bzero(&ScrBuf[adr], TextDotX * 2);
+		memset(&ScrBuf[adr], 0, TextDotX * 2);
 #endif
 	}
 }

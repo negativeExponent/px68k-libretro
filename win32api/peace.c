@@ -71,7 +71,6 @@ enum {
 };
 #ifdef _WIN32
 typedef unsigned int u_int;
-#define bzero(s,d) memset(s,0,d)
 #endif
 struct internal_handle {
 	void	*p;
@@ -373,7 +372,7 @@ GetPrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR defvalue,
 	 || inifile == NULL)
 		return 0;
 
-	bzero(buf, len);
+	memset(buf, 0, len);
 
 	fp = fopen(inifile, "r");
 	if (fp == NULL)
