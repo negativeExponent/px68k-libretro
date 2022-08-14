@@ -243,7 +243,12 @@ WinX68k_Reset(void)
 */
 	C68k_Set_AReg(&C68K, 7, (IPL[0x30001]<<24)|(IPL[0x30000]<<16)|(IPL[0x30003]<<8)|IPL[0x30002]);
 	C68k_Set_PC(&C68K, (IPL[0x30005]<<24)|(IPL[0x30004]<<16)|(IPL[0x30007]<<8)|IPL[0x30006]);
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+	m68k_pulse_reset();
+
+	m68k_set_reg(M68K_REG_A7, (IPL[0x30001]<<24)|(IPL[0x30000]<<16)|(IPL[0x30003]<<8)|IPL[0x30002]);
+	m68k_set_reg(M68K_REG_PC, (IPL[0x30005]<<24)|(IPL[0x30004]<<16)|(IPL[0x30007]<<8)|IPL[0x30006]);
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 
 	Memory_Init();
 	CRTC_Init();
@@ -461,7 +466,9 @@ void WinX68k_Exec(void)
 			m68000_execute(n);
 #elif defined (HAVE_C68K)
 			C68k_Exec(&C68K, n);
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+			m68k_execute(n);
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 			m = (n-m68000_ICountBk);
 //			m = (n-C68K.ICount-m68000_ICountBk);			// clockspeed progress
 			ClkUsed += m*10;

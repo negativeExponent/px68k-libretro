@@ -14,10 +14,18 @@ FLAGS 			+= -DHAVE_CYCLONE
 SOURCES_S 		+= \
 				$(CORE_DIR)/m68000/cyclone.s
 else
+ifeq ($(C68K),1)
 FLAGS 			+= -DHAVE_C68K
 SOURCES_C 		+= \
 				$(CORE_DIR)/m68000/c68k/c68k.c \
 				$(CORE_DIR)/m68000/c68k/c68kexec.c
+else
+FLAGS 			+= -DHAVE_MUSASHI
+SOURCES_C 		+= \
+				$(CORE_DIR)/m68000/musashi/m68kcpu.c \
+				$(CORE_DIR)/m68000/musashi/m68kops.c \
+				$(CORE_DIR)/m68000/musashi/softfloat/softfloat.c
+endif
 endif
 
 SOURCES_C 		+= \

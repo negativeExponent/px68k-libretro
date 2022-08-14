@@ -15,7 +15,10 @@
 #include "cyclone.h"
 #elif defined (HAVE_C68K)
 #include "c68k/c68k.h"
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+#include "musashi/m68k.h"
+#include "musashi/m68kcpu.h"
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 
 // MAME互換のレジスタ番号 (一部未対応)
 enum

@@ -13,7 +13,10 @@ struct Cyclone m68k;
 typedef signed int s32;
 #elif defined (HAVE_C68K)
 #include "c68k/c68k.h"
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+#include "musashi/m68k.h"
+#include "musashi/m68kcpu.h"
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 
 #include "../x68k/x68kmemory.h"
 
@@ -51,7 +54,38 @@ unsigned int MyCheckPc(unsigned int pc)
   return m68k.membase+pc; // New program counter
 }
 
-#endif /* HAVE_CYCLONE */
+#elif defined (HAVE_MUSASHI)
+uint32_t m68k_read_memory_8(uint32_t address)
+{
+	return (uint32_t) cpu_readmem24(address);
+}
+
+void m68k_write_memory_8(uint32_t address, uint32_t data)
+{
+	cpu_writemem24(address, data);
+}
+
+uint32_t m68k_read_memory_16(uint32_t address)
+{
+	return (uint32_t) cpu_readmem24_word(address);
+}
+
+void m68k_write_memory_16(uint32_t address, uint32_t data)
+{
+	cpu_writemem24_word(address, data);
+}
+
+uint32_t m68k_read_memory_32(uint32_t address)
+{
+	return (uint32_t) cpu_readmem24_dword(address);
+}
+
+void m68k_write_memory_32(uint32_t address, uint32_t data)
+{
+	cpu_writemem24_dword(address, data);
+}
+
+#endif /* HAVE_CYCLONE */ /* HAVE_MUSASHI */
 
 
 /******************************************************************************
@@ -61,7 +95,9 @@ unsigned int MyCheckPc(unsigned int pc)
 /*--------------------------------------------------------
 	CPU½é´ü²½
 --------------------------------------------------------*/
+#if !defined (HAVE_MUSASHI)
 s32 my_irqh_callback(s32 level);
+#endif
 
 void m68000_init(void)
 {
@@ -105,7 +141,10 @@ void m68000_init(void)
     C68k_Set_Fetch(&C68K, 0xed0000, 0xed3fff, (pointer)SRAM);
     C68k_Set_Fetch(&C68K, 0xf00000, 0xfbffff, (pointer)FONT);
     C68k_Set_Fetch(&C68K, 0xfc0000, 0xffffff, (pointer)IPL);
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+    m68k_set_cpu_type(M68K_CPU_TYPE_68000);
+    m68k_init();
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 }
 
 
@@ -121,7 +160,9 @@ void m68000_reset(void)
 	m68k.srh = 0x27; // Set supervisor mode
 #elif defined (HAVE_C68K)
 	C68k_Reset(&C68K);
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+	m68k_pulse_reset();
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 }
 
 
@@ -146,7 +187,9 @@ int m68000_execute(int cycles)
 	return m68k.cycles ;
 #elif defined (HAVE_C68K)
 	return C68k_Exec(&C68K, cycles);
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+        return m68k_execute(cycles);
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 }
 
 
@@ -165,7 +208,9 @@ void m68000_set_irq_line(int irqline, int state)
 
 //	C68k_Set_IRQ(&C68K, irqline, state);
 	C68k_Set_IRQ(&C68K, irqline);
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+	m68k_set_irq(irqline);
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 }
 
 
@@ -259,7 +304,33 @@ UINT32 m68000_get_reg(int regnum)
 
 	default: return 0;
 	}
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+	switch (regnum)
+	{
+	case M68K_PC:  return m68k_get_reg(NULL, M68K_REG_PC);
+	case M68K_USP: return m68k_get_reg(NULL, M68K_REG_USP);
+	case M68K_MSP: return m68k_get_reg(NULL, M68K_REG_MSP);
+	case M68K_SR:  return m68k_get_reg(NULL, M68K_REG_SR);
+	case M68K_D0:  return m68k_get_reg(NULL, M68K_REG_D0);
+	case M68K_D1:  return m68k_get_reg(NULL, M68K_REG_D1);
+	case M68K_D2:  return m68k_get_reg(NULL, M68K_REG_D2);
+	case M68K_D3:  return m68k_get_reg(NULL, M68K_REG_D3);
+	case M68K_D4:  return m68k_get_reg(NULL, M68K_REG_D4);
+	case M68K_D5:  return m68k_get_reg(NULL, M68K_REG_D5);
+	case M68K_D6:  return m68k_get_reg(NULL, M68K_REG_D6);
+	case M68K_D7:  return m68k_get_reg(NULL, M68K_REG_D7);
+	case M68K_A0:  return m68k_get_reg(NULL, M68K_REG_A0);
+	case M68K_A1:  return m68k_get_reg(NULL, M68K_REG_A1);
+	case M68K_A2:  return m68k_get_reg(NULL, M68K_REG_A2);
+	case M68K_A3:  return m68k_get_reg(NULL, M68K_REG_A3);
+	case M68K_A4:  return m68k_get_reg(NULL, M68K_REG_A4);
+	case M68K_A5:  return m68k_get_reg(NULL, M68K_REG_A5);
+	case M68K_A6:  return m68k_get_reg(NULL, M68K_REG_A6);
+	case M68K_A7:  return m68k_get_reg(NULL, M68K_REG_A7);
+
+	default: return 0;
+	}
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 }
 
 
@@ -346,7 +417,33 @@ void m68000_set_reg(int regnum, UINT32 val)
 #endif
 	default: break;
 	}
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+	switch (regnum)
+	{
+	case M68K_PC:  m68k_set_reg(M68K_REG_PC, val); break;
+	case M68K_USP: m68k_set_reg(M68K_REG_USP, val); break;
+	case M68K_MSP: m68k_set_reg(M68K_REG_MSP, val); break;
+	case M68K_SR:  m68k_set_reg(M68K_REG_SR, val); break;
+	case M68K_D0:  m68k_set_reg(M68K_REG_D0, val); break;
+	case M68K_D1:  m68k_set_reg(M68K_REG_D1, val); break;
+	case M68K_D2:  m68k_set_reg(M68K_REG_D2, val); break;
+	case M68K_D3:  m68k_set_reg(M68K_REG_D3, val); break;
+	case M68K_D4:  m68k_set_reg(M68K_REG_D4, val); break;
+	case M68K_D5:  m68k_set_reg(M68K_REG_D5, val); break;
+	case M68K_D6:  m68k_set_reg(M68K_REG_D6, val); break;
+	case M68K_D7:  m68k_set_reg(M68K_REG_D7, val); break;
+	case M68K_A0:  m68k_set_reg(M68K_REG_A0, val); break;
+	case M68K_A1:  m68k_set_reg(M68K_REG_A1, val); break;
+	case M68K_A2:  m68k_set_reg(M68K_REG_A2, val); break;
+	case M68K_A3:  m68k_set_reg(M68K_REG_A3, val); break;
+	case M68K_A4:  m68k_set_reg(M68K_REG_A4, val); break;
+	case M68K_A5:  m68k_set_reg(M68K_REG_A5, val); break;
+	case M68K_A6:  m68k_set_reg(M68K_REG_A6, val); break;
+	case M68K_A7:  m68k_set_reg(M68K_REG_A7, val); break;
+	default: break;
+	}
+
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 }
 
 

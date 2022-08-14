@@ -497,7 +497,9 @@ void Memory_Init(void)
 	cpu_setOPbase24((DWORD)m68000_get_reg(M68K_PC));
 #elif defined (HAVE_C68K)
     cpu_setOPbase24((DWORD)C68k_Get_PC(&C68K));
-#endif /* HAVE_C68K */
+#elif defined (HAVE_MUSASHI)
+    cpu_setOPbase24((DWORD)m68k_get_reg(NULL, M68K_REG_PC));
+#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
 }
 
 void 
