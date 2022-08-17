@@ -14,14 +14,16 @@
 
 #if defined (HAVE_CYCLONE)
 #include "cyclone.h"
+#elif defined (HAVE_M68000)
+#include "c68k.h"
 #elif defined (HAVE_C68K)
 #include "c68k/c68k.h"
 #elif defined (HAVE_MUSASHI)
 #include "musashi/m68k.h"
 #include "musashi/m68kcpu.h"
-#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
+#endif
 
-// MAME互換のレジスタ番号 (一部未対応)
+/* MAME互換のレジスタ番号 (一部未対応) */
 enum
 {
 	/* NOTE: M68K_SP fetches the current SP, be it USP, ISP, or MSP */
