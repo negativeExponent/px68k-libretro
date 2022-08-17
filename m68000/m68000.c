@@ -11,17 +11,24 @@
 #if defined (HAVE_CYCLONE)
 struct Cyclone m68k;
 typedef signed int s32;
+#elif defined (HAVE_M68000)
+#include "c68k.h"
+typedef signed int s32;
 #elif defined (HAVE_C68K)
 #include "c68k/c68k.h"
 #elif defined (HAVE_MUSASHI)
 #include "musashi/m68k.h"
 #include "musashi/m68kcpu.h"
-#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
+#endif
 
 #include "../x68k/x68kmemory.h"
 
+#if defined (HAVE_M68000)
+/* nothing */
+#else
 int m68000_ICountBk;
 int ICount;
+#endif
 
 #if defined (HAVE_CYCLONE)
 
@@ -37,12 +44,16 @@ unsigned int MyCheckPc(unsigned int pc)
 {
 
 
+<<<<<<< HEAD
   pc-= m68k.membase; // Get the real program counter
 /*
   if (!tracing) {
   	//p6logd("CheckPC 0x%08X\n", pc);
   }
 */
+=======
+  pc-= m68k.membase; /* Get the real program counter */
+>>>>>>> 8b3341b (Add C68K cpu (originally used by px68x))
   if (pc <= 0xbfffff) 			       					{ m68k.membase=(int) MEM; return m68k.membase+pc; }
   if ((pc >= 0xfc0000) && (pc <= 0xffffff))	{ m68k.membase=(int) IPL - 0xfc0000; return m68k.membase+pc; }
   if ((pc >= 0xc00000) && (pc <= 0xc7ffff)) m68k.membase=(int) GVRAM - 0xc00000;
@@ -51,7 +62,7 @@ unsigned int MyCheckPc(unsigned int pc)
   if ((pc >= 0xed0000) && (pc <= 0xed3fff))	m68k.membase=(int) SRAM - 0xed0000;
   if ((pc >= 0xf00000) && (pc <= 0xfbffff))	m68k.membase=(int) FONT - 0xf00000;
 
-  return m68k.membase+pc; // New program counter
+  return m68k.membase+pc; /* New program counter */
 }
 
 #elif defined (HAVE_MUSASHI)
@@ -121,6 +132,19 @@ void m68000_init(void)
 
 	CycloneInit();
 
+#elif defined (HAVE_M68000)
+    C68k_Init(&C68K);
+    C68k_Set_ReadB(&C68K, Memory_ReadB);
+    C68k_Set_ReadW(&C68K, Memory_ReadW);
+    C68k_Set_WriteB(&C68K, Memory_WriteB);
+    C68k_Set_WriteW(&C68K, Memory_WriteW);
+	C68k_Set_Fetch(&C68K, 0x000000, 0xbfffff, (uintptr_t)MEM);
+    C68k_Set_Fetch(&C68K, 0xc00000, 0xc7ffff, (uintptr_t)GVRAM);
+    C68k_Set_Fetch(&C68K, 0xe00000, 0xe7ffff, (uintptr_t)TVRAM);
+    C68k_Set_Fetch(&C68K, 0xea0000, 0xea1fff, (uintptr_t)SCSIIPL);
+    C68k_Set_Fetch(&C68K, 0xed0000, 0xed3fff, (uintptr_t)SRAM);
+    C68k_Set_Fetch(&C68K, 0xf00000, 0xfbffff, (uintptr_t)FONT);
+    C68k_Set_Fetch(&C68K, 0xfc0000, 0xffffff, (uintptr_t)IPL);
 #elif defined (HAVE_C68K)
     C68k_Init(&C68K, my_irqh_callback);
 #if 0
@@ -144,7 +168,7 @@ void m68000_init(void)
 #elif defined (HAVE_MUSASHI)
     m68k_set_cpu_type(M68K_CPU_TYPE_68000);
     m68k_init();
-#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
+#endif
 }
 
 
@@ -156,13 +180,13 @@ void m68000_reset(void)
 {
 #if defined (HAVE_CYCLONE)
 	CycloneReset(&m68k);
-	m68k.state_flags = 0; // Go to default state (not stopped, halted, etc.)
-	m68k.srh = 0x27; // Set supervisor mode
-#elif defined (HAVE_C68K)
+	m68k.state_flags = 0; /* Go to default state (not stopped, halted, etc.) */
+	m68k.srh = 0x27; /* Set supervisor mode */
+#elif defined (HAVE_M68000) || defined (HAVE_C68K)
 	C68k_Reset(&C68K);
 #elif defined (HAVE_MUSASHI)
 	m68k_pulse_reset();
-#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
+#endif
 }
 
 
@@ -185,11 +209,11 @@ int m68000_execute(int cycles)
 	m68k.cycles = cycles;
 	CycloneRun(&m68k);
 	return m68k.cycles ;
-#elif defined (HAVE_C68K)
+#elif defined (HAVE_M68000) || defined (HAVE_C68K)
 	return C68k_Exec(&C68K, cycles);
 #elif defined (HAVE_MUSASHI)
         return m68k_execute(cycles);
-#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
+#endif
 }
 
 
@@ -202,15 +226,16 @@ void m68000_set_irq_line(int irqline, int state)
 {
 #if defined (HAVE_CYCLONE)
 	m68k.irq = irqline;
-#elif defined (HAVE_C68K)
-//	if (irqline == IRQ_LINE_NMI)
-//		irqline = 7;
+#elif defined (HAVE_M68000)
+	if (irqline == IRQ_LINE_NMI)
+		irqline = 7;
 
-//	C68k_Set_IRQ(&C68K, irqline, state);
+	C68k_Set_IRQ(&C68K, irqline, state);
+#elif defined (HAVE_C68K)
 	C68k_Set_IRQ(&C68K, irqline);
 #elif defined (HAVE_MUSASHI)
 	m68k_set_irq(irqline);
-#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
+#endif
 }
 
 
@@ -220,7 +245,7 @@ void m68000_set_irq_line(int irqline, int state)
 
 void m68000_set_irq_callback(int (*callback)(int line))
 {
-//	C68k_Set_IRQ_Callback(&C68K, callback);
+/* C68k_Set_IRQ_Callback(&C68K, callback); */
 }
 
 
@@ -255,6 +280,31 @@ UINT32 m68000_get_reg(int regnum)
 			break;
 	}
 	return 0x0BADC0DE;
+#elif defined (HAVE_M68000)
+	switch (regnum)
+	{
+	case M68K_PC:  return C68k_Get_Reg(&C68K, C68K_PC);
+	case M68K_USP: return C68k_Get_Reg(&C68K, C68K_USP);
+	case M68K_MSP: return C68k_Get_Reg(&C68K, C68K_MSP);
+	case M68K_SR:  return C68k_Get_Reg(&C68K, C68K_SR);
+	case M68K_D0:  return C68k_Get_Reg(&C68K, C68K_D0);
+	case M68K_D1:  return C68k_Get_Reg(&C68K, C68K_D1);
+	case M68K_D2:  return C68k_Get_Reg(&C68K, C68K_D2);
+	case M68K_D3:  return C68k_Get_Reg(&C68K, C68K_D3);
+	case M68K_D4:  return C68k_Get_Reg(&C68K, C68K_D4);
+	case M68K_D5:  return C68k_Get_Reg(&C68K, C68K_D5);
+	case M68K_D6:  return C68k_Get_Reg(&C68K, C68K_D6);
+	case M68K_D7:  return C68k_Get_Reg(&C68K, C68K_D7);
+	case M68K_A0:  return C68k_Get_Reg(&C68K, C68K_A0);
+	case M68K_A1:  return C68k_Get_Reg(&C68K, C68K_A1);
+	case M68K_A2:  return C68k_Get_Reg(&C68K, C68K_A2);
+	case M68K_A3:  return C68k_Get_Reg(&C68K, C68K_A3);
+	case M68K_A4:  return C68k_Get_Reg(&C68K, C68K_A4);
+	case M68K_A5:  return C68k_Get_Reg(&C68K, C68K_A5);
+	case M68K_A6:  return C68k_Get_Reg(&C68K, C68K_A6);
+	case M68K_A7:  return C68k_Get_Reg(&C68K, C68K_A7);
+	default: return 0;
+	}
 #elif defined (HAVE_C68K)
 	switch (regnum)
 	{
@@ -330,7 +380,7 @@ UINT32 m68000_get_reg(int regnum)
 
 	default: return 0;
 	}
-#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
+#endif
 }
 
 
@@ -368,8 +418,33 @@ void m68000_set_reg(int regnum, UINT32 val)
 
 		
 		default: break;
-	}	
-#elif defined (HAVE_C68k)
+	}
+#elif defined (HAVE_M68K_C68k)
+	switch (regnum)
+	{
+	case M68K_PC:  C68k_Set_Reg(&C68K, C68K_PC, val); break;
+	case M68K_USP: C68k_Set_Reg(&C68K, C68K_USP, val); break;
+	case M68K_MSP: C68k_Set_Reg(&C68K, C68K_MSP, val); break;
+	case M68K_SR:  C68k_Set_Reg(&C68K, C68K_SR, val); break;
+	case M68K_D0:  C68k_Set_Reg(&C68K, C68K_D0, val); break;
+	case M68K_D1:  C68k_Set_Reg(&C68K, C68K_D1, val); break;
+	case M68K_D2:  C68k_Set_Reg(&C68K, C68K_D2, val); break;
+	case M68K_D3:  C68k_Set_Reg(&C68K, C68K_D3, val); break;
+	case M68K_D4:  C68k_Set_Reg(&C68K, C68K_D4, val); break;
+	case M68K_D5:  C68k_Set_Reg(&C68K, C68K_D5, val); break;
+	case M68K_D6:  C68k_Set_Reg(&C68K, C68K_D6, val); break;
+	case M68K_D7:  C68k_Set_Reg(&C68K, C68K_D7, val); break;
+	case M68K_A0:  C68k_Set_Reg(&C68K, C68K_A0, val); break;
+	case M68K_A1:  C68k_Set_Reg(&C68K, C68K_A1, val); break;
+	case M68K_A2:  C68k_Set_Reg(&C68K, C68K_A2, val); break;
+	case M68K_A3:  C68k_Set_Reg(&C68K, C68K_A3, val); break;
+	case M68K_A4:  C68k_Set_Reg(&C68K, C68K_A4, val); break;
+	case M68K_A5:  C68k_Set_Reg(&C68K, C68K_A5, val); break;
+	case M68K_A6:  C68k_Set_Reg(&C68K, C68K_A6, val); break;
+	case M68K_A7:  C68k_Set_Reg(&C68K, C68K_A7, val); break;
+	default: break;
+	}
+#elif defined (HAVE_C68K)
 	switch (regnum)
 	{
 #if 0
@@ -443,7 +518,7 @@ void m68000_set_reg(int regnum, UINT32 val)
 	default: break;
 	}
 
-#endif /* HAVE_C68K */ /* HAVE_MUSASHI */
+#endif
 }
 
 
@@ -456,8 +531,8 @@ void m68000_set_reg(int regnum, UINT32 val)
 STATE_SAVE( m68000 )
 {
 #if defined (HAVE_CYCLONE)
-// empty
-#elif defined (HAVE_C68K)
+/* empty */
+#elif defined (HAVE_M68000) || defined (HAVE_C68K)
 	int i;
 	UINT32 pc = C68k_Get_Reg(&C68K, C68K_PC);
 
@@ -478,14 +553,14 @@ STATE_SAVE( m68000 )
 	state_save_long(&C68K.HaltState, 1);
 	state_save_long(&C68K.IRQLine, 1);
 	state_save_long(&C68K.IRQState, 1);
-#endif /* HAVE_C68K */
+#endif
 }
 
 STATE_LOAD( m68000 )
 {
 #if defined (HAVE_CYCLONE)
-// empty
-#elif defined (HAVE_C68K)
+/* empty */
+#elif defined (HAVE_M68000) || defined (HAVE_C68K)
 	int i;
 	UINT32 pc;
 
@@ -508,7 +583,7 @@ STATE_LOAD( m68000 )
 	state_load_long(&C68K.IRQState, 1);
 
 	C68k_Set_Reg(&C68K, C68K_PC, pc);
-#endif /* HAVE_C68K */
+#endif
 }
 
 #endif /* SAVE_STATE */
