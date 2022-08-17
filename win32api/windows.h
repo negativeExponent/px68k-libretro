@@ -16,16 +16,9 @@ typedef	signed long	LONG;
 
 typedef	unsigned int	UINT;
 
-#ifdef HAVE_C68k
-#include "/m68000/c68k/core.h"
-typedef	u8	BYTE;
-typedef	u16	WORD;
-typedef	u32	DWORD;
-#else
 typedef	unsigned char	BYTE;
 typedef	unsigned short	WORD;
 typedef	unsigned int	DWORD;
-#endif
 
 typedef	int		BOOL;
 typedef	WORD		WPARAM;
