@@ -269,7 +269,7 @@ static void update_variable_disk_drive_swap(void)
 static bool set_eject_state(bool ejected)
 {
    if (disk.index == disk.total_images)
-      return true; //retroarch is trying to set "no disk in tray"
+      return true;
 
    if (ejected)
    {
@@ -469,11 +469,12 @@ static int HandleExtension(char *path, char *ext)
 
    return 0;
 }
-//Args for experimental_cmdline
+
+/* Args for experimental_cmdline */
 static char ARGUV[64][1024];
 static unsigned char ARGUC = 0;
 
-// Args for Core
+/* Args for Core */
 static char XARGV[64][1024];
 static const char* xargv_cmd[64];
 static int PARAMCOUNT = 0;
@@ -505,7 +506,7 @@ static bool read_m3u(const char *file)
       if (newline)
          *newline = '\0';
 
-      // Remove any beginning and ending quotes as these can cause issues when feeding the paths into command line later
+      /* Remove any beginning and ending quotes as these can cause issues when feeding the paths into command line later */
       if (line[0] == '"')
           memmove(line, line + 1, strlen(line));
 
@@ -646,15 +647,16 @@ static int pre_main(void)
 
       if (cfgload == 0)
       {
-         //Add_Option("-verbose");
-         //Add_Option(retro_system_tos);
-         //Add_Option("-8");
+         /* Add_Option("-verbose");
+         Add_Option(retro_system_tos);
+         Add_Option("-8"); */
       }
 
       Add_Option(RPATH);
    }
    else
-   { // Pass all cmdline args
+   {
+      /* Pass all cmdline args */
       for (i = 0; i < ARGUC; i++)
          Add_Option(ARGUV[i]);
    }
@@ -719,7 +721,7 @@ static void parse_cmdline(const char *argv)
             if (c == '"')
             {
                /* word goes from start_of_word to p-1 */
-               //... do something with the word ...
+               /* ... do something with the word ... */
                for (c2 = 0, p2 = start_of_word; p2 < p; p2++, c2++)
                   ARGUV[ARGUC][c2] = (unsigned char) *p2;
                
@@ -733,7 +735,7 @@ static void parse_cmdline(const char *argv)
             if (isspace(c))
             {
                /* word goes from start_of_word to p-1 */
-               //... do something with the word ...
+               /* ... do something with the word ... */
                for (c2 = 0, p2 = start_of_word; p2 <p; p2++, c2++)
                   ARGUV[ARGUC][c2] = (unsigned char) *p2;
 
@@ -964,13 +966,10 @@ static void update_variables(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      //fprintf(stderr, "value: %s\n", var.value);
       if (!strcmp(var.value, "disabled"))
          opt_analog = false;
       if (!strcmp(var.value, "enabled"))
          opt_analog = true;
-
-      //fprintf(stderr, "[libretro-test]: Analog: %s.\n",opt_analog?"ON":"OFF");
    }
 
    var.key = "px68k_adpcm_vol";
@@ -1155,17 +1154,6 @@ static void update_variables(void)
          Config.FrameRate = 1;
    }
 
-   var.key = "px68k_push_video_before_audio";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      if (!strcmp(var.value, "disabled"))
-         Config.PushVideoBeforeAudio = 0;
-      else if (!strcmp(var.value, "enabled"))
-         Config.PushVideoBeforeAudio = 1;
-   }
-
    var.key = "px68k_adjust_frame_rates";
    var.value = NULL;
 
@@ -1194,8 +1182,6 @@ static void update_variables(void)
 /************************************
  * libretro implementation
  ************************************/
-
-//static struct retro_system_av_info g_av_info;
 
 void retro_get_system_info(struct retro_system_info *info)
 {
@@ -1228,7 +1214,7 @@ void update_geometry(void)
    struct retro_system_av_info system_av_info;
    system_av_info.geometry.base_width = retrow;
    system_av_info.geometry.base_height = retroh;
-   system_av_info.geometry.aspect_ratio = (float)4.0/3.0;// retro_aspect;
+   system_av_info.geometry.aspect_ratio = (float)4.0/3.0;
    environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &system_av_info);
 }
 
@@ -1357,7 +1343,6 @@ void retro_init(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
    {
-      // if defined, use the system directory
       retro_system_directory = system_dir;
    }
 
@@ -1365,7 +1350,6 @@ void retro_init(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_CONTENT_DIRECTORY, &content_dir) && content_dir)
    {
-      // if defined, use the system directory
       retro_content_directory = content_dir;
    }
 
@@ -1373,12 +1357,10 @@ void retro_init(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir)
    {
-      // If save directory is defined use it, otherwise use system directory
       retro_save_directory = *save_dir ? save_dir : retro_system_directory;
    }
    else
    {
-      // make retro_save_directory the same in case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY is not implemented by the frontend
       retro_save_directory = retro_system_directory;
    }
 
@@ -1520,14 +1502,9 @@ void retro_run(void)
    }
    raudio_callback(soundbuf, NULL, soundbuf_size << 2);
 
-   if (Config.PushVideoBeforeAudio)
-      video_cb(videoBuffer, retrow, retroh, /*retrow*/ 800 << 1/*2*/);
-
    if (libretro_supports_midi_output && midi_cb.output_enabled())
       midi_cb.flush();
    
    audio_batch_cb((const int16_t*)soundbuf, soundbuf_size);
-
-   if (!Config.PushVideoBeforeAudio)
-      video_cb(videoBuffer, retrow, retroh, /*retrow*/ 800 << 1/*2*/);
+   video_cb(videoBuffer, retrow, retroh, /*retrow*/ 800 << 1/*2*/);
 }

@@ -52,7 +52,7 @@ typedef struct
 	int HwJoyHat;
 	int HwJoyBtn[8];
 	int NoWaitMode;
-	BYTE FrameRate;
+	int FrameRate;
 	int PushVideoBeforeAudio;
 	int AdjustFrameRates;
 	int AudioDesyncHack;
