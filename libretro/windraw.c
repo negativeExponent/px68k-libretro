@@ -129,7 +129,7 @@ void WinDraw_ChangeSize(void)
 			WindowY = TextDotY;
 		dif = WindowX - WindowY;
 		if ((dif > -32) && (dif < 32)) {
-			// 正方形に近い画面なら、としておこう
+			/* 正方形に近い画面なら、としておこう */
 			WindowX = (int)(WindowX * 1.25);
 		}
 		break;
@@ -156,16 +156,8 @@ void WinDraw_ChangeSize(void)
 	Mouse_ChangePos();
 }
 
-//static int dispflag = 0;
-void WinDraw_StartupScreen(void)
-{
-}
-
-void WinDraw_CleanupScreen(void)
-{
-}
-
-static void draw_kbd_to_tex(void);
+void WinDraw_StartupScreen(void) {}
+void WinDraw_CleanupScreen(void) {}
 
 int WinDraw_Init(void)
 {
@@ -177,8 +169,6 @@ int WinDraw_Init(void)
 	WinDraw_Pal16R = 0xf800;
 	WinDraw_Pal16G = 0x07e0;
 	WinDraw_Pal16B = 0x001f;
-
-	p6logd("R: %x, G: %x, B: %x\n", WinDraw_Pal16R, WinDraw_Pal16G, WinDraw_Pal16B);
 
 	ScrBuf = malloc(800 * 600 * 2);
 
@@ -208,12 +198,10 @@ WinDraw_Draw(void)
 
 	if (oldtextx != TextDotX) {
 		oldtextx = TextDotX;
-		p6logd("TextDotX: %d\n", TextDotX);
 		CHANGEAV=1;
 	}
 	if (oldtexty != TextDotY) {
 		oldtexty = TextDotY;
-		p6logd("TextDotY: %d\n", TextDotY);
 		CHANGEAV=1;
 	}
 
@@ -443,10 +431,7 @@ void WinDraw_DrawLine(void)
 {
 	int opaq, ton=0, gon=0, bgon=0, tron=0, pron=0, tdrawed=0;
 
-if(VLINE==-1){
-	p6logd("%d %d\n",VLINE,VLINE);
-	return;
-}
+	if (VLINE == (DWORD)-1 || VLINE >= 1024) return; /* area check */
 	if (!TextDirtyLine[VLINE]) return;
 	TextDirtyLine[VLINE] = 0;
 
@@ -454,8 +439,8 @@ if(VLINE==-1){
 	{
 	switch(VCReg0[1]&3)
 	{
-	case 0:					// 16 colors
-		if (VCReg0[1]&4)		// 1024dot
+	case 0:						/* 16 colors */
+		if (VCReg0[1]&4)		/* 1024dot */
 		{
 			if (VCReg2[1]&0x10)
 			{
@@ -471,11 +456,11 @@ if(VLINE==-1){
 				}
 			}
 		}
-		else				// 512dot
+		else				/* 512dot */
 		{
 			if ( (VCReg2[0]&0x10)&&(VCReg2[1]&1) )
 			{
-				Grp_DrawLine4SP((VCReg1[1]   )&3/*, 1*/);			// 半透明の下準備
+				Grp_DrawLine4SP((VCReg1[1]   )&3/*, 1*/);			/* 半透明の下準備 */
 				pron = tron = 1;
 			}
 			opaq = 1;
@@ -518,12 +503,12 @@ if(VLINE==-1){
 		break;
 	case 1:	
 	case 2:	
-		opaq = 1;		// 256 colors
-		if ( (VCReg1[1]&3) <= ((VCReg1[1]>>4)&3) )	// 同じ値の時は、GRP0が優先（ドラスピ）
+		opaq = 1;		/* 256 colors */
+		if ( (VCReg1[1]&3) <= ((VCReg1[1]>>4)&3) )	/* 同じ値の時は、GRP0が優先（ドラスピ）*/
 		{
 			if ( (VCReg2[0]&0x10)&&(VCReg2[1]&1) )
 			{
-				Grp_DrawLine8SP(0);			// 半透明の下準備
+				Grp_DrawLine8SP(0);			/* 半透明の下準備 */
 				tron = pron = 1;
 			}
 			if (VCReg2[1]&4)
@@ -550,7 +535,7 @@ if(VLINE==-1){
 		{
 			if ( (VCReg2[0]&0x10)&&(VCReg2[1]&1) )
 			{
-				Grp_DrawLine8SP(1);			// 半透明の下準備
+				Grp_DrawLine8SP(1);			/* 半透明の下準備 */
 				tron = pron = 1;
 			}
 			if (VCReg2[1]&4)
@@ -574,7 +559,7 @@ if(VLINE==-1){
 			}
 		}
 		break;
-	case 3:					// 65536 colors
+	case 3:					/* 65536 colors */
 		if (VCReg2[1]&15)
 		{
 			if ( (VCReg2[0]&0x14)==0x14 )
@@ -597,7 +582,7 @@ if(VLINE==-1){
 //		gdrawed = 1;				// GrpよりBGの方が上
 
 	if ( ((VCReg1[0]&0x30)>>2) < (VCReg1[0]&0x0c) )
-	{						// BGの方が上
+	{						/* BGの方が上 */
 		if ((VCReg2[1]&0x20)&&(Debug_Text))
 		{
 			Text_DrawLine(1);
@@ -620,7 +605,7 @@ if(VLINE==-1){
 		}
 	}
 	else
-	{						// Textの方が上
+	{						/* Textの方が上 */
 		if ((VCReg2[1]&0x40)&&(BG_Regs[8]&2)&&(!(BG_Regs[0x11]&2))&&(Debug_Sp))
 		{
 			int s1, s2;
@@ -641,7 +626,7 @@ if(VLINE==-1){
 				int i;
 				for (i = 16; i < TextDotX + 16; ++i)
 					BG_LineBuf[i] = TextPal[0];
-			} else {		// 20010120 （琥珀色）
+			} else {		/* 20010120 （琥珀色）*/
 				memset(&BG_LineBuf[16], 0, TextDotX * 2);
 			}
 			memset(Text_TrFlag, 0, TextDotX+16);
@@ -659,13 +644,15 @@ if(VLINE==-1){
 	opaq = 1;
 
 
-					// Pri = 2 or 3（最下位）に設定されている画面を表示
-					// プライオリティが同じ場合は、GRP<SP<TEXT？（ドラスピ、桃伝、YsIII等）
+		/* Pri = 2 or 3（最下位）に設定されている画面を表示
+		 *  プライオリティが同じ場合は、GRP<SP<TEXT？（ドラスピ、桃伝、YsIII等）
+		 */
 
-					// GrpよりTextが上にある場合にTextとの半透明を行うと、SPのプライオリティも
-					// Textに引きずられる？（つまり、Grpより下にあってもSPが表示される？）
+		/* GrpよりTextが上にある場合にTextとの半透明を行うと、SPのプライオリティも
+		 * Textに引きずられる？（つまり、Grpより下にあってもSPが表示される？）
+		 */
 
-					// KnightArmsとかを見ると、半透明のベースプレーンは一番上になるみたい…。
+		/* KnightArmsとかを見ると、半透明のベースプレーンは一番上になるみたい…。*/
 
 		if ( (VCReg1[0]&0x02) )
 		{
@@ -708,7 +695,7 @@ if(VLINE==-1){
 			tdrawed = 1;
 		}
 
-					// Pri = 1（2番目）に設定されている画面を表示
+		/* Pri = 1（2番目）に設定されている画面を表示 */
 		if ( ((VCReg1[0]&0x03)==0x01)&&(gon) )
 		{
 			WinDraw_DrawGrpLine(opaq);
@@ -757,7 +744,7 @@ if(VLINE==-1){
 			tdrawed = 1;
 		}
 
-					// Pri = 0（最優先）に設定されている画面を表示
+		/* Pri = 0（最優先）に設定されている画面を表示 */
 		if ( (!(VCReg1[0]&0x03))&&(gon) )
 		{
 			WinDraw_DrawGrpLine(opaq);
@@ -791,17 +778,17 @@ if(VLINE==-1){
 			opaq = 0;
 		}
 
-					// 特殊プライオリティ時のグラフィック
-		if ( ((VCReg2[0]&0x5c)==0x14)&&(pron) )	// 特殊Pri時は、対象プレーンビットは意味が無いらしい（ついんびー）
+		/* 特殊プライオリティ時のグラフィック */
+		if ( ((VCReg2[0]&0x5c)==0x14)&&(pron) )	/* 特殊Pri時は、対象プレーンビットは意味が無いらしい（ついんびー）*/
 		{
 			WinDraw_DrawPriLine();
 		}
-		else if ( ((VCReg2[0]&0x5d)==0x1c)&&(tron) )	// 半透明時に全てが透明なドットをハーフカラーで埋める
-		{						// （AQUALES）
+		else if ( ((VCReg2[0]&0x5d)==0x1c)&&(tron) )	/* 半透明時に全てが透明なドットをハーフカラーで埋める */
+		{						/* （AQUALES） */
 
 #define _DL_SUB(SUFFIX) \
-{								\
-	w = Grp_LineBufSP[i];					\
+{														\
+	w = Grp_LineBufSP[i];								\
 	if (w != 0 && (ScrBuf##SUFFIX[adr] & 0xffff) == 0)	\
 		ScrBuf##SUFFIX[adr] = (w & Pal_HalfMask) >> 1;	\
 }
@@ -834,16 +821,16 @@ if(VLINE==-1){
 /********** menu 関連ルーチン **********/
 
 struct _px68k_menu {
-	WORD *sbp;  // surface buffer ptr
-	WORD *mlp; // menu locate ptr
-	WORD mcolor; // color of chars to write
-	WORD mbcolor; // back ground color of chars to write
+	WORD *sbp;  /* surface buffer ptr */
+	WORD *mlp; /* menu locate ptr */
+	WORD mcolor; /* color of chars to write */
+	WORD mbcolor; /* back ground color of chars to write */
 	int ml_x;
 	int ml_y;
-	int mfs; // menu font size;
+	int mfs; /* menu font size; */
 } p6m;
 
-// 画面タイプを変更する
+/* 画面タイプを変更する */
 enum ScrType {x68k, pc98};
 int scr_type = x68k;
 
@@ -884,16 +871,17 @@ static WORD jis2idx(WORD jc)
 #define MENU_WIDTH 800
 
 
-// fs : font size : 16 or 24
-// 半角文字の場合は16bitの上位8bitにデータを入れておくこと
-// (半角or全角の判断ができるように)
+/* fs : font size : 16 or 24
+ * 半角文字の場合は16bitの上位8bitにデータを入れておくこと
+ * (半角or全角の判断ができるように)
+ */
 static DWORD get_font_addr(WORD sjis, int fs)
 {
 	WORD jis, j_idx;
 	uint8_t jhi;
-	int fsb; // file size in bytes
+	int fsb; /* file size in bytes */
 
-	// 半角文字
+	/* 半角文字 */
 	if (isHankaku(sjis >> 8)) {
 		switch (fs) {
 		case 8:
@@ -907,7 +895,7 @@ static DWORD get_font_addr(WORD sjis, int fs)
 		}
 	}
 
-	// 全角文字
+	/* 全角文字 */
 	if (fs == 16) {
 		fsb = 2 * 16;
 	} else if (fs == 24) {
@@ -921,36 +909,36 @@ static DWORD get_font_addr(WORD sjis, int fs)
 	jhi = (uint8_t)(jis >> 8);
 
 	if (jhi >= 0x21 && jhi <= 0x28) {
-		// 非漢字
+		/* 非漢字 */
 		return  ((fs == 16)? 0x0 : 0x40000) + j_idx * fsb;
 	} else if (jhi >= 0x30 && jhi <= 0x74) {
-		// 第一水準/第二水準
+		/* 第一水準/第二水準 */
 		return  ((fs == 16)? 0x5e00 : 0x4d380) + j_idx * fsb;
 	} else {
-		// ここにくることはないはず
+		/* ここにくることはないはず */
 		return -1;
 	}
 }
 
-// RGB565
+/* RGB565 */
 static void set_mcolor(WORD c)
 {
 	p6m.mcolor = c;
 }
 
-// mbcolor = 0 なら透明色とする
+/* mbcolor = 0 なら透明色とする */
 static void set_mbcolor(WORD c)
 {
 	p6m.mbcolor = c;
 }
 
-// グラフィック座標
+/* グラフィック座標 */
 static void set_mlocate(int x, int y)
 {
 	p6m.ml_x = x, p6m.ml_y = y;
 }
 
-// キャラクタ文字の座標 (横軸は1座標が半角文字幅になる)
+/* キャラクタ文字の座標 (横軸は1座標が半角文字幅になる) */
 static void set_mlocateC(int x, int y)
 {
 	p6m.ml_x = x * p6m.mfs / 2, p6m.ml_y = y * p6m.mfs;
@@ -961,7 +949,7 @@ static void set_sbp(WORD *p)
 	p6m.sbp = p;
 }
 
-// menu font size (16 or 24)
+/* menu font size (16 or 24) */
 static void set_mfs(int fs)
 {
 	p6m.mfs = fs;
@@ -973,9 +961,10 @@ static WORD *get_ml_ptr()
 	return p6m.mlp;
 }
 
-// ・半角文字の場合は16bitの上位8bitにデータを入れておくこと
-//   (半角or全角の判断ができるように)
-// ・表示した分cursorは先に移動する
+/* ・半角文字の場合は16bitの上位8bitにデータを入れておくこと
+ *  (半角or全角の判断ができるように)
+ *・表示した分cursorは先に移動する
+ */
 static void draw_char(WORD sjis)
 {
 	DWORD f;
@@ -993,7 +982,7 @@ static void draw_char(WORD sjis)
 	if (f < 0)
 		return;
 
-	// h=8は半角のみ
+	/* h=8は半角のみ */
 	w = (h == 8)? 8 : (isHankaku(sjis >> 8)? h / 2 : h);
 
 	for (i = 0; i < h; i++) {
@@ -1025,8 +1014,9 @@ static void draw_str(char *cp)
 
 	for (i = 0; i < len; i++) {
 		if (isHankaku(*s)) {
-			// 最初の8bitで半全角を判断するので半角の場合は
-			// あらかじめ8bit左シフトしておく
+			/* 最初の8bitで半全角を判断するので半角の場合は
+			 * あらかじめ8bit左シフトしておく
+			 */
 			draw_char((WORD)*s << 8);
 			s++;
 		} else {
@@ -1035,7 +1025,7 @@ static void draw_str(char *cp)
 			s += 2;
 			i++;
 		}
-		// 8x8描画(ソフトキーボードのFUNCキーは文字幅を縮める)
+		/* 8x8描画(ソフトキーボードのFUNCキーは文字幅を縮める) */
 		if (p6m.mfs == 8) {
 			p6m.ml_x -= 3;
 		}
@@ -1067,14 +1057,14 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 	int i, drv;
 	char tmp[256];
 
-// ソフトウェアキーボード描画時にset_sbp(kbd_buffer)されているので戻す
+/* ソフトウェアキーボード描画時にset_sbp(kbd_buffer)されているので戻す */
 
 	set_sbp(menu_buffer);
 	set_mfs(Config.MenuFontSize ? 24 : 16);
 
-	// タイトル
+	/* タイトル */
 	if (scr_type == x68k) {
-		set_mcolor(0x07ff); // cyan
+		set_mcolor(0x07ff); /* cyan */
 		set_mlocateC(0, 0);
 		draw_str(twaku_str);
 		set_mlocateC(0, 1);
@@ -1098,16 +1088,12 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 		draw_str(pc98_title2_str);
 	}
 
-	// 真ん中
+	/* 真ん中 */
 	if (scr_type == x68k) {
 		set_mcolor(0xffff);
-		//set_mlocate(3 * p6m.mfs / 2, 3.5 * p6m.mfs);
-		//draw_str(waku_val_str[0]);
-		//set_mlocate(17 * p6m.mfs / 2, 3.5 * p6m.mfs);
-		//draw_str(waku_val_str[1]);
 
-		// 真ん中枠
-		set_mcolor(0xffe0); // yellow
+		/* 真ん中枠 */
+		set_mcolor(0xffe0); /* yellow */
 		set_mlocateC(1, 4);
 		draw_str(waku_str);
 		for (i = 5; i < 10; i++) {
@@ -1118,13 +1104,13 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 		draw_str(waku3_str);
 	}
 
-	// アイテム/キーワード
+	/* アイテム/キーワード */
 	set_mcolor(0xffff);
 	for (i = 0; i < 5; i++) {
 		set_mlocateC(3, 5 + i);
 		if (menu_state == ms_key && i == (mkey_y - mkey_pos)) {
 			set_mcolor(0x0);
-			set_mbcolor(0xffe0); // yellow);
+			set_mbcolor(0xffe0); /* yellow */
 		} else {
 			set_mcolor(0xffff);
 			set_mbcolor(0x0);
@@ -1132,14 +1118,14 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 		draw_str(menu_item_key[i + mkey_pos]);
 	}
 
-	// アイテム/現在値
+	/* アイテム/現在値 */
 	set_mcolor(0xffff);
 	set_mbcolor(0x0);
 	for (i = 0; i < 5; i++) {
 		if ((menu_state == ms_value || menu_state == ms_hwjoy_set)
 		    && i == (mkey_y - mkey_pos)) {
 			set_mcolor(0x0);
-			set_mbcolor(0xffe0); // yellow);
+			set_mbcolor(0xffe0); /* yellow */
 		} else {
 			set_mcolor(0xffff);
 			set_mbcolor(0x0);
@@ -1162,7 +1148,7 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 			if (p[0] == '\0') {
 				draw_str(" -- no disk --");
 			} else {
-				// 先頭のカレントディレクトリ名を表示しない
+				/* 先頭のカレントディレクトリ名を表示しない */
 				char ptr[PATH_MAX];
 				if (!strncmp(cur_dir_str, p, cur_dir_slen))
 					strncpy(ptr, p + cur_dir_slen, sizeof(ptr));
@@ -1177,28 +1163,22 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 	}
 
 	if (scr_type == x68k) {
-		// 下枠
-		set_mcolor(0x07ff); // cyan
+		/* 下枠 */
+		set_mcolor(0x07ff); /* cyan */
 		set_mbcolor(0x0);
 		set_mlocateC(0, 11);
 		draw_str(swaku_str);
 		set_mlocateC(0, 12);
 		draw_str(swaku2_str);
-		//set_mlocateC(0, 15);
-		//draw_str(swaku2_str);
 		set_mlocateC(0, 13);
 		draw_str(swaku3_str);
 	}
 
-	// キャプション
+	/* キャプション */
 	set_mcolor(0xffff);
 	set_mbcolor(0x0);
 	set_mlocateC(2, 12);
 	draw_str(menu_item_desc[mkey_y]);
-	//if (menu_state == ms_value) {
-		//set_mlocateC(2, 15);
-		//draw_str(item_cap2[mkey_y]);
-	//}
 
 	videoBuffer=(uint16_t*)menu_buffer;
 
@@ -1209,11 +1189,9 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 	int i;
 	char ptr[PATH_MAX];
 
-	// 下枠
-	//set_mcolor(0xf800); // red
-	//set_mcolor(0xf81f); // magenta
+	/* 下枠 */
 	set_mcolor(0xffff);
-	set_mbcolor(0x1); // 0x0だと透過モード
+	set_mbcolor(0x1); /* 0x0だと透過モード */
 	set_mlocateC(1, 1);
 	draw_str(swaku_str);
 	for (i = 2; i < 16; i++) {
@@ -1234,7 +1212,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 			set_mcolor(0xffff);
 			set_mbcolor(0x1);
 		}
-		// ディレクトリだったらファイル名を[]で囲う
+		/* ディレクトリだったらファイル名を[]で囲う */
 		set_mlocateC(3, i + 2);
 		if (mfl->type[i + mfl->ptr]) draw_str("[");
 		strncpy(ptr, mfl->name[i + mfl->ptr], sizeof(ptr));
@@ -1243,7 +1221,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 		if (mfl->type[i + mfl->ptr]) draw_str("]");
 	}
 
-	set_mbcolor(0x0); // 透過モードに戻しておく
+	set_mbcolor(0x0); /* 透過モードに戻しておく */
 
 	videoBuffer=(uint16_t*)menu_buffer;
 }

@@ -146,7 +146,6 @@ WinX68k_LoadROMs(void)
 
 	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(BIOSFILE); ++i) {
 		fp = File_OpenCurDir((char *)BIOSFILE[i]);
-		p6logd("fp:%d (%s)\n",fp,(char *)BIOSFILE[i]);
 	}
 
 	if (fp == 0) {
@@ -234,9 +233,6 @@ WinX68k_Reset(void)
 	SRAM_VirusCheck();
 	//CDROM_Init();
 	DSound_Play();
-
-	// add retro log
-	p6logd("Restarting PX68K...\n");
 
 	return TRUE;
 }
@@ -336,8 +332,6 @@ void WinX68k_Exec(void)
 //	}
 
 	if(clkdiv != old_clkdiv || Config.ram_size != old_ram_size){
-		p6logd("CPU Clock: %d%s\n",clkdiv,"MHz");
-		p6logd("RAM Size: %ld%s\n",Config.ram_size/1000000,"MB");
 		old_clkdiv = clkdiv;
 		old_ram_size = Config.ram_size;
 	}
@@ -501,8 +495,6 @@ int menu_mode = menu_out;
 #endif
 extern "C" int pmain(int argc, char *argv[])
 {
-	p6logd("PX68K Ver.%s\n", PX68KVERSTR);
-
 #ifdef RFMDRV
 	struct sockaddr_in dest;
 
@@ -519,7 +511,6 @@ extern "C" int pmain(int argc, char *argv[])
 		return 1;
 
 	file_setcd(winx68k_dir);
-	p6logd("%s\n", winx68k_dir);
 
 	LoadConfig();
 

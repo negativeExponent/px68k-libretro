@@ -221,7 +221,6 @@ else	strcpy(cur_dir_str, CUR_DIR_STR);
 	strcat(cur_dir_str, "/");
 #endif
 	cur_dir_slen = strlen(cur_dir_str);
-	p6logd("cur_dir_str %s %d\n", cur_dir_str, cur_dir_slen);
 
 	for (i = 0; i < 4; i++) {
 		strcpy(mfl.dir[i], cur_dir_str);

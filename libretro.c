@@ -623,7 +623,6 @@ static int pre_main(void)
       xargv_cmd[i] = NULL;
 
    if (no_content) {
-      p6logd("PARAMCOUNT = %d\n", PARAMCOUNT);
       PARAMCOUNT = 0;
       goto run_pmain;
    }
@@ -665,19 +664,6 @@ static int pre_main(void)
    {
       xargv_cmd[i] = (char*)(XARGV[i]);
    }
-
-   /* Log successfully loaded paths when loading from m3u */
-   if (isM3U)
-   {
-      p6logd("%s\n", "Loading from an m3u file ...");
-      for (i = 0; i < disk.total_images; i++)
-         p6logd("index %d: %s\n", i + 1, disk.path[i]);
-   }
-
-   /* List arguments to be passed to core */
-   p6logd("%s\n", "Parsing arguments ...");
-   for (i = 0; i < PARAMCOUNT; i++)
-      p6logd("%d : %s\n", i, xargv_cmd[i]);
 
 run_pmain:
    pmain(PARAMCOUNT, (char **)xargv_cmd);
@@ -1289,8 +1275,6 @@ bool retro_load_game(const struct retro_game_info *info)
          return false;
    }
 
-   p6logd("LOAD EMU\n");
-
    return true;
 }
 
@@ -1410,7 +1394,6 @@ void retro_init(void)
 void retro_deinit(void)
 {
    end_loop_retro();
-   p6logd("Retro DeInit\n");
    libretro_supports_input_bitmasks = 0;
    libretro_supports_midi_output = 0;
 }
@@ -1456,7 +1439,6 @@ void retro_run(void)
    {
       pre_main();
       firstcall = 0;
-      p6logd("INIT done\n");
       update_variables();
       update_variable_midi_interface();
       soundbuf_size = SNDSZ;
@@ -1482,8 +1464,6 @@ void retro_run(void)
          CHANGEAV = 0;
       }
       soundbuf_size = SNDSZ;
-      p6logd("w:%d h:%d a:%.3f\n", retrow, retroh, (float)(4.0/3.0));
-      p6logd("fps:%.2f soundrate:%d\n", FRAMERATE, (int)SOUNDRATE);
    }
 
    input_poll_cb();

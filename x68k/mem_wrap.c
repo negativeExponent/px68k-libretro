@@ -570,7 +570,6 @@ AdrError(DWORD adr, DWORD unknown)
 	(void)adr;
 	(void)unknown;
 	p6logd("AdrError: %x\n", adr);
-	//	assert(0);
 }
 
 void
@@ -582,5 +581,4 @@ BusError(DWORD adr, DWORD unknown)
 
 	p6logd("BusError: %x\n", adr);
 	BusErrHandling = 1;
-	//assert(0);
 }
