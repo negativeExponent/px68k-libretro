@@ -46,49 +46,6 @@ FAKE_GetLastError(VOID)
 	return NO_ERROR;
 }
 
-WINMMAPI MMRESULT WINAPI
-midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
-{
-	return !MIDIERR_STILLPLAYING;	// (¤©
-}
-
-WINMMAPI MMRESULT WINAPI
-midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
-{
-	return MMSYSERR_NOERROR;
-}
-
-WINMMAPI MMRESULT WINAPI
-midiOutShortMsg(HMIDIOUT hmo, DWORD dwMsg)
-{
-	return MMSYSERR_NOERROR;
-}
-
-WINMMAPI MMRESULT WINAPI
-midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
-{
-	return MMSYSERR_NOERROR;
-}
-
-WINMMAPI MMRESULT WINAPI
-midiOutOpen(LPHMIDIOUT phmo, UINT uDeviceID, DWORD dwCallback,
-    DWORD dwInstance, DWORD fdwOpen)
-{
-	return !MMSYSERR_NOERROR;	// (¤£
-}
-
-WINMMAPI MMRESULT WINAPI
-midiOutClose(HMIDIOUT hmo)
-{
-	return MMSYSERR_NOERROR;
-}
-
-WINMMAPI MMRESULT WINAPI
-midiOutReset(HMIDIOUT hmo)
-{
-	return MMSYSERR_NOERROR;
-}
-
 static int _WritePrivateProfileString_subr(
 			FILE **, long, long, LPCSTR, LPCSTR);
 
