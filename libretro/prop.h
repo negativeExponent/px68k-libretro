@@ -54,7 +54,6 @@ typedef struct
 	int HwJoyBtn[8];
 	int NoWaitMode;
 	uint8_t FrameRate;
-	int PushVideoBeforeAudio;
 	int AdjustFrameRates;
 	int AudioDesyncHack;
 	int MenuFontSize; // font size of menu, 0 = normal, 1 = large

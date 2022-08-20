@@ -360,17 +360,6 @@ struct retro_core_option_definition option_defs_us[] = {
       "Full Frame"
    },
    {
-      "px68k_push_video_before_audio",
-      "Push Video before Audio",
-      "Prioritize reducing video latency over audio latency and/or stuttering.",
-      {
-         { "disabled", NULL},
-         { "enabled",  NULL},
-         { NULL,       NULL },
-      },
-      "disabled"
-   },
-   {
       "px68k_adjust_frame_rates",
       "Adjust Frame Rates",
       "For compatibility with modern displays, slightly adjust frame rates reported to frontend in order to reduce the chances of audio stuttering.  Disable to use actual frame rates.",
