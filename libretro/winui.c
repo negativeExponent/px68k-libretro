@@ -70,22 +70,22 @@
 
 #include "fmg_wrap.h"
 
-extern	WORD		FrameCount;
-	int		UI_MouseFlag = 0;
-	int		UI_MouseX = -1, UI_MouseY = -1;
+extern	uint16_t		FrameCount;
+	int32_t		UI_MouseFlag = 0;
+	int32_t		UI_MouseX = -1, UI_MouseY = -1;
 
 	uint8_t		MenuClearFlag = 0;
 
 	uint8_t		Debug_Text=1, Debug_Grp=1, Debug_Sp=1;
 
 	char		filepath[MAX_PATH] = ".";
-	int		fddblink = 0;
-	int		fddblinkcount = 0;
+	int32_t		fddblink = 0;
+	int32_t		fddblinkcount = 0;
 
-	DWORD		LastClock[4] = {0, 0, 0, 0};
+	uint32_t		LastClock[4] = {0, 0, 0, 0};
 
 char cur_dir_str[MAX_PATH];
-int cur_dir_slen;
+int32_t cur_dir_slen;
 
 struct menu_flist mfl;
 
@@ -94,7 +94,7 @@ struct menu_flist mfl;
 #define MENU_NUM 5 //13
 #define MENU_WINDOW 7
 
-int mval_y[] = {
+int32_t mval_y[] = {
 	0,
 	0,
 	0,
@@ -133,20 +133,20 @@ char menu_items[][15][30] = {
 	{"dummy", "EJECT", ""}
 };
 
-static void menu_system(int v);
-static void menu_joy_or_mouse(int v);
-static void menu_create_flist(int v);
-static void menu_frame_skip(int v);
-static void menu_sound_rate(int v);
-static void menu_vkey_size(int v);
-static void menu_vbtn_swap(int v);
-static void menu_hwjoy_setting(int v);
-static void menu_nowait(int v);
-static void menu_joykey(int v);
+static void menu_system(int32_t v);
+static void menu_joy_or_mouse(int32_t v);
+static void menu_create_flist(int32_t v);
+static void menu_frame_skip(int32_t v);
+static void menu_sound_rate(int32_t v);
+static void menu_vkey_size(int32_t v);
+static void menu_vbtn_swap(int32_t v);
+static void menu_hwjoy_setting(int32_t v);
+static void menu_nowait(int32_t v);
+static void menu_joykey(int32_t v);
 
 struct _menu_func {
-	void (*func)(int v);
-	int imm;
+	void (*func)(int32_t v);
+	int32_t imm;
 };
 
 struct _menu_func menu_func[] = {
@@ -157,7 +157,7 @@ struct _menu_func menu_func[] = {
 	{menu_create_flist, 0}
 };
 
-int WinUI_get_drv_num(int key)
+int32_t WinUI_get_drv_num(int32_t key)
 {
 	char *s = menu_item_key[key];
 
@@ -170,7 +170,7 @@ int WinUI_get_drv_num(int key)
 	}
 }
 
-static void menu_hwjoy_print(int v)
+static void menu_hwjoy_print(int32_t v)
 {
 	/*if (v <= 1) {
 		sprintf(menu_items[M_HJS][v], "Axis%d(%s): %d",
@@ -192,7 +192,7 @@ static void menu_hwjoy_print(int v)
 void
 WinUI_Init(void)
 {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 11; i++) {
 		menu_hwjoy_print(i);
@@ -231,7 +231,7 @@ float VKey_scale[] = {3.0, 2.5, 2.0, 1.5, 1.25, 1.0};
 
 float WinUI_get_vkscale(void)
 {
-	int n = Config.VkeyScale;
+	int32_t n = Config.VkeyScale;
 
 	// failsafe against invalid values
 	if (n < 0 || n >= sizeof(VKey_scale)/sizeof(float)) {
@@ -240,11 +240,11 @@ float WinUI_get_vkscale(void)
 	return VKey_scale[n];
 }
 
-int menu_state = ms_key;
-int mkey_y = 0;
-int mkey_pos = 0;
+int32_t menu_state = ms_key;
+int32_t mkey_y = 0;
+int32_t mkey_pos = 0;
 
-static void menu_system(int v)
+static void menu_system(int32_t v)
 {
 	switch (v) {
 	case 0 :
@@ -256,7 +256,7 @@ static void menu_system(int v)
 	}
 }
 
-static void menu_joy_or_mouse(int v)
+static void menu_joy_or_mouse(int32_t v)
 {
 	Config.JoyOrMouse = v;
 	Mouse_StartCapture(v == 1);
@@ -273,7 +273,7 @@ static void upper(char *s)
 	}
 }
 
-static void switch_mfl(int a, int b)
+static void switch_mfl(int32_t a, int32_t b)
 {
 	// exchange 2 values in mfl list
 	char name_tmp[MAX_PATH];
@@ -294,9 +294,9 @@ extern char slash;
 extern char base_dir[MAX_PATH];
 #endif
 
-static void menu_create_flist(int v)
+static void menu_create_flist(int32_t v)
 {
-	int drv;
+	int32_t drv;
 	//file extension of FD image
 	char support[] = "D8888DHDMDUP2HDDIMXDFIMG";
 
@@ -326,7 +326,7 @@ static void menu_create_flist(int v)
 	DIR *dp;
 	struct dirent *dent;
 	struct stat buf;
-	int i, len;
+	int32_t i, len;
 	char *n, ext[4], *p;
 	char ent_name[MAX_PATH];
 
@@ -402,8 +402,8 @@ static void menu_create_flist(int v)
 	// Sorting mfl!
 	// Folder first, than files
 	// buble sort glory
-	for (int a=0; a<i-1; a++) {
-		for (int b=a+1; b<i; b++) {
+	for (int32_t a=0; a<i-1; a++) {
+		for (int32_t b=a+1; b<i; b++) {
 			if (mfl.type[a]<mfl.type[b])
 				switch_mfl(a, b);
 			if ((mfl.type[a]==mfl.type[b]) && (strcasecmp(mfl.name[a], mfl.name[b])>0))
@@ -412,7 +412,7 @@ static void menu_create_flist(int v)
 	}
 }
 
-static void menu_frame_skip(int v)
+static void menu_frame_skip(int32_t v)
 {
 	if (v == 0) {
 		Config.FrameRate = 7;
@@ -429,7 +429,7 @@ static void menu_frame_skip(int v)
 	}
 }
 
-static void menu_sound_rate(int v)
+static void menu_sound_rate(int32_t v)
 {
 	if (v == 0) {
 		Config.SampleRate = 0;
@@ -444,36 +444,36 @@ static void menu_sound_rate(int v)
 	}
 }
 
-static void menu_vkey_size(int v)
+static void menu_vkey_size(int32_t v)
 {
 	Config.VkeyScale = v;
 }
 
-static void menu_vbtn_swap(int v)
+static void menu_vbtn_swap(int32_t v)
 {
 	Config.VbtnSwap = v;
 }
 
-static void menu_hwjoy_setting(int v)
+static void menu_hwjoy_setting(int32_t v)
 {
 	menu_state = ms_hwjoy_set;
 }
 
-static void menu_nowait(int v)
+static void menu_nowait(int32_t v)
 {
 	Config.NoWaitMode = v;
 }
 
-static void menu_joykey(int v)
+static void menu_joykey(int32_t v)
 {
 	Config.JoyKey = v;
 }
 
 // ex. ./hoge/.. -> ./
 // ( ./ ---down hoge dir--> ./hoge ---up hoge dir--> ./hoge/.. )
-static void shortcut_dir(int drv)
+static void shortcut_dir(int32_t drv)
 {
-	int i, len, found = 0;
+	int32_t i, len, found = 0;
 	char *p;
 
 	// len is larger than 2
@@ -501,16 +501,16 @@ static void shortcut_dir(int drv)
 	}
 }
 
-int speedup_joy[0xff] = {0};
+int32_t speedup_joy[0xff] = {0};
 
-int WinUI_Menu(int first)
+int32_t WinUI_Menu(int32_t first)
 {
-	int i, n;
-	int cursor0;
+	int32_t i, n;
+	int32_t cursor0;
 	uint8_t joy;
-	int menu_redraw = 0;
-	int pad_changed = 0;
-	int mfile_redraw = 0;
+	int32_t menu_redraw = 0;
+	int32_t pad_changed = 0;
+	int32_t mfile_redraw = 0;
 
 	if (first) {
 		menu_state = ms_key;
@@ -655,7 +655,7 @@ int WinUI_Menu(int first)
 		case ms_key:
 			break;
 		case ms_value:
-			for (int ii = 0; ii<10; ii++) {
+			for (int32_t ii = 0; ii<10; ii++) {
 				if (menu_items[mkey_y][mval_y[mkey_y] + 1][0] != '\0') {
 					mval_y[mkey_y]++;
 
@@ -668,7 +668,7 @@ int WinUI_Menu(int first)
 			}
 			break;
 		case ms_file:
-			for (int ii=0; ii<10; ii++) {
+			for (int32_t ii=0; ii<10; ii++) {
 				if (mfl.y == 13) {
 					if (mfl.ptr + 14 < mfl.num
 					    && mfl.ptr < MFL_MAX - 13) {
@@ -687,7 +687,7 @@ int WinUI_Menu(int first)
 	}
 
 	if (!(joy & JOY_TRG1)) {
-		int drv, y;
+		int32_t drv, y;
 		switch (menu_state) {
 		case ms_key:
 			menu_state = ms_value;

@@ -3,14 +3,14 @@
 
 void XDF_Init(void);
 void XDF_Cleanup(void);
-int XDF_SetFD(int drive, char* filename);
-int XDF_Eject(int drive);
-int XDF_Seek(int drv, int trk, FDCID* id);
-int XDF_ReadID(int drv, FDCID* id);
-int XDF_WriteID(int drv, int trk, unsigned char* buf, int num);
-int XDF_Read(int drv, FDCID* id, unsigned char* buf);
-int XDF_ReadDiag(int drv, FDCID* id, FDCID* retid, unsigned char* buf);
-int XDF_Write(int drv, FDCID* id, unsigned char* buf, int del);
-int XDF_GetCurrentID(int drv, FDCID* id);
+int32_t XDF_SetFD(int32_t drive, char* filename);
+int32_t XDF_Eject(int32_t drive);
+int32_t XDF_Seek(int32_t drv, int32_t trk, FDCID* id);
+int32_t XDF_ReadID(int32_t drv, FDCID* id);
+int32_t XDF_WriteID(int32_t drv, int32_t trk, unsigned char* buf, int32_t num);
+int32_t XDF_Read(int32_t drv, FDCID* id, unsigned char* buf);
+int32_t XDF_ReadDiag(int32_t drv, FDCID* id, FDCID* retid, unsigned char* buf);
+int32_t XDF_Write(int32_t drv, FDCID* id, unsigned char* buf, int32_t del);
+int32_t XDF_GetCurrentID(int32_t drv, FDCID* id);
 
 #endif

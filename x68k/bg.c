@@ -1,7 +1,7 @@
-// ---------------------------------------------------------------------------------------
-//  BG.C - BG¤È¥¹¥×¥é¥¤¥È
-//  ToDo¡§Æ©ÌÀ¿§¤Î½èÍý¥Á¥§¥Ã¥¯¡ÊÆÃ¤ËÂÐText´Ö¡Ë
-// ---------------------------------------------------------------------------------------
+/*
+ *  BG.C - BGã¨ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆ
+ *  ToDoï¼šé€æ˜Žè‰²ã®å‡¦ç†ãƒã‚§ãƒƒã‚¯ï¼ˆç‰¹ã«å¯¾Texté–“ï¼‰
+ */
 
 #include "common.h"
 #include "windraw.h"
@@ -17,15 +17,15 @@
 uint8_t	BG[0x8000];
 uint8_t	Sprite_Regs[0x800];
 uint8_t	BG_Regs[0x12];
-WORD	BG_CHREND = 0;
-WORD	BG_BG0TOP = 0;
-WORD	BG_BG0END = 0;
-WORD	BG_BG1TOP = 0;
-WORD	BG_BG1END = 0;
+uint16_t	BG_CHREND = 0;
+uint16_t	BG_BG0TOP = 0;
+uint16_t	BG_BG0END = 0;
+uint16_t	BG_BG1TOP = 0;
+uint16_t	BG_BG1END = 0;
 uint8_t	BG_CHRSIZE = 16;
-DWORD	BG_AdrMask = 511;
-DWORD	BG0ScrollX = 0, BG0ScrollY = 0;
-DWORD	BG1ScrollX = 0, BG1ScrollY = 0;
+uint32_t	BG_AdrMask = 511;
+uint32_t	BG0ScrollX = 0, BG0ScrollY = 0;
+uint32_t	BG1ScrollX = 0, BG1ScrollY = 0;
 
 long	BG_HAdjust = 0;
 long	BG_VLINE = 0;
@@ -35,18 +35,18 @@ uint8_t	BG_Dirty1[64*64];
 uint8_t	BGCHR8[8*8*256];
 uint8_t	BGCHR16[16*16*256];
 
-WORD	BG_LineBuf[1600];
-WORD	BG_PriBuf[1600];
+uint16_t	BG_LineBuf[1600];
+uint16_t	BG_PriBuf[1600];
 
-DWORD	VLINEBG = 0;
+uint32_t	VLINEBG = 0;
 
 
-// -----------------------------------------------------------------------
-//   ½é´ü²½
-// -----------------------------------------------------------------------
+/*
+ *   åˆæœŸåŒ–
+ */
 void BG_Init(void)
 {
-	DWORD i;
+	uint32_t i;
 	memset(Sprite_Regs, 0, 0x800);
 	memset(BG, 0, 0x8000);
 	memset(BGCHR8, 0, 8*8*256);
@@ -58,10 +58,10 @@ void BG_Init(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   I/O Read
-// -----------------------------------------------------------------------
-uint8_t FASTCALL BG_Read(DWORD adr)
+/*
+ *   I/O Read
+ */
+uint8_t FASTCALL BG_Read(uint32_t adr)
 {
 	if ((adr>=0xeb0000)&&(adr<0xeb0400))
 	{
@@ -78,13 +78,13 @@ uint8_t FASTCALL BG_Read(DWORD adr)
 }
 
 
-// -----------------------------------------------------------------------
-//   I/O Write
-// -----------------------------------------------------------------------
-void FASTCALL BG_Write(DWORD adr, uint8_t data)
+/*
+ *   I/O Write
+ */
+void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 {
-	DWORD bg16chr;
-	int s1, s2, v = 0;
+	uint32_t bg16chr;
+	int32_t s1, s2, v = 0;
 	s1 = (((BG_Regs[0x11]  &4)?2:1)-((BG_Regs[0x11]  &16)?1:0));
 	s2 = (((CRTC_Regs[0x29]&4)?2:1)-((CRTC_Regs[0x29]&16)?1:0));
 	if ( !(BG_Regs[0x11]&16) ) v = ((BG_Regs[0x0f]>>s1)-(CRTC_Regs[0x0d]>>s2));
@@ -95,15 +95,15 @@ void FASTCALL BG_Write(DWORD adr, uint8_t data)
 		if (Sprite_Regs[adr] != data)
 		{
 
-			WORD t0, t, *pw;
+			uint16_t t0, t, *pw;
 
 			v = BG_VLINE - 16 - v;
-			// get YPOS pointer (Sprite_Regs[] is little endian)
-			pw = (WORD *)(Sprite_Regs + (adr & 0x3f8) + 2);
+			/* get YPOS pointer (Sprite_Regs[] is little endian) */
+			pw = (uint16_t *)(Sprite_Regs + (adr & 0x3f8) + 2);
 
 #define UPDATE_TDL(t)				\
 {						\
-	int i;					\
+	int32_t i;					\
 	for (i = 0; i < 16; i++) {		\
 		TextDirtyLine[(t)] = 1;		\
 		(t) = ((t) + 1) & 0x3ff;	\
@@ -125,45 +125,45 @@ void FASTCALL BG_Write(DWORD adr, uint8_t data)
 	else if ((adr>=0xeb0800)&&(adr<0xeb0812))
 	{
 		adr -= 0xeb0800;
-		if (BG_Regs[adr]==data) return;	// ¥Ç¡¼¥¿¤ËÊÑ²½¤¬Ìµ¤±¤ì¤Ðµ¢¤ë
+		if (BG_Regs[adr]==data) return;	/* ãƒ‡ãƒ¼ã‚¿ã«å¤‰åŒ–ãŒç„¡ã‘ã‚Œã°å¸°ã‚‹ */
 		BG_Regs[adr] = data;
 		switch(adr)
 		{
 		case 0x00:
 		case 0x01:
-			BG0ScrollX = (((DWORD)BG_Regs[0x00]<<8)+BG_Regs[0x01])&BG_AdrMask;
+			BG0ScrollX = (((uint32_t)BG_Regs[0x00]<<8)+BG_Regs[0x01])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x02:
 		case 0x03:
-			BG0ScrollY = (((DWORD)BG_Regs[0x02]<<8)+BG_Regs[0x03])&BG_AdrMask;
+			BG0ScrollY = (((uint32_t)BG_Regs[0x02]<<8)+BG_Regs[0x03])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x04:
 		case 0x05:
-			BG1ScrollX = (((DWORD)BG_Regs[0x04]<<8)+BG_Regs[0x05])&BG_AdrMask;
+			BG1ScrollX = (((uint32_t)BG_Regs[0x04]<<8)+BG_Regs[0x05])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x06:
 		case 0x07:
-			BG1ScrollY = (((DWORD)BG_Regs[0x06]<<8)+BG_Regs[0x07])&BG_AdrMask;
+			BG1ScrollY = (((uint32_t)BG_Regs[0x06]<<8)+BG_Regs[0x07])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 
-		case 0x08:		// BG On/Off Changed
+		case 0x08:		/* BG On/Off Changed */
 			TVRAM_SetAllDirty();
 			break;
 
 		case 0x0d:
-			BG_HAdjust = ((long)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;				// ¿åÊ¿Êý¸þ¤Ï²òÁüÅÙ¤Ë¤è¤ë1/2¤Ï¤¤¤é¤Ê¤¤¡©¡ÊTetris¡Ë
+			BG_HAdjust = ((long)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;				/* æ°´å¹³æ–¹å‘ã¯è§£åƒåº¦ã«ã‚ˆã‚‹1/2ã¯ã„ã‚‰ãªã„ï¼Ÿï¼ˆTetris) */
 			TVRAM_SetAllDirty();
 			break;
 		case 0x0f:
-			BG_VLINE = ((long)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BG¤È¤½¤ÎÂ¾¤¬¤º¤ì¤Æ¤ë»þ¤Îº¹Ê¬
+			BG_VLINE = ((long)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	/* BGã¨ãã®ä»–ãŒãšã‚Œã¦ã‚‹æ™‚ã®å·®åˆ† */
 			TVRAM_SetAllDirty();
 			break;
 
-		case 0x11:		// BG ScreenRes Changed
+		case 0x11:		/* BG ScreenRes Changed */
 			if (data&3)
 			{
 				if ((BG_BG0TOP==0x4000)||(BG_BG1TOP==0x4000))
@@ -177,10 +177,10 @@ void FASTCALL BG_Write(DWORD adr, uint8_t data)
 				BG_CHREND = 0x2000;
 			BG_CHRSIZE = ((data&3)?16:8);
 			BG_AdrMask = ((data&3)?1023:511);
-			BG_HAdjust = ((long)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;				// ¿åÊ¿Êý¸þ¤Ï²òÁüÅÙ¤Ë¤è¤ë1/2¤Ï¤¤¤é¤Ê¤¤¡©¡ÊTetris¡Ë
-			BG_VLINE = ((long)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BG¤È¤½¤ÎÂ¾¤¬¤º¤ì¤Æ¤ë»þ¤Îº¹Ê¬
+			BG_HAdjust = ((long)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;				/* æ°´å¹³æ–¹å‘ã¯è§£åƒåº¦ã«ã‚ˆã‚‹1/2ã¯ã„ã‚‰ãªã„ï¼Ÿï¼ˆTetrisï¼‰*/
+			BG_VLINE = ((long)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	/* BGã¨ãã®ä»–ãŒãšã‚Œã¦ã‚‹æ™‚ã®å·®åˆ† */
 			break;
-		case 0x09:		// BG Plane Cfg Changed
+		case 0x09:		/* BG Plane Cfg Changed */
 			TVRAM_SetAllDirty();
 			if (data&0x08)
 			{
@@ -229,7 +229,7 @@ void FASTCALL BG_Write(DWORD adr, uint8_t data)
 	else if ((adr>=0xeb8000)&&(adr<0xec0000))
 	{
 		adr -= 0xeb8000;
-		if (BG[adr]==data) return;			// ¥Ç¡¼¥¿¤ËÊÑ²½¤¬Ìµ¤±¤ì¤Ðµ¢¤ë
+		if (BG[adr]==data) return;			/* ãƒ‡ãƒ¼ã‚¿ã«å¤‰åŒ–ãŒç„¡ã‘ã‚Œã°å¸°ã‚‹ */
 		BG[adr] = data;
 		if (adr<0x2000)
 		{
@@ -240,40 +240,39 @@ void FASTCALL BG_Write(DWORD adr, uint8_t data)
 		BGCHR16[bg16chr]   = data>>4;
 		BGCHR16[bg16chr+1] = data&15;
 
-		if (adr<BG_CHREND)				// ¥Ñ¥¿¡¼¥ó¥¨¥ê¥¢
+		if (adr<BG_CHREND)				/* ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚¨ãƒªã‚¢ */
 		{
 			TVRAM_SetAllDirty();
 		}
-		if ((adr>=BG_BG1TOP)&&(adr<BG_BG1END))	// BG1 MAP¥¨¥ê¥¢
+		if ((adr>=BG_BG1TOP)&&(adr<BG_BG1END))	/* BG1 MAPã‚¨ãƒªã‚¢ */
 		{
 			TVRAM_SetAllDirty();
 		}
-		if ((adr>=BG_BG0TOP)&&(adr<BG_BG0END))	// BG0 MAP¥¨¥ê¥¢
+		if ((adr>=BG_BG0TOP)&&(adr<BG_BG0END))	/* BG0 MAPã‚¨ãƒªã‚¢ */
 		{
 			TVRAM_SetAllDirty();
 		}
 	}
 }
 
-// -----------------------------------------------------------------------
-//   1¥é¥¤¥óÊ¬¤ÎÉÁ²è
-// -----------------------------------------------------------------------
+/*
+ *   1ãƒ©ã‚¤ãƒ³åˆ†ã®æç”»
+ */
 struct SPRITECTRLTBL {
-	WORD	sprite_posx;
-	WORD	sprite_posy;
-	WORD	sprite_ctrl;
+	uint16_t	sprite_posx;
+	uint16_t	sprite_posy;
+	uint16_t	sprite_ctrl;
 	uint8_t	sprite_ply;
 	uint8_t	dummy;
 } __attribute__ ((packed));
 typedef struct SPRITECTRLTBL SPRITECTRLTBL_T;
 
-INLINE void
-Sprite_DrawLineMcr(int pri)
+INLINE void Sprite_DrawLineMcr(int32_t pri)
 {
 	SPRITECTRLTBL_T *sct = (SPRITECTRLTBL_T *)Sprite_Regs;
-	DWORD y;
-	DWORD t;
-	int n;
+	uint32_t y;
+	uint32_t t;
+	int32_t n;
 
 	for (n = 127; n >= 0; --n) {
 		if ((sct[n].sprite_ply & 3) == pri) {
@@ -289,11 +288,11 @@ Sprite_DrawLineMcr(int pri)
 			y = -y;
 			y += 16;
 
-			// add y, 16; jnc .spline_lpcnt
+			/* add y, 16; jnc .spline_lpcnt */
 			if (y <= 15) {
 				uint8_t *p;
-				DWORD pal;
-				int i, d;
+				uint32_t pal;
+				int32_t i, d;
 				uint8_t bh, dat;
 				
 				if (sctp->sprite_ctrl < 0x4000) {
@@ -353,12 +352,12 @@ Sprite_DrawLineMcr(int pri)
         }						    \
 }
 
-void bg_drawline_loopx8(WORD BGTOP, DWORD BGScrollX, DWORD BGScrollY, long adjust, int ng)
+void bg_drawline_loopx8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY, long adjust, int32_t ng)
 {
        unsigned char dat, bl;
-       int i, j, d;
-       DWORD ebp, edx, edi, ecx;
-       WORD si;
+       int32_t i, j, d;
+       uint32_t ebp, edx, edi, ecx;
+       uint16_t si;
        uint8_t *esi;
 
        ebp = ((BGScrollY + VLINEBG - BG_VLINE) & 7) << 3;
@@ -368,7 +367,7 @@ void bg_drawline_loopx8(WORD BGTOP, DWORD BGScrollX, DWORD BGScrollY, long adjus
 
        for (i = TextDotX >> 3; i >= 0; i--) {
                bl = BG[ecx + edx];
-               si = (WORD)BG[ecx + edx + 1] << 6;
+               si = (uint16_t)BG[ecx + edx + 1] << 6;
 
                if (bl < 0x40) {
                        esi = &BGCHR8[si + ebp];
@@ -393,12 +392,12 @@ void bg_drawline_loopx8(WORD BGTOP, DWORD BGScrollX, DWORD BGScrollY, long adjus
        }
 }
 
-void bg_drawline_loopx16(WORD BGTOP, DWORD BGScrollX, DWORD BGScrollY, long adjust, int ng)
+void bg_drawline_loopx16(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY, long adjust, int32_t ng)
 {
        unsigned char dat, bl;
-       int i, j, d;
-       DWORD ebp, edx, edi, ecx;
-       WORD si;
+       int32_t i, j, d;
+       uint32_t ebp, edx, edi, ecx;
+       uint16_t si;
        uint8_t *esi;
 
        ebp = ((BGScrollY + VLINEBG - BG_VLINE) & 15) << 4;
@@ -433,35 +432,30 @@ void bg_drawline_loopx16(WORD BGTOP, DWORD BGScrollX, DWORD BGScrollY, long adju
 	}
 }
 
-INLINE void
-BG_DrawLineMcr8(WORD BGTOP, DWORD BGScrollX, DWORD BGScrollY)
+INLINE void BG_DrawLineMcr8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
 {
        bg_drawline_loopx8(BGTOP, BGScrollX, BGScrollY, BG_HAdjust, 0);
 }
 
-INLINE void
-BG_DrawLineMcr16(WORD BGTOP, DWORD BGScrollX, DWORD BGScrollY)
+INLINE void BG_DrawLineMcr16(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
 {
 	bg_drawline_loopx16(BGTOP, BGScrollX, BGScrollY, BG_HAdjust, 0);
 }
 
-INLINE void
-BG_DrawLineMcr8_ng(WORD BGTOP, DWORD BGScrollX, DWORD BGScrollY)
+INLINE void BG_DrawLineMcr8_ng(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
 {
        bg_drawline_loopx8(BGTOP, BGScrollX, BGScrollY, BG_HAdjust, 1);
 }
 
-INLINE void
-BG_DrawLineMcr16_ng(WORD BGTOP, DWORD BGScrollX, DWORD BGScrollY)
+INLINE void BG_DrawLineMcr16_ng(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
 {
        bg_drawline_loopx16(BGTOP, BGScrollX, BGScrollY, 0, 1);
 }
 
-LABEL void FASTCALL
-BG_DrawLine(int opaq, int gd)
+LABEL void FASTCALL BG_DrawLine(int32_t opaq, int32_t gd)
 {
-	int i;
-	void (*func8)(WORD, DWORD, DWORD), (*func16)(WORD, DWORD, DWORD);
+	int32_t i;
+	void (*func8)(uint16_t, uint32_t, uint32_t), (*func16)(uint16_t, uint32_t, uint32_t);
 
 	if (opaq) {
 		for (i = 16; i < TextDotX + 16; ++i) {
@@ -478,11 +472,11 @@ BG_DrawLine(int opaq, int gd)
 	func16 = (gd)? BG_DrawLineMcr16 : BG_DrawLineMcr16_ng;
 
 	Sprite_DrawLineMcr(1);
-	if ((BG_Regs[9] & 8) && (BG_CHRSIZE == 8)) { // BG1 on
+	if ((BG_Regs[9] & 8) && (BG_CHRSIZE == 8)) { /* BG1 on */
 		(*func8)(BG_BG1TOP, BG1ScrollX, BG1ScrollY);
 	}
 	Sprite_DrawLineMcr(2);
-	if (BG_Regs[9] & 1) { // BG0 on
+	if (BG_Regs[9] & 1) { /* BG0 on */
 		if (BG_CHRSIZE == 8) {
 			(*func8)(BG_BG0TOP, BG0ScrollX, BG0ScrollY);
 		} else {

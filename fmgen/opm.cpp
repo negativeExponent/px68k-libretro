@@ -11,18 +11,18 @@
 namespace FM
 {
 
-int OPM::amtable[4][OPM_LFOENTS] = { -1, };
-int OPM::pmtable[4][OPM_LFOENTS];
+int32_t OPM::amtable[4][OPM_LFOENTS] = { -1, };
+int32_t OPM::pmtable[4][OPM_LFOENTS];
 
 // ---------------------------------------------------------------------------
-//	πΩ√€
+//	ÊßãÁØâ
 //
 OPM::OPM()
 {
 	lfo_count_ = 0;
 	lfo_count_prev_ = ~0;
 	BuildLFOTable();
-	for (int i=0; i<8; i++)
+	for (int32_t i=0; i<8; i++)
 	{
 		ch[i].SetChip(&chip);
 		ch[i].SetType(typeM);
@@ -30,7 +30,7 @@ OPM::OPM()
 }
 
 // ---------------------------------------------------------------------------
-//	ΩÈ¥¸≤Ω
+//	ÂàùÊúüÂåñ
 //
 bool OPM::Init(uint32_t c, uint32_t rf, bool ip)
 {
@@ -45,7 +45,7 @@ bool OPM::Init(uint32_t c, uint32_t rf, bool ip)
 }
 
 // ---------------------------------------------------------------------------
-//	∫∆¿ﬂƒÍ
+//	ÂÜçË®≠ÂÆö
 //
 bool OPM::SetRate(uint32_t c, uint32_t r, bool)
 {
@@ -59,20 +59,20 @@ bool OPM::SetRate(uint32_t c, uint32_t r, bool)
 }
 
 // ---------------------------------------------------------------------------
-//	•¡•„•Û•Õ•Î•ﬁ•π•Ø§Œ¿ﬂƒÍ
+//	„ÉÅ„É£„É≥„Éç„É´„Éû„Çπ„ÇØ„ÅÆË®≠ÂÆö
 //
 void OPM::SetChannelMask(uint32_t mask)
 {
-	for (int i=0; i<8; i++)
+	for (int32_t i=0; i<8; i++)
 		ch[i].Mute(!!(mask & (1 << i)));
 }
 
 // ---------------------------------------------------------------------------
-//	•Í•ª•√•»
+//	„É™„Çª„ÉÉ„Éà
 //
 void OPM::Reset()
 {
-	int i;
+	int32_t i;
 	for (i=0x0; i<0x100; i++) SetReg(i, 0);
 	SetReg(0x19, 0x80);
 	Timer::Reset();
@@ -86,7 +86,7 @@ void OPM::Reset()
 }
 
 // ---------------------------------------------------------------------------
-//	¿ﬂƒÍ§À∞Õ¬∏§π§Î•∆°º•÷•Î§Œ∫Ó¿Æ
+//	Ë®≠ÂÆö„Å´‰æùÂ≠ò„Åô„Çã„ÉÜ„Éº„Éñ„É´„ÅÆ‰ΩúÊàê
 //
 void OPM::RebuildTimeTable()
 {
@@ -100,13 +100,13 @@ void OPM::RebuildTimeTable()
 }
 
 // ---------------------------------------------------------------------------
-//	•ø•§•ﬁ°º A »Ø¿∏ª˛•§•Ÿ•Û•» (CSM)
+//	„Çø„Ç§„Éû„Éº A Áô∫ÁîüÊôÇ„Ç§„Éô„É≥„Éà (CSM)
 //
 void OPM::TimerA()
 {
 	if (regtc & 0x80)
 	{
-		for (int i=0; i<8; i++)
+		for (int32_t i=0; i<8; i++)
 		{
 			ch[i].KeyControl(0);
 			ch[i].KeyControl(0xf);
@@ -115,19 +115,19 @@ void OPM::TimerA()
 }
 
 // ---------------------------------------------------------------------------
-//	≤ªŒÃ¿ﬂƒÍ
+//	Èü≥ÈáèË®≠ÂÆö
 //
-void OPM::SetVolume(int db)
+void OPM::SetVolume(int32_t db)
 {
 	db = Min(db, 20);
 	if (db > -192)
-		fmvolume = int(16384.0 * pow(10, db / 40.0));
+		fmvolume = int32_t (16384.0 * pow(10, db / 40.0));
 	else
 		fmvolume = 0;
 }
 
 // ---------------------------------------------------------------------------
-//	•π•∆°º•ø•π•’•È•∞¿ﬂƒÍ
+//	„Çπ„ÉÜ„Éº„Çø„Çπ„Éï„É©„Ç∞Ë®≠ÂÆö
 //
 void OPM::SetStatus(uint32_t bits)
 {
@@ -139,7 +139,7 @@ void OPM::SetStatus(uint32_t bits)
 }
 
 // ---------------------------------------------------------------------------
-//	•π•∆°º•ø•π•’•È•∞≤ÚΩ¸
+//	„Çπ„ÉÜ„Éº„Çø„Çπ„Éï„É©„Ç∞Ëß£Èô§
 //
 void OPM::ResetStatus(uint32_t bits)
 {
@@ -152,14 +152,14 @@ void OPM::ResetStatus(uint32_t bits)
 }
 
 // ---------------------------------------------------------------------------
-//	•Ï•∏•π•ø•¢•Ï•§§À•«°º•ø§Ú¿ﬂƒÍ
+//	„É¨„Ç∏„Çπ„Çø„Ç¢„É¨„Ç§„Å´„Éá„Éº„Çø„ÇíË®≠ÂÆö
 //
 void OPM::SetReg(uint32_t addr, uint32_t data)
 {
 	if (addr >= 0x100)
 		return;
 	
-	int c = addr & 7;
+	int32_t c = addr & 7;
 	switch (addr & 0xff)
 	{
 	case 0x01:					// TEST (lfo restart)
@@ -257,7 +257,7 @@ void OPM::SetReg(uint32_t addr, uint32_t data)
 
 
 // ---------------------------------------------------------------------------
-//	•—•È•·°º•ø•ª•√•»
+//	„Éë„É©„É°„Éº„Çø„Çª„ÉÉ„Éà
 //
 void OPM::SetParameter(uint32_t addr, uint32_t data)
 {
@@ -312,12 +312,12 @@ void OPM::BuildLFOTable()
 	if (amtable[0][0] != -1)
 		return;
 
-	for (int type=0; type<4; type++)
+	for (int32_t type=0; type<4; type++)
 	{
-		int r = 0;
-		for (int c=0; c<OPM_LFOENTS; c++)
+		int32_t r = 0;
+		for (int32_t c=0; c<OPM_LFOENTS; c++)
 		{
-			int a, p;
+			int32_t a, p;
 			
 			switch (type)
 			{
@@ -364,7 +364,7 @@ inline void OPM::LFO()
 	if (lfowaveform != 3)
 	{
 		{
-			int c = (lfo_count_ >> 15) & 0x1fe;
+			int32_t c = (lfo_count_ >> 15) & 0x1fe;
 			chip.SetPML(pmtable[lfowaveform][c] * pmd / 128 + 0x80);
 			chip.SetAML(amtable[lfowaveform][c] * amd / 128);
 		}
@@ -373,7 +373,7 @@ inline void OPM::LFO()
 	{
 		if ((lfo_count_ ^ lfo_count_prev_) & ~((1 << 17) - 1))
 		{
-			int c = (rand() / 17) & 0xff;
+			int32_t c = (rand() / 17) & 0xff;
 			chip.SetPML((c - 0x80) * pmd / 128 + 0x80);
 			chip.SetAML(c * amd / 128);
 		}
@@ -391,7 +391,7 @@ inline uint32_t OPM::Noise()
 	noisecount += 2 * rateratio;
 	if (noisecount >= (32 << FM_RATIOBITS))
 	{
-		int n = 32 - (noisedelta & 0x1f);
+		int32_t n = 32 - (noisedelta & 0x1f);
 		if (n == 1)
 			n = 2;
 
@@ -404,9 +404,9 @@ inline uint32_t OPM::Noise()
 }
 
 // ---------------------------------------------------------------------------
-//	πÁ¿Æ§Œ∞Ï…Ù
+//	ÂêàÊàê„ÅÆ‰∏ÄÈÉ®
 //
-inline void OPM::MixSub(int activech, ISample** idest)
+inline void OPM::MixSub(int32_t activech, ISample** idest)
 {
 	if (activech & 0x4000) (*idest[0]  = ch[0].Calc());
 	if (activech & 0x1000) (*idest[1] += ch[1].Calc());
@@ -424,7 +424,7 @@ inline void OPM::MixSub(int activech, ISample** idest)
 	}
 }
 
-inline void OPM::MixSubL(int activech, ISample** idest)
+inline void OPM::MixSubL(int32_t activech, ISample** idest)
 {
 	if (activech & 0x4000) (*idest[0]  = ch[0].CalcL());
 	if (activech & 0x1000) (*idest[1] += ch[1].CalcL());
@@ -444,9 +444,9 @@ inline void OPM::MixSubL(int activech, ISample** idest)
 
 
 // ---------------------------------------------------------------------------
-//	πÁ¿Æ (stereo)
+//	ÂêàÊàê (stereo)
 //
-void OPM::Mix(Sample* buffer, int nsamples, int rate, uint8_t* pbsp, uint8_t* pbep)
+void OPM::Mix(Sample* buffer, int32_t nsamples, int32_t rate, uint8_t* pbsp, uint8_t* pbep)
 {
 #define IStoSample(s)	((Limit(s, 0xffff, -0x10000) * fmvolume) >> 14)
 
@@ -454,7 +454,7 @@ void OPM::Mix(Sample* buffer, int nsamples, int rate, uint8_t* pbsp, uint8_t* pb
 
 	Sample* dest;
 	Sample dval0, dval1;
-	int i;
+	int32_t i;
 	
 	// odd bits - active, even bits - lfo
 	uint32_t activech=0;
@@ -463,7 +463,7 @@ void OPM::Mix(Sample* buffer, int nsamples, int rate, uint8_t* pbsp, uint8_t* pb
 
 	if (activech & 0x5555)
 	{
-		// LFO «»∑¡ΩÈ¥¸≤Ω•”•√•» = 1 § §È§– LFO §œ§´§´§È§ §§?
+		// LFO Ê≥¢ÂΩ¢ÂàùÊúüÂåñ„Éì„ÉÉ„Éà = 1 „Å™„Çâ„Å∞ LFO „ÅØ„Åã„Åã„Çâ„Å™„ÅÑ?
 		if (reg01 & 0x02)
 			activech &= 0x5555;
 
@@ -489,7 +489,7 @@ void OPM::Mix(Sample* buffer, int nsamples, int rate, uint8_t* pbsp, uint8_t* pb
 
 			StoreSample(dest[0], IStoSample(ibuf[1] + ibuf[3]));
 			StoreSample(dest[1], IStoSample(ibuf[2] + ibuf[3]));
-			// PSP∞ ≥∞§œrate§œ0
+			// PSP‰ª•Â§ñ„ÅØrate„ÅØ0
 			dval0 = dest[0];
 			dval1 = dest[1];
 			switch (rate) {

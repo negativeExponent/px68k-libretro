@@ -5,14 +5,14 @@
 
 void DIM_Init(void);
 void DIM_Cleanup(void);
-int DIM_SetFD(int drive, char* filename);
-int DIM_Eject(int drive);
-int DIM_Seek(int drv, int trk, FDCID* id);
-int DIM_ReadID(int drv, FDCID* id);
-int DIM_WriteID(int drv, int trk, unsigned char* buf, int num);
-int DIM_Read(int drv, FDCID* id, unsigned char* buf);
-int DIM_ReadDiag(int drv, FDCID* id, FDCID* retid, unsigned char* buf);
-int DIM_Write(int drv, FDCID* id, unsigned char* buf, int del);
-int DIM_GetCurrentID(int drv, FDCID* id);
+int32_t DIM_SetFD(int32_t drive, char* filename);
+int32_t DIM_Eject(int32_t drive);
+int32_t DIM_Seek(int32_t drv, int32_t trk, FDCID* id);
+int32_t DIM_ReadID(int32_t drv, FDCID* id);
+int32_t DIM_WriteID(int32_t drv, int32_t trk, unsigned char* buf, int32_t num);
+int32_t DIM_Read(int32_t drv, FDCID* id, unsigned char* buf);
+int32_t DIM_ReadDiag(int32_t drv, FDCID* id, FDCID* retid, unsigned char* buf);
+int32_t DIM_Write(int32_t drv, FDCID* id, unsigned char* buf, int32_t del);
+int32_t DIM_GetCurrentID(int32_t drv, FDCID* id);
 
 #endif

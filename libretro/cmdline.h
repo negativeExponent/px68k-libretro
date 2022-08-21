@@ -3,7 +3,7 @@
 
 extern char macrofile[MAX_PATH];
 
-void CheckCmdLine(LPSTR s);
+void CheckCmdLine(char *s);
 void SetCmdLineFD(void);
 
 #endif //keropi_cmdline_h

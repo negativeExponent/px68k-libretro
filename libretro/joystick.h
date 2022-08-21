@@ -29,8 +29,8 @@ void Joystick_Cleanup(void);
 uint8_t FASTCALL Joystick_Read(uint8_t num);
 void FASTCALL Joystick_Write(uint8_t num, uint8_t data);
 
-typedef signed int R_Keycode;
-void FASTCALL Joystick_Update(int is_menu, R_Keycode key, int port);
+typedef int32_t R_Keycode;
+void FASTCALL Joystick_Update(int32_t is_menu, R_Keycode key, int32_t port);
 
 
 uint8_t get_joy_downstate(void);
@@ -41,6 +41,6 @@ void reset_joy_upstate(void);
 extern uint8_t JoyKeyState;
 extern uint8_t keyb_in, joy_in;
 
-extern int  *r_joy;
+extern int32_t *r_joy;
 
 #endif

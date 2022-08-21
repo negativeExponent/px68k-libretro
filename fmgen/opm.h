@@ -14,63 +14,63 @@
 
 // ---------------------------------------------------------------------------
 //	class OPM
-//	OPM ¤ËÎÉ¤¯»÷¤¿(?)²»¤òÀ¸À®¤¹¤ë²»¸»¥æ¥Ë¥Ã¥È
+//	OPM ã«è‰¯ãä¼¼ãŸ(?)éŸ³ã‚’ç”Ÿæˆã™ã‚‹éŸ³æºãƒ¦ãƒ‹ãƒƒãƒˆ
 //	
 //	interface:
 //	bool Init(uint32_t clock, uint32_t rate, bool);
-//		½é´ü²½¡¥¤³¤Î¥¯¥é¥¹¤ò»ÈÍÑ¤¹¤ëÁ°¤Ë¤«¤Ê¤é¤º¸Æ¤ó¤Ç¤ª¤¯¤³¤È¡¥
-//		Ãí°Õ: Àş·ÁÊä´°¥â¡¼¥É¤ÏÇÑ»ß¤µ¤ì¤Ş¤·¤¿
+//		åˆæœŸåŒ–ï¼ã“ã®ã‚¯ãƒ©ã‚¹ã‚’ä½¿ç”¨ã™ã‚‹å‰ã«ã‹ãªã‚‰ãšå‘¼ã‚“ã§ãŠãã“ã¨ï¼
+//		æ³¨æ„: ç·šå½¢è£œå®Œãƒ¢ãƒ¼ãƒ‰ã¯å»ƒæ­¢ã•ã‚Œã¾ã—ãŸ
 //
-//		clock:	OPM ¤Î¥¯¥í¥Ã¥¯¼şÇÈ¿ô(Hz)
+//		clock:	OPM ã®ã‚¯ãƒ­ãƒƒã‚¯å‘¨æ³¢æ•°(Hz)
 //
-//		rate:	À¸À®¤¹¤ë PCM ¤ÎÉ¸ËÜ¼şÇÈ¿ô(Hz)
+//		rate:	ç”Ÿæˆã™ã‚‹ PCM ã®æ¨™æœ¬å‘¨æ³¢æ•°(Hz)
 //
 //				
-//		ÊÖÃÍ	½é´ü²½¤ËÀ®¸ù¤¹¤ì¤Ğ true
+//		è¿”å€¤	åˆæœŸåŒ–ã«æˆåŠŸã™ã‚Œã° true
 //
 //	bool SetRate(uint32_t clock, uint32_t rate, bool)
-//		¥¯¥í¥Ã¥¯¤ä PCM ¥ì¡¼¥È¤òÊÑ¹¹¤¹¤ë
-//		°ú¿ôÅù¤Ï Init ¤ÈÆ±ÍÍ¡¥
+//		ã‚¯ãƒ­ãƒƒã‚¯ã‚„ PCM ãƒ¬ãƒ¼ãƒˆã‚’å¤‰æ›´ã™ã‚‹
+//		å¼•æ•°ç­‰ã¯ Init ã¨åŒæ§˜ï¼
 //	
-//	void Mix(Sample* dest, int nsamples)
-//		Stereo PCM ¥Ç¡¼¥¿¤ò nsamples Ê¬¹çÀ®¤·¡¤ dest ¤Ç»Ï¤Ş¤ëÇÛÎó¤Ë
-//		²Ã¤¨¤ë(²Ã»»¤¹¤ë)
-//		¡¦dest ¤Ë¤Ï sample*2 ¸ÄÊ¬¤ÎÎÎ°è¤¬É¬Í×
-//		¡¦³ÊÇ¼·Á¼°¤Ï L, R, L, R... ¤È¤Ê¤ë¡¥
-//		¡¦¤¢¤¯¤Ş¤Ç²Ã»»¤Ê¤Î¤Ç¡¤¤¢¤é¤«¤¸¤áÇÛÎó¤ò¥¼¥í¥¯¥ê¥¢¤¹¤ëÉ¬Í×¤¬¤¢¤ë
-//		¡¦FM_SAMPLETYPE ¤¬ short ·¿¤Î¾ì¹ç¥¯¥ê¥Ã¥Ô¥ó¥°¤¬¹Ô¤ï¤ì¤ë.
-//		¡¦¤³¤Î´Ø¿ô¤Ï²»¸»ÆâÉô¤Î¥¿¥¤¥Ş¡¼¤È¤ÏÆÈÎ©¤·¤Æ¤¤¤ë¡¥
-//		  Timer ¤Ï Count ¤È GetNextEvent ¤ÇÁàºî¤¹¤ëÉ¬Í×¤¬¤¢¤ë¡¥
+//	void Mix(Sample* dest, int32_t nsamples)
+//		Stereo PCM ãƒ‡ãƒ¼ã‚¿ã‚’ nsamples åˆ†åˆæˆã—ï¼Œ dest ã§å§‹ã¾ã‚‹é…åˆ—ã«
+//		åŠ ãˆã‚‹(åŠ ç®—ã™ã‚‹)
+//		ãƒ»dest ã«ã¯ sample*2 å€‹åˆ†ã®é ˜åŸŸãŒå¿…è¦
+//		ãƒ»æ ¼ç´å½¢å¼ã¯ L, R, L, R... ã¨ãªã‚‹ï¼
+//		ãƒ»ã‚ãã¾ã§åŠ ç®—ãªã®ã§ï¼Œã‚ã‚‰ã‹ã˜ã‚é…åˆ—ã‚’ã‚¼ãƒ­ã‚¯ãƒªã‚¢ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
+//		ãƒ»FM_SAMPLETYPE ãŒ short å‹ã®å ´åˆã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°ãŒè¡Œã‚ã‚Œã‚‹.
+//		ãƒ»ã“ã®é–¢æ•°ã¯éŸ³æºå†…éƒ¨ã®ã‚¿ã‚¤ãƒãƒ¼ã¨ã¯ç‹¬ç«‹ã—ã¦ã„ã‚‹ï¼
+//		  Timer ã¯ Count ã¨ GetNextEvent ã§æ“ä½œã™ã‚‹å¿…è¦ãŒã‚ã‚‹ï¼
 //	
 //	void Reset()
-//		²»¸»¤ò¥ê¥»¥Ã¥È(½é´ü²½)¤¹¤ë
+//		éŸ³æºã‚’ãƒªã‚»ãƒƒãƒˆ(åˆæœŸåŒ–)ã™ã‚‹
 //
 //	void SetReg(uint32_t reg, uint32_t data)
-//		²»¸»¤Î¥ì¥¸¥¹¥¿ reg ¤Ë data ¤ò½ñ¤­¹ş¤à
+//		éŸ³æºã®ãƒ¬ã‚¸ã‚¹ã‚¿ reg ã« data ã‚’æ›¸ãè¾¼ã‚€
 //	
 //	uint32_t ReadStatus()
-//		²»¸»¤Î¥¹¥Æ¡¼¥¿¥¹¥ì¥¸¥¹¥¿¤òÆÉ¤ß½Ğ¤¹
-//		busy ¥Õ¥é¥°¤Ï¾ï¤Ë 0
+//		éŸ³æºã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒ¬ã‚¸ã‚¹ã‚¿ã‚’èª­ã¿å‡ºã™
+//		busy ãƒ•ãƒ©ã‚°ã¯å¸¸ã« 0
 //	
 //	bool Count(uint32_t t)
-//		²»¸»¤Î¥¿¥¤¥Ş¡¼¤ò t [10^(-6) ÉÃ] ¿Ê¤á¤ë¡¥
-//		²»¸»¤ÎÆâÉô¾õÂÖ¤ËÊÑ²½¤¬¤¢¤Ã¤¿»ş(timer ¥ª¡¼¥Ğ¡¼¥Õ¥í¡¼)
-//		true ¤òÊÖ¤¹
+//		éŸ³æºã®ã‚¿ã‚¤ãƒãƒ¼ã‚’ t [10^(-6) ç§’] é€²ã‚ã‚‹ï¼
+//		éŸ³æºã®å†…éƒ¨çŠ¶æ…‹ã«å¤‰åŒ–ãŒã‚ã£ãŸæ™‚(timer ã‚ªãƒ¼ãƒãƒ¼ãƒ•ãƒ­ãƒ¼)
+//		true ã‚’è¿”ã™
 //
 //	uint32_t GetNextEvent()
-//		²»¸»¤Î¥¿¥¤¥Ş¡¼¤Î¤É¤Á¤é¤«¤¬¥ª¡¼¥Ğ¡¼¥Õ¥í¡¼¤¹¤ë¤Ş¤Ç¤ËÉ¬Í×¤Ê
-//		»ş´Ö[¦ÌÉÃ]¤òÊÖ¤¹
-//		¥¿¥¤¥Ş¡¼¤¬Ää»ß¤·¤Æ¤¤¤ë¾ì¹ç¤Ï 0 ¤òÊÖ¤¹¡¥
+//		éŸ³æºã®ã‚¿ã‚¤ãƒãƒ¼ã®ã©ã¡ã‚‰ã‹ãŒã‚ªãƒ¼ãƒãƒ¼ãƒ•ãƒ­ãƒ¼ã™ã‚‹ã¾ã§ã«å¿…è¦ãª
+//		æ™‚é–“[Î¼ç§’]ã‚’è¿”ã™
+//		ã‚¿ã‚¤ãƒãƒ¼ãŒåœæ­¢ã—ã¦ã„ã‚‹å ´åˆã¯ 0 ã‚’è¿”ã™ï¼
 //	
-//	void SetVolume(int db)
-//		³Æ²»¸»¤Î²»ÎÌ¤ò¡Ü¡İÊı¸ş¤ËÄ´Àá¤¹¤ë¡¥É¸½àÃÍ¤Ï 0.
-//		Ã±°Ì¤ÏÌó 1/2 dB¡¤Í­¸úÈÏ°Ï¤Î¾å¸Â¤Ï 20 (10dB)
+//	void SetVolume(int32_t db)
+//		å„éŸ³æºã®éŸ³é‡ã‚’ï¼‹âˆ’æ–¹å‘ã«èª¿ç¯€ã™ã‚‹ï¼æ¨™æº–å€¤ã¯ 0.
+//		å˜ä½ã¯ç´„ 1/2 dBï¼Œæœ‰åŠ¹ç¯„å›²ã®ä¸Šé™ã¯ 20 (10dB)
 //
-//	²¾ÁÛ´Ø¿ô:
+//	ä»®æƒ³é–¢æ•°:
 //	virtual void Intr(bool irq)
-//		IRQ ½ĞÎÏ¤ËÊÑ²½¤¬¤¢¤Ã¤¿¾ì¹ç¸Æ¤Ğ¤ì¤ë¡¥
-//		irq = true:  IRQ Í×µá¤¬È¯À¸
-//		irq = false: IRQ Í×µá¤¬¾Ã¤¨¤ë
+//		IRQ å‡ºåŠ›ã«å¤‰åŒ–ãŒã‚ã£ãŸå ´åˆå‘¼ã°ã‚Œã‚‹ï¼
+//		irq = true:  IRQ è¦æ±‚ãŒç™ºç”Ÿ
+//		irq = false: IRQ è¦æ±‚ãŒæ¶ˆãˆã‚‹
 //
 namespace FM
 {
@@ -86,13 +86,13 @@ namespace FM
 		void	SetLPFCutoff(uint32_t freq);
 		void	Reset();
 		
-		void 	SetReg(uint32_t addr, uint32_t data);
+		void 		SetReg(uint32_t addr, uint32_t data);
 		uint32_t	GetReg(uint32_t addr);
 		uint32_t	ReadStatus() { return status & 0x03; }
 		
-		void 	Mix(Sample* buffer, int nsamples, int rate, uint8_t* pbsp, uint8_t* pbep);
+		void 	Mix(Sample* buffer, int32_t nsamples, int32_t rate, uint8_t* pbsp, uint8_t* pbep);
 		
-		void	SetVolume(int db);
+		void	SetVolume(int32_t db);
 		void	SetChannelMask(uint32_t mask);
 		
 	private:
@@ -109,12 +109,12 @@ namespace FM
 		void	SetParameter(uint32_t addr, uint32_t data);
 		void	TimerA();
 		void	RebuildTimeTable();
-		void	MixSub(int activech, ISample**);
-		void	MixSubL(int activech, ISample**);
+		void	MixSub(int32_t activech, ISample**);
+		void	MixSubL(int32_t activech, ISample**);
 		void	LFO();
 		uint32_t	Noise();
 		
-		int		fmvolume;
+		int32_t 	fmvolume;
 
 		uint32_t	clock;
 		uint32_t	rate;
@@ -133,7 +133,7 @@ namespace FM
 		uint32_t	lfowaveform;
 		uint32_t	rateratio;
 		uint32_t	noise;
-		int32_t	noisecount;
+		int32_t		noisecount;
 		uint32_t	noisedelta;
 		
 		bool	interpolation;
@@ -149,12 +149,12 @@ namespace FM
 		Chip	chip;
 
 		static void	BuildLFOTable();
-		static int amtable[4][OPM_LFOENTS];
-		static int pmtable[4][OPM_LFOENTS];
+		static int32_t amtable[4][OPM_LFOENTS];
+		static int32_t pmtable[4][OPM_LFOENTS];
 
 	public:
-		int		dbgGetOpOut(int c, int s) { return ch[c].op[s].dbgopout_; }
-		Channel4* dbgGetCh(int c) { return &ch[c]; }
+		int32_t dbgGetOpOut(int32_t c, int32_t s) { return ch[c].op[s].dbgopout_; }
+		Channel4* dbgGetCh(int32_t c) { return &ch[c]; }
 
 	};
 }

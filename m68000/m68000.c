@@ -2,7 +2,7 @@
 
 	m68000.c
 
-	M68000 CPU¥¤¥ó¥¿¥Õ¥§¡¼¥¹´Ø¿ô
+	M68000 CPUã‚¤ãƒ³ã‚¿ãƒ•ã‚§ãƒ¼ã‚¹é–¢æ•°
 
 ******************************************************************************/
 
@@ -10,10 +10,10 @@
 
 #if defined (HAVE_CYCLONE)
 struct Cyclone m68k;
-typedef signed int s32;
+typedef int32_t s32;
 #elif defined (HAVE_M68000)
 #include "c68k.h"
-typedef signed int s32;
+typedef int32_t s32;
 #elif defined (HAVE_C68K)
 #include "c68k/c68k.h"
 #elif defined (HAVE_MUSASHI)
@@ -26,21 +26,21 @@ typedef signed int s32;
 #if defined (HAVE_M68000)
 /* nothing */
 #else
-int m68000_ICountBk;
-int ICount;
+int32_t m68000_ICountBk;
+int32_t ICount;
 #endif
 
 #if defined (HAVE_CYCLONE)
 
-unsigned int read8(unsigned int a) {
-	return (unsigned int) cpu_readmem24(a);
+uint32_t read8(uint32_t a) {
+	return (uint32_t) cpu_readmem24(a);
 }
 
-unsigned int read16(unsigned int a) {
-	return (unsigned int) cpu_readmem24_word(a);
+uint32_t read16(uint32_t a) {
+	return (uint32_t) cpu_readmem24_word(a);
 }
 
-unsigned int MyCheckPc(unsigned int pc)
+uint32_t MyCheckPc(uint32_t pc)
 {
 
 
@@ -91,11 +91,11 @@ void m68k_write_memory_32(uint32_t address, uint32_t data)
 
 
 /******************************************************************************
-	M68000¥¤¥ó¥¿¥Õ¥§¡¼¥¹´Ø¿ô
+	M68000ã‚¤ãƒ³ã‚¿ãƒ•ã‚§ãƒ¼ã‚¹é–¢æ•°
 ******************************************************************************/
 
 /*--------------------------------------------------------
-	CPU½é´ü²½
+	CPUåˆæœŸåŒ–
 --------------------------------------------------------*/
 #if !defined (HAVE_MUSASHI)
 s32 my_irqh_callback(s32 level);
@@ -157,7 +157,7 @@ void m68000_init(void)
 
 
 /*--------------------------------------------------------
-	CPU¥ê¥»¥Ã¥È
+	CPUãƒªã‚»ãƒƒãƒˆ
 --------------------------------------------------------*/
 
 void m68000_reset(void)
@@ -175,7 +175,7 @@ void m68000_reset(void)
 
 
 /*--------------------------------------------------------
-	CPUÄä»ß
+	CPUåœæ­¢
 --------------------------------------------------------*/
 
 void m68000_exit(void)
@@ -184,10 +184,10 @@ void m68000_exit(void)
 
 
 /*--------------------------------------------------------
-	CPU¼Â¹Ô
+	CPUå®Ÿè¡Œ
 --------------------------------------------------------*/
 
-int m68000_execute(int cycles)
+int32_t m68000_execute(int32_t cycles)
 {	
 #if defined (HAVE_CYCLONE)
 	m68k.cycles = cycles;
@@ -203,10 +203,10 @@ int m68000_execute(int cycles)
 
 
 /*--------------------------------------------------------
-	³ä¤ê¹ş¤ß½èÍı
+	å‰²ã‚Šè¾¼ã¿å‡¦ç†
 --------------------------------------------------------*/
 
-void m68000_set_irq_line(int irqline, int state)
+void m68000_set_irq_line(int32_t irqline, int32_t state)
 {
 #if defined (HAVE_CYCLONE)
 	m68k.irq = irqline;
@@ -224,20 +224,20 @@ void m68000_set_irq_line(int irqline, int state)
 
 
 /*--------------------------------------------------------
-	³ä¤ê¹ş¤ß¥³¡¼¥ë¥Ğ¥Ã¥¯´Ø¿ôÀßÄê
+	å‰²ã‚Šè¾¼ã¿ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°è¨­å®š
 --------------------------------------------------------*/
 
-void m68000_set_irq_callback(int (*callback)(int line))
+void m68000_set_irq_callback(int32_t (*callback)(int32_t line))
 {
 /* C68k_Set_IRQ_Callback(&C68K, callback); */
 }
 
 
 /*--------------------------------------------------------
-	¥ì¥¸¥¹¥¿¼èÆÀ
+	ãƒ¬ã‚¸ã‚¹ã‚¿å–å¾—
 --------------------------------------------------------*/
 
-uint32_t m68000_get_reg(int regnum)
+uint32_t m68000_get_reg(int32_t regnum)
 {
 #if defined (HAVE_CYCLONE)
 	switch (regnum)
@@ -346,10 +346,10 @@ uint32_t m68000_get_reg(int regnum)
 
 
 /*--------------------------------------------------------
-	¥ì¥¸¥¹¥¿ÀßÄê
+	ãƒ¬ã‚¸ã‚¹ã‚¿è¨­å®š
 --------------------------------------------------------*/
 
-void m68000_set_reg(int regnum, uint32_t val)
+void m68000_set_reg(int32_t regnum, uint32_t val)
 {
 #if defined (HAVE_CYCLONE)
 	switch (regnum)
@@ -461,7 +461,7 @@ void m68000_set_reg(int regnum, uint32_t val)
 
 
 /*------------------------------------------------------
-	¥»¡¼¥Ö/¥í¡¼¥É ¥¹¥Æ¡¼¥È
+	ã‚»ãƒ¼ãƒ–/ãƒ­ãƒ¼ãƒ‰ ã‚¹ãƒ†ãƒ¼ãƒˆ
 ------------------------------------------------------*/
 
 #ifdef SAVE_STATE
@@ -471,7 +471,7 @@ STATE_SAVE( m68000 )
 #if defined (HAVE_CYCLONE)
 /* empty */
 #elif defined (HAVE_M68000) || defined (HAVE_C68K)
-	int i;
+	int32_t i;
 	uint32_t pc = C68k_Get_Reg(&C68K, C68K_PC);
 
 	for (i = 0; i < 8; i++)
@@ -499,7 +499,7 @@ STATE_LOAD( m68000 )
 #if defined (HAVE_CYCLONE)
 /* empty */
 #elif defined (HAVE_M68000) || defined (HAVE_C68K)
-	int i;
+	int32_t i;
 	uint32_t pc;
 
 	for (i = 0; i < 8; i++)

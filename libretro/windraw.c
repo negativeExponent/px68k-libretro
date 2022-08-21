@@ -40,31 +40,31 @@
 #include "keyboard.h"
 
 extern uint16_t *videoBuffer;
-WORD menu_buffer[800*600];
+uint16_t menu_buffer[800*600];
 
 extern uint8_t Debug_Text, Debug_Grp, Debug_Sp;
 
 
-WORD *ScrBuf = 0;
+uint16_t *ScrBuf = 0;
 
-int Draw_Opaque;
+int32_t Draw_Opaque;
 extern uint8_t Draw_RedrawAllFlag;
 uint8_t Draw_ClrMenu = 0;
 
 uint8_t Draw_BitMask[800];
 uint8_t Draw_TextBitMask[800];
 
-int winx = 0, winy = 0;
-DWORD winh = 0, winw = 0;
-DWORD root_width, root_height;
-WORD FrameCount = 0;
+int32_t winx = 0, winy = 0;
+uint32_t winh = 0, winw = 0;
+uint32_t root_width, root_height;
+uint16_t FrameCount = 0;
 
-WORD WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
+uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 
-DWORD WindowX = 0;
-DWORD WindowY = 0;
+uint32_t WindowX = 0;
+uint32_t WindowY = 0;
 
-void WinDraw_InitWindowSize(WORD width, WORD height)
+void WinDraw_InitWindowSize(uint16_t width, uint16_t height)
 {
 	static BOOL inited = FALSE;
 
@@ -91,8 +91,8 @@ void WinDraw_InitWindowSize(WORD width, WORD height)
 
 void WinDraw_ChangeSize(void)
 {
-	DWORD oldx = WindowX, oldy = WindowY;
-	int dif;
+	uint32_t oldx = WindowX, oldy = WindowY;
+	int32_t dif;
 
 	Mouse_ChangePos();
 
@@ -129,8 +129,8 @@ void WinDraw_ChangeSize(void)
 			WindowY = TextDotY;
 		dif = WindowX - WindowY;
 		if ((dif > -32) && (dif < 32)) {
-			/* ÀµÊı·Á¤Ë¶á¤¤²èÌÌ¤Ê¤é¡¢¤È¤·¤Æ¤ª¤³¤¦ */
-			WindowX = (int)(WindowX * 1.25);
+			/* æ­£æ–¹å½¢ã«è¿‘ã„ç”»é¢ãªã‚‰ã€ã¨ã—ã¦ãŠã“ã† */
+			WindowX = (int32_t)(WindowX * 1.25);
 		}
 		break;
 	}
@@ -151,7 +151,7 @@ void WinDraw_ChangeSize(void)
 	if ((oldx == WindowX) && (oldy == WindowY))
 		return;
 
-	WinDraw_InitWindowSize((WORD)WindowX, (WORD)WindowY);
+	WinDraw_InitWindowSize((uint16_t)WindowX, (uint16_t)WindowY);
 	StatBar_Show(Config.WindowFDDStat);
 	Mouse_ChangePos();
 }
@@ -159,9 +159,9 @@ void WinDraw_ChangeSize(void)
 void WinDraw_StartupScreen(void) {}
 void WinDraw_CleanupScreen(void) {}
 
-int WinDraw_Init(void)
+int32_t WinDraw_Init(void)
 {
-	int i, j;
+	int32_t i, j;
 
 	WindowX = 768;
 	WindowY = 512;
@@ -188,13 +188,13 @@ WinDraw_Redraw(void)
 }
 
 
-extern int retrow,retroh,CHANGEAV;
+extern int32_t retrow,retroh,CHANGEAV;
 
 void FASTCALL
 WinDraw_Draw(void)
 {
 
-	static int oldtextx = -1, oldtexty = -1;
+	static int32_t oldtextx = -1, oldtexty = -1;
 
 	if (oldtextx != TextDotX) {
 		oldtextx = TextDotX;
@@ -232,13 +232,13 @@ WinDraw_Draw(void)
 }
 
 
-INLINE void WinDraw_DrawGrpLine(int opaq)
+INLINE void WinDraw_DrawGrpLine(int32_t opaq)
 {
 #define _DGL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf[i])
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	WORD w;
-	int i;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint16_t w;
+	int32_t i;
 
 	if (opaq) {
 		WD_MEMCPY(Grp_LineBuf);
@@ -247,13 +247,13 @@ INLINE void WinDraw_DrawGrpLine(int opaq)
 	}
 }
 
-INLINE void WinDraw_DrawGrpLineNonSP(int opaq)
+INLINE void WinDraw_DrawGrpLineNonSP(int32_t opaq)
 {
 #define _DGL_NSP_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBufSP2[i])
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	WORD w;
-	int i;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint16_t w;
+	int32_t i;
 
 	if (opaq) {
 		WD_MEMCPY(Grp_LineBufSP2);
@@ -262,7 +262,7 @@ INLINE void WinDraw_DrawGrpLineNonSP(int opaq)
 	}
 }
 
-INLINE void WinDraw_DrawTextLine(int opaq, int td)
+INLINE void WinDraw_DrawTextLine(int32_t opaq, int32_t td)
 {
 #define _DTL_SUB2(SUFFIX) WD_SUB(SUFFIX, BG_LineBuf[i])
 #define _DTL_SUB(SUFFIX)		\
@@ -272,9 +272,9 @@ INLINE void WinDraw_DrawTextLine(int opaq, int td)
 	}				\
 }	
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	WORD w;
-	int i;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint16_t w;
+	int32_t i;
 
 	if (opaq) {
 		WD_MEMCPY(&BG_LineBuf[16]);
@@ -287,7 +287,7 @@ INLINE void WinDraw_DrawTextLine(int opaq, int td)
 	}
 }
 
-INLINE void WinDraw_DrawTextLineTR(int opaq)
+INLINE void WinDraw_DrawTextLineTR(int32_t opaq)
 {
 #define _DTL_TR_SUB(SUFFIX)			   \
 {						   \
@@ -306,7 +306,7 @@ INLINE void WinDraw_DrawTextLineTR(int opaq)
 		else				   \
 			v = 0;			   \
 	}					   \
-	ScrBuf##SUFFIX[adr] = (WORD)v;		   \
+	ScrBuf##SUFFIX[adr] = (uint16_t)v;		   \
 }
 
 #define _DTL_TR_SUB2(SUFFIX)			   \
@@ -324,15 +324,15 @@ INLINE void WinDraw_DrawTextLineTR(int opaq)
 				v += w;			\
 				v >>= 1;		\
 			}				\
-			ScrBuf##SUFFIX[adr] = (WORD)v;	\
+			ScrBuf##SUFFIX[adr] = (uint16_t)v;	\
 		}					\
 	}						\
 }
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	DWORD v;
-	WORD w;
-	int i;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint32_t v;
+	uint16_t w;
+	int32_t i;
 
 	if (opaq) {
 		WD_LOOP(16, TextDotX + 16, _DTL_TR_SUB);
@@ -341,7 +341,7 @@ INLINE void WinDraw_DrawTextLineTR(int opaq)
 	}
 }
 
-INLINE void WinDraw_DrawBGLine(int opaq, int td)
+INLINE void WinDraw_DrawBGLine(int32_t opaq, int32_t td)
 {
 #define _DBL_SUB2(SUFFIX) WD_SUB(SUFFIX, BG_LineBuf[i])
 #define _DBL_SUB(SUFFIX)			 \
@@ -351,9 +351,9 @@ INLINE void WinDraw_DrawBGLine(int opaq, int td)
 	} \
 }
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	WORD w;
-	int i;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint16_t w;
+	int32_t i;
 
 	if (opaq) {
 		WD_MEMCPY(&BG_LineBuf[16]);
@@ -366,7 +366,7 @@ INLINE void WinDraw_DrawBGLine(int opaq, int td)
 	}
 }
 
-INLINE void WinDraw_DrawBGLineTR(int opaq)
+INLINE void WinDraw_DrawBGLineTR(int32_t opaq)
 {
 
 #define _DBL_TR_SUB3()			\
@@ -387,7 +387,7 @@ INLINE void WinDraw_DrawBGLineTR(int opaq)
 	v = BG_LineBuf[i];		\
 					\
 	_DBL_TR_SUB3()			\
-	ScrBuf##SUFFIX[adr] = (WORD)v;	\
+	ScrBuf##SUFFIX[adr] = (uint16_t)v;	\
 }
 
 #define _DBL_TR_SUB2(SUFFIX) \
@@ -398,15 +398,15 @@ INLINE void WinDraw_DrawBGLineTR(int opaq)
 							\
 		if (v != 0) {				\
 			_DBL_TR_SUB3()			\
-			ScrBuf##SUFFIX[adr] = (WORD)v;	\
+			ScrBuf##SUFFIX[adr] = (uint16_t)v;	\
 		}					\
 	}						\
 }
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	DWORD v;
-	WORD w;
-	int i;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint32_t v;
+	uint16_t w;
+	int32_t i;
 
 	if (opaq) {
 		WD_LOOP(16, TextDotX + 16, _DBL_TR_SUB);
@@ -420,18 +420,18 @@ INLINE void WinDraw_DrawPriLine(void)
 {
 #define _DPL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBufSP[i])
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	WORD w;
-	int i;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint16_t w;
+	int32_t i;
 
 	WD_LOOP(0, TextDotX, _DPL_SUB);
 }
 
 void WinDraw_DrawLine(void)
 {
-	int opaq, ton=0, gon=0, bgon=0, tron=0, pron=0, tdrawed=0;
+	int32_t opaq, ton=0, gon=0, bgon=0, tron=0, pron=0, tdrawed=0;
 
-	if (VLINE == (DWORD)-1 || VLINE >= 1024) return; /* area check */
+	if (VLINE == (uint32_t)-1 || VLINE >= 1024) return; /* area check */
 	if (!TextDirtyLine[VLINE]) return;
 	TextDirtyLine[VLINE] = 0;
 
@@ -460,7 +460,7 @@ void WinDraw_DrawLine(void)
 		{
 			if ( (VCReg2[0]&0x10)&&(VCReg2[1]&1) )
 			{
-				Grp_DrawLine4SP((VCReg1[1]   )&3/*, 1*/);			/* È¾Æ©ÌÀ¤Î²¼½àÈ÷ */
+				Grp_DrawLine4SP((VCReg1[1]   )&3/*, 1*/);			/* åŠé€æ˜ã®ä¸‹æº–å‚™ */
 				pron = tron = 1;
 			}
 			opaq = 1;
@@ -504,11 +504,11 @@ void WinDraw_DrawLine(void)
 	case 1:	
 	case 2:	
 		opaq = 1;		/* 256 colors */
-		if ( (VCReg1[1]&3) <= ((VCReg1[1]>>4)&3) )	/* Æ±¤¸ÃÍ¤Î»ş¤Ï¡¢GRP0¤¬Í¥Àè¡Ê¥É¥é¥¹¥Ô¡Ë*/
+		if ( (VCReg1[1]&3) <= ((VCReg1[1]>>4)&3) )	/* åŒã˜å€¤ã®æ™‚ã¯ã€GRP0ãŒå„ªå…ˆï¼ˆãƒ‰ãƒ©ã‚¹ãƒ”ï¼‰*/
 		{
 			if ( (VCReg2[0]&0x10)&&(VCReg2[1]&1) )
 			{
-				Grp_DrawLine8SP(0);			/* È¾Æ©ÌÀ¤Î²¼½àÈ÷ */
+				Grp_DrawLine8SP(0);			/* åŠé€æ˜ã®ä¸‹æº–å‚™ */
 				tron = pron = 1;
 			}
 			if (VCReg2[1]&4)
@@ -535,7 +535,7 @@ void WinDraw_DrawLine(void)
 		{
 			if ( (VCReg2[0]&0x10)&&(VCReg2[1]&1) )
 			{
-				Grp_DrawLine8SP(1);			/* È¾Æ©ÌÀ¤Î²¼½àÈ÷ */
+				Grp_DrawLine8SP(1);			/* åŠé€æ˜ã®ä¸‹æº–å‚™ */
 				tron = pron = 1;
 			}
 			if (VCReg2[1]&4)
@@ -579,10 +579,10 @@ void WinDraw_DrawLine(void)
 
 
 //	if ( ( ((VCReg1[0]&0x30)>>4) < (VCReg1[0]&0x03) ) && (gon) )
-//		gdrawed = 1;				// Grp¤è¤êBG¤ÎÊı¤¬¾å
+//		gdrawed = 1;				// Grpã‚ˆã‚ŠBGã®æ–¹ãŒä¸Š
 
 	if ( ((VCReg1[0]&0x30)>>2) < (VCReg1[0]&0x0c) )
-	{						/* BG¤ÎÊı¤¬¾å */
+	{						/* BGã®æ–¹ãŒä¸Š */
 		if ((VCReg2[1]&0x20)&&(Debug_Text))
 		{
 			Text_DrawLine(1);
@@ -593,7 +593,7 @@ void WinDraw_DrawLine(void)
 
 		if ((VCReg2[1]&0x40)&&(BG_Regs[8]&2)&&(!(BG_Regs[0x11]&2))&&(Debug_Sp))
 		{
-			int s1, s2;
+			int32_t s1, s2;
 			s1 = (((BG_Regs[0x11]  &4)?2:1)-((BG_Regs[0x11]  &16)?1:0));
 			s2 = (((CRTC_Regs[0x29]&4)?2:1)-((CRTC_Regs[0x29]&16)?1:0));
 			VLINEBG = VLINE;
@@ -605,10 +605,10 @@ void WinDraw_DrawLine(void)
 		}
 	}
 	else
-	{						/* Text¤ÎÊı¤¬¾å */
+	{						/* Textã®æ–¹ãŒä¸Š */
 		if ((VCReg2[1]&0x40)&&(BG_Regs[8]&2)&&(!(BG_Regs[0x11]&2))&&(Debug_Sp))
 		{
-			int s1, s2;
+			int32_t s1, s2;
 			s1 = (((BG_Regs[0x11]  &4)?2:1)-((BG_Regs[0x11]  &16)?1:0));
 			s2 = (((CRTC_Regs[0x29]&4)?2:1)-((CRTC_Regs[0x29]&16)?1:0));
 			VLINEBG = VLINE;
@@ -623,10 +623,10 @@ void WinDraw_DrawLine(void)
 		{
 			if ((VCReg2[1]&0x20)&&(Debug_Text))
 			{
-				int i;
+				int32_t i;
 				for (i = 16; i < TextDotX + 16; ++i)
 					BG_LineBuf[i] = TextPal[0];
-			} else {		/* 20010120 ¡Êàèàá¿§¡Ë*/
+			} else {		/* 20010120 ï¼ˆç¥ç€è‰²ï¼‰*/
 				memset(&BG_LineBuf[16], 0, TextDotX * 2);
 			}
 			memset(Text_TrFlag, 0, TextDotX+16);
@@ -644,15 +644,15 @@ void WinDraw_DrawLine(void)
 	opaq = 1;
 
 
-		/* Pri = 2 or 3¡ÊºÇ²¼°Ì¡Ë¤ËÀßÄê¤µ¤ì¤Æ¤¤¤ë²èÌÌ¤òÉ½¼¨
-		 *  ¥×¥é¥¤¥ª¥ê¥Æ¥£¤¬Æ±¤¸¾ì¹ç¤Ï¡¢GRP<SP<TEXT¡©¡Ê¥É¥é¥¹¥Ô¡¢ÅíÅÁ¡¢YsIIIÅù¡Ë
+		/* Pri = 2 or 3ï¼ˆæœ€ä¸‹ä½ï¼‰ã«è¨­å®šã•ã‚Œã¦ã„ã‚‹ç”»é¢ã‚’è¡¨ç¤º
+		 *  ãƒ—ãƒ©ã‚¤ã‚ªãƒªãƒ†ã‚£ãŒåŒã˜å ´åˆã¯ã€GRP<SP<TEXTï¼Ÿï¼ˆãƒ‰ãƒ©ã‚¹ãƒ”ã€æ¡ƒä¼ã€YsIIIç­‰ï¼‰
 		 */
 
-		/* Grp¤è¤êText¤¬¾å¤Ë¤¢¤ë¾ì¹ç¤ËText¤È¤ÎÈ¾Æ©ÌÀ¤ò¹Ô¤¦¤È¡¢SP¤Î¥×¥é¥¤¥ª¥ê¥Æ¥£¤â
-		 * Text¤Ë°ú¤­¤º¤é¤ì¤ë¡©¡Ê¤Ä¤Ş¤ê¡¢Grp¤è¤ê²¼¤Ë¤¢¤Ã¤Æ¤âSP¤¬É½¼¨¤µ¤ì¤ë¡©¡Ë
+		/* Grpã‚ˆã‚ŠTextãŒä¸Šã«ã‚ã‚‹å ´åˆã«Textã¨ã®åŠé€æ˜ã‚’è¡Œã†ã¨ã€SPã®ãƒ—ãƒ©ã‚¤ã‚ªãƒªãƒ†ã‚£ã‚‚
+		 * Textã«å¼•ããšã‚‰ã‚Œã‚‹ï¼Ÿï¼ˆã¤ã¾ã‚Šã€Grpã‚ˆã‚Šä¸‹ã«ã‚ã£ã¦ã‚‚SPãŒè¡¨ç¤ºã•ã‚Œã‚‹ï¼Ÿï¼‰
 		 */
 
-		/* KnightArms¤È¤«¤ò¸«¤ë¤È¡¢È¾Æ©ÌÀ¤Î¥Ù¡¼¥¹¥×¥ì¡¼¥ó¤Ï°ìÈÖ¾å¤Ë¤Ê¤ë¤ß¤¿¤¤¡Ä¡£*/
+		/* KnightArmsã¨ã‹ã‚’è¦‹ã‚‹ã¨ã€åŠé€æ˜ã®ãƒ™ãƒ¼ã‚¹ãƒ—ãƒ¬ãƒ¼ãƒ³ã¯ä¸€ç•ªä¸Šã«ãªã‚‹ã¿ãŸã„â€¦ã€‚*/
 
 		if ( (VCReg1[0]&0x02) )
 		{
@@ -695,7 +695,7 @@ void WinDraw_DrawLine(void)
 			tdrawed = 1;
 		}
 
-		/* Pri = 1¡Ê2ÈÖÌÜ¡Ë¤ËÀßÄê¤µ¤ì¤Æ¤¤¤ë²èÌÌ¤òÉ½¼¨ */
+		/* Pri = 1ï¼ˆ2ç•ªç›®ï¼‰ã«è¨­å®šã•ã‚Œã¦ã„ã‚‹ç”»é¢ã‚’è¡¨ç¤º */
 		if ( ((VCReg1[0]&0x03)==0x01)&&(gon) )
 		{
 			WinDraw_DrawGrpLine(opaq);
@@ -744,7 +744,7 @@ void WinDraw_DrawLine(void)
 			tdrawed = 1;
 		}
 
-		/* Pri = 0¡ÊºÇÍ¥Àè¡Ë¤ËÀßÄê¤µ¤ì¤Æ¤¤¤ë²èÌÌ¤òÉ½¼¨ */
+		/* Pri = 0ï¼ˆæœ€å„ªå…ˆï¼‰ã«è¨­å®šã•ã‚Œã¦ã„ã‚‹ç”»é¢ã‚’è¡¨ç¤º */
 		if ( (!(VCReg1[0]&0x03))&&(gon) )
 		{
 			WinDraw_DrawGrpLine(opaq);
@@ -778,13 +778,13 @@ void WinDraw_DrawLine(void)
 			opaq = 0;
 		}
 
-		/* ÆÃ¼ì¥×¥é¥¤¥ª¥ê¥Æ¥£»ş¤Î¥°¥é¥Õ¥£¥Ã¥¯ */
-		if ( ((VCReg2[0]&0x5c)==0x14)&&(pron) )	/* ÆÃ¼ìPri»ş¤Ï¡¢ÂĞ¾İ¥×¥ì¡¼¥ó¥Ó¥Ã¥È¤Ï°ÕÌ£¤¬Ìµ¤¤¤é¤·¤¤¡Ê¤Ä¤¤¤ó¤Ó¡¼¡Ë*/
+		/* ç‰¹æ®Šãƒ—ãƒ©ã‚¤ã‚ªãƒªãƒ†ã‚£æ™‚ã®ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ */
+		if ( ((VCReg2[0]&0x5c)==0x14)&&(pron) )	/* ç‰¹æ®ŠPriæ™‚ã¯ã€å¯¾è±¡ãƒ—ãƒ¬ãƒ¼ãƒ³ãƒ“ãƒƒãƒˆã¯æ„å‘³ãŒç„¡ã„ã‚‰ã—ã„ï¼ˆã¤ã„ã‚“ã³ãƒ¼ï¼‰*/
 		{
 			WinDraw_DrawPriLine();
 		}
-		else if ( ((VCReg2[0]&0x5d)==0x1c)&&(tron) )	/* È¾Æ©ÌÀ»ş¤ËÁ´¤Æ¤¬Æ©ÌÀ¤Ê¥É¥Ã¥È¤ò¥Ï¡¼¥Õ¥«¥é¡¼¤ÇËä¤á¤ë */
-		{						/* ¡ÊAQUALES¡Ë */
+		else if ( ((VCReg2[0]&0x5d)==0x1c)&&(tron) )	/* åŠé€æ˜æ™‚ã«å…¨ã¦ãŒé€æ˜ãªãƒ‰ãƒƒãƒˆã‚’ãƒãƒ¼ãƒ•ã‚«ãƒ©ãƒ¼ã§åŸ‹ã‚ã‚‹ */
+		{						/* ï¼ˆAQUALESï¼‰ */
 
 #define _DL_SUB(SUFFIX) \
 {														\
@@ -793,9 +793,9 @@ void WinDraw_DrawLine(void)
 		ScrBuf##SUFFIX[adr] = (w & Pal_HalfMask) >> 1;	\
 }
 
-			DWORD adr = VLINE*FULLSCREEN_WIDTH;
-			WORD w;
-			int i;
+			uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+			uint16_t w;
+			int32_t i;
 
 			WD_LOOP(0, TextDotX, _DL_SUB);
 		}
@@ -803,7 +803,7 @@ void WinDraw_DrawLine(void)
 
 	if (opaq)
 	{
-		DWORD adr = VLINE*FULLSCREEN_WIDTH;
+		uint32_t adr = VLINE*FULLSCREEN_WIDTH;
 #ifdef PSP
 		if (TextDotX > 512) {
 			memset(&ScrBufL[adr], 0, TextDotX * 2);
@@ -818,24 +818,24 @@ void WinDraw_DrawLine(void)
 	}
 }
 
-/********** menu ´ØÏ¢¥ë¡¼¥Á¥ó **********/
+/********** menu é–¢é€£ãƒ«ãƒ¼ãƒãƒ³ **********/
 
 struct _px68k_menu {
-	WORD *sbp;  /* surface buffer ptr */
-	WORD *mlp; /* menu locate ptr */
-	WORD mcolor; /* color of chars to write */
-	WORD mbcolor; /* back ground color of chars to write */
-	int ml_x;
-	int ml_y;
-	int mfs; /* menu font size; */
+	uint16_t *sbp;  /* surface buffer ptr */
+	uint16_t *mlp; /* menu locate ptr */
+	uint16_t mcolor; /* color of chars to write */
+	uint16_t mbcolor; /* back ground color of chars to write */
+	int32_t ml_x;
+	int32_t ml_y;
+	int32_t mfs; /* menu font size; */
 } p6m;
 
-/* ²èÌÌ¥¿¥¤¥×¤òÊÑ¹¹¤¹¤ë */
+/* ç”»é¢ã‚¿ã‚¤ãƒ—ã‚’å¤‰æ›´ã™ã‚‹ */
 enum ScrType {x68k, pc98};
-int scr_type = x68k;
+int32_t scr_type = x68k;
 
-/* sjis¢ªjis¥³¡¼¥ÉÊÑ´¹ */
-static WORD sjis2jis(WORD w)
+/* sjisâ†’jisã‚³ãƒ¼ãƒ‰å¤‰æ› */
+static uint16_t sjis2jis(uint16_t w)
 {
 	uint8_t wh, wl;
 
@@ -853,9 +853,9 @@ static WORD sjis2jis(WORD w)
 	return (wh * 256 + wl);
 }
 
-/* JIS¥³¡¼¥É¤«¤é0 origin¤Îindex¤ËÊÑ´¹¤¹¤ë */
-/* ¤¿¤À¤·0x2921-0x2f7e¤ÏX68K¤ÎROM¾å¤Ë¤Ê¤¤¤Î¤ÇÈô¤Ğ¤¹ */
-static WORD jis2idx(WORD jc)
+/* JISã‚³ãƒ¼ãƒ‰ã‹ã‚‰0 originã®indexã«å¤‰æ›ã™ã‚‹ */
+/* ãŸã ã—0x2921-0x2f7eã¯X68Kã®ROMä¸Šã«ãªã„ã®ã§é£›ã°ã™ */
+static uint16_t jis2idx(uint16_t jc)
 {
 	if (jc >= 0x3000) {
 		jc -= 0x3021;
@@ -872,16 +872,16 @@ static WORD jis2idx(WORD jc)
 
 
 /* fs : font size : 16 or 24
- * È¾³ÑÊ¸»ú¤Î¾ì¹ç¤Ï16bit¤Î¾å°Ì8bit¤Ë¥Ç¡¼¥¿¤òÆş¤ì¤Æ¤ª¤¯¤³¤È
- * (È¾³ÑorÁ´³Ñ¤ÎÈ½ÃÇ¤¬¤Ç¤­¤ë¤è¤¦¤Ë)
+ * åŠè§’æ–‡å­—ã®å ´åˆã¯16bitã®ä¸Šä½8bitã«ãƒ‡ãƒ¼ã‚¿ã‚’å…¥ã‚Œã¦ãŠãã“ã¨
+ * (åŠè§’orå…¨è§’ã®åˆ¤æ–­ãŒã§ãã‚‹ã‚ˆã†ã«)
  */
-static DWORD get_font_addr(WORD sjis, int fs)
+static uint32_t get_font_addr(uint16_t sjis, int32_t fs)
 {
-	WORD jis, j_idx;
+	uint16_t jis, j_idx;
 	uint8_t jhi;
-	int fsb; /* file size in bytes */
+	int32_t fsb; /* file size in bytes */
 
-	/* È¾³ÑÊ¸»ú */
+	/* åŠè§’æ–‡å­— */
 	if (isHankaku(sjis >> 8)) {
 		switch (fs) {
 		case 8:
@@ -895,7 +895,7 @@ static DWORD get_font_addr(WORD sjis, int fs)
 		}
 	}
 
-	/* Á´³ÑÊ¸»ú */
+	/* å…¨è§’æ–‡å­— */
 	if (fs == 16) {
 		fsb = 2 * 16;
 	} else if (fs == 24) {
@@ -905,75 +905,75 @@ static DWORD get_font_addr(WORD sjis, int fs)
 	}
 
 	jis = sjis2jis(sjis);
-	j_idx = (DWORD)jis2idx(jis);
+	j_idx = (uint32_t)jis2idx(jis);
 	jhi = (uint8_t)(jis >> 8);
 
 	if (jhi >= 0x21 && jhi <= 0x28) {
-		/* Èó´Á»ú */
+		/* éæ¼¢å­— */
 		return  ((fs == 16)? 0x0 : 0x40000) + j_idx * fsb;
 	} else if (jhi >= 0x30 && jhi <= 0x74) {
-		/* Âè°ì¿å½à/ÂèÆó¿å½à */
+		/* ç¬¬ä¸€æ°´æº–/ç¬¬äºŒæ°´æº– */
 		return  ((fs == 16)? 0x5e00 : 0x4d380) + j_idx * fsb;
 	} else {
-		/* ¤³¤³¤Ë¤¯¤ë¤³¤È¤Ï¤Ê¤¤¤Ï¤º */
+		/* ã“ã“ã«ãã‚‹ã“ã¨ã¯ãªã„ã¯ãš */
 		return -1;
 	}
 }
 
 /* RGB565 */
-static void set_mcolor(WORD c)
+static void set_mcolor(uint16_t c)
 {
 	p6m.mcolor = c;
 }
 
-/* mbcolor = 0 ¤Ê¤éÆ©ÌÀ¿§¤È¤¹¤ë */
-static void set_mbcolor(WORD c)
+/* mbcolor = 0 ãªã‚‰é€æ˜è‰²ã¨ã™ã‚‹ */
+static void set_mbcolor(uint16_t c)
 {
 	p6m.mbcolor = c;
 }
 
-/* ¥°¥é¥Õ¥£¥Ã¥¯ºÂÉ¸ */
-static void set_mlocate(int x, int y)
+/* ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯åº§æ¨™ */
+static void set_mlocate(int32_t x, int32_t y)
 {
 	p6m.ml_x = x, p6m.ml_y = y;
 }
 
-/* ¥­¥ã¥é¥¯¥¿Ê¸»ú¤ÎºÂÉ¸ (²£¼´¤Ï1ºÂÉ¸¤¬È¾³ÑÊ¸»úÉı¤Ë¤Ê¤ë) */
-static void set_mlocateC(int x, int y)
+/* ã‚­ãƒ£ãƒ©ã‚¯ã‚¿æ–‡å­—ã®åº§æ¨™ (æ¨ªè»¸ã¯1åº§æ¨™ãŒåŠè§’æ–‡å­—å¹…ã«ãªã‚‹) */
+static void set_mlocateC(int32_t x, int32_t y)
 {
 	p6m.ml_x = x * p6m.mfs / 2, p6m.ml_y = y * p6m.mfs;
 }
 
-static void set_sbp(WORD *p)
+static void set_sbp(uint16_t *p)
 {
 	p6m.sbp = p;
 }
 
 /* menu font size (16 or 24) */
-static void set_mfs(int fs)
+static void set_mfs(int32_t fs)
 {
 	p6m.mfs = fs;
 }
 
-static WORD *get_ml_ptr()
+static uint16_t *get_ml_ptr()
 {
 	p6m.mlp = p6m.sbp + MENU_WIDTH * p6m.ml_y + p6m.ml_x;
 	return p6m.mlp;
 }
 
-/* ¡¦È¾³ÑÊ¸»ú¤Î¾ì¹ç¤Ï16bit¤Î¾å°Ì8bit¤Ë¥Ç¡¼¥¿¤òÆş¤ì¤Æ¤ª¤¯¤³¤È
- *  (È¾³ÑorÁ´³Ñ¤ÎÈ½ÃÇ¤¬¤Ç¤­¤ë¤è¤¦¤Ë)
- *¡¦É½¼¨¤·¤¿Ê¬cursor¤ÏÀè¤Ë°ÜÆ°¤¹¤ë
+/* ãƒ»åŠè§’æ–‡å­—ã®å ´åˆã¯16bitã®ä¸Šä½8bitã«ãƒ‡ãƒ¼ã‚¿ã‚’å…¥ã‚Œã¦ãŠãã“ã¨
+ *  (åŠè§’orå…¨è§’ã®åˆ¤æ–­ãŒã§ãã‚‹ã‚ˆã†ã«)
+ *ãƒ»è¡¨ç¤ºã—ãŸåˆ†cursorã¯å…ˆã«ç§»å‹•ã™ã‚‹
  */
-static void draw_char(WORD sjis)
+static void draw_char(uint16_t sjis)
 {
-	DWORD f;
-	WORD *p;
-	int i, j, k, wc, w;
+	uint32_t f;
+	uint16_t *p;
+	int32_t i, j, k, wc, w;
 	uint8_t c;
-	WORD bc;
+	uint16_t bc;
 
-	int h = p6m.mfs;
+	int32_t h = p6m.mfs;
 
 	p = get_ml_ptr();
 
@@ -982,7 +982,7 @@ static void draw_char(WORD sjis)
 	if (f < 0)
 		return;
 
-	/* h=8¤ÏÈ¾³Ñ¤Î¤ß */
+	/* h=8ã¯åŠè§’ã®ã¿ */
 	w = (h == 8)? 8 : (isHankaku(sjis >> 8)? h / 2 : h);
 
 	for (i = 0; i < h; i++) {
@@ -1007,32 +1007,32 @@ static void draw_char(WORD sjis)
 
 static void draw_str(char *cp)
 {
-	int i;
-	WORD wc;
-	int len    = strlen(cp);
+	int32_t i;
+	uint16_t wc;
+	int32_t len    = strlen(cp);
 	uint8_t *s = (uint8_t *)cp;
 
 	for (i = 0; i < len; i++) {
 		if (isHankaku(*s)) {
-			/* ºÇ½é¤Î8bit¤ÇÈ¾Á´³Ñ¤òÈ½ÃÇ¤¹¤ë¤Î¤ÇÈ¾³Ñ¤Î¾ì¹ç¤Ï
-			 * ¤¢¤é¤«¤¸¤á8bitº¸¥·¥Õ¥È¤·¤Æ¤ª¤¯
+			/* æœ€åˆã®8bitã§åŠå…¨è§’ã‚’åˆ¤æ–­ã™ã‚‹ã®ã§åŠè§’ã®å ´åˆã¯
+			 * ã‚ã‚‰ã‹ã˜ã‚8bitå·¦ã‚·ãƒ•ãƒˆã—ã¦ãŠã
 			 */
-			draw_char((WORD)*s << 8);
+			draw_char((uint16_t)*s << 8);
 			s++;
 		} else {
-			wc = (WORD)(*s << 8) + *(s + 1);
+			wc = (uint16_t)(*s << 8) + *(s + 1);
 			draw_char(wc);
 			s += 2;
 			i++;
 		}
-		/* 8x8ÉÁ²è(¥½¥Õ¥È¥­¡¼¥Ü¡¼¥É¤ÎFUNC¥­¡¼¤ÏÊ¸»úÉı¤ò½Ì¤á¤ë) */
+		/* 8x8æç”»(ã‚½ãƒ•ãƒˆã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®FUNCã‚­ãƒ¼ã¯æ–‡å­—å¹…ã‚’ç¸®ã‚ã‚‹) */
 		if (p6m.mfs == 8) {
 			p6m.ml_x -= 3;
 		}
 	}
 }
 
-int WinDraw_MenuInit(void)
+int32_t WinDraw_MenuInit(void)
 {
 	set_sbp(menu_buffer);
 	set_mfs(16);
@@ -1052,17 +1052,17 @@ char menu_item_desc[][60] = {
 	"Change / Eject HDD 1"
 };
 
-void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
+void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int32_t *mval_y)
 {
-	int i, drv;
+	int32_t i, drv;
 	char tmp[256];
 
-/* ¥½¥Õ¥È¥¦¥§¥¢¥­¡¼¥Ü¡¼¥ÉÉÁ²è»ş¤Ëset_sbp(kbd_buffer)¤µ¤ì¤Æ¤¤¤ë¤Î¤ÇÌá¤¹ */
+/* ã‚½ãƒ•ãƒˆã‚¦ã‚§ã‚¢ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰æç”»æ™‚ã«set_sbp(kbd_buffer)ã•ã‚Œã¦ã„ã‚‹ã®ã§æˆ»ã™ */
 
 	set_sbp(menu_buffer);
 	set_mfs(Config.MenuFontSize ? 24 : 16);
 
-	/* ¥¿¥¤¥È¥ë */
+	/* ã‚¿ã‚¤ãƒˆãƒ« */
 	if (scr_type == x68k) {
 		set_mcolor(0x07ff); /* cyan */
 		set_mlocateC(0, 0);
@@ -1088,11 +1088,11 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 		draw_str(pc98_title2_str);
 	}
 
-	/* ¿¿¤óÃæ */
+	/* çœŸã‚“ä¸­ */
 	if (scr_type == x68k) {
 		set_mcolor(0xffff);
 
-		/* ¿¿¤óÃæÏÈ */
+		/* çœŸã‚“ä¸­æ  */
 		set_mcolor(0xffe0); /* yellow */
 		set_mlocateC(1, 4);
 		draw_str(waku_str);
@@ -1104,7 +1104,7 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 		draw_str(waku3_str);
 	}
 
-	/* ¥¢¥¤¥Æ¥à/¥­¡¼¥ï¡¼¥É */
+	/* ã‚¢ã‚¤ãƒ†ãƒ /ã‚­ãƒ¼ãƒ¯ãƒ¼ãƒ‰ */
 	set_mcolor(0xffff);
 	for (i = 0; i < 5; i++) {
 		set_mlocateC(3, 5 + i);
@@ -1118,7 +1118,7 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 		draw_str(menu_item_key[i + mkey_pos]);
 	}
 
-	/* ¥¢¥¤¥Æ¥à/¸½ºßÃÍ */
+	/* ã‚¢ã‚¤ãƒ†ãƒ /ç¾åœ¨å€¤ */
 	set_mcolor(0xffff);
 	set_mbcolor(0x0);
 	for (i = 0; i < 5; i++) {
@@ -1148,7 +1148,7 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 			if (p[0] == '\0') {
 				draw_str(" -- no disk --");
 			} else {
-				/* ÀèÆ¬¤Î¥«¥ì¥ó¥È¥Ç¥£¥ì¥¯¥È¥êÌ¾¤òÉ½¼¨¤·¤Ê¤¤ */
+				/* å…ˆé ­ã®ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã‚’è¡¨ç¤ºã—ãªã„ */
 				char ptr[PATH_MAX];
 				if (!strncmp(cur_dir_str, p, cur_dir_slen))
 					strncpy(ptr, p + cur_dir_slen, sizeof(ptr));
@@ -1163,7 +1163,7 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 	}
 
 	if (scr_type == x68k) {
-		/* ²¼ÏÈ */
+		/* ä¸‹æ  */
 		set_mcolor(0x07ff); /* cyan */
 		set_mbcolor(0x0);
 		set_mlocateC(0, 11);
@@ -1174,7 +1174,7 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 		draw_str(swaku3_str);
 	}
 
-	/* ¥­¥ã¥×¥·¥ç¥ó */
+	/* ã‚­ãƒ£ãƒ—ã‚·ãƒ§ãƒ³ */
 	set_mcolor(0xffff);
 	set_mbcolor(0x0);
 	set_mlocateC(2, 12);
@@ -1186,12 +1186,12 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 
 void WinDraw_DrawMenufile(struct menu_flist *mfl)
 {
-	int i;
+	int32_t i;
 	char ptr[PATH_MAX];
 
-	/* ²¼ÏÈ */
+	/* ä¸‹æ  */
 	set_mcolor(0xffff);
-	set_mbcolor(0x1); /* 0x0¤À¤ÈÆ©²á¥â¡¼¥É */
+	set_mbcolor(0x1); /* 0x0ã ã¨é€éãƒ¢ãƒ¼ãƒ‰ */
 	set_mlocateC(1, 1);
 	draw_str(swaku_str);
 	for (i = 2; i < 16; i++) {
@@ -1212,7 +1212,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 			set_mcolor(0xffff);
 			set_mbcolor(0x1);
 		}
-		/* ¥Ç¥£¥ì¥¯¥È¥ê¤À¤Ã¤¿¤é¥Õ¥¡¥¤¥ëÌ¾¤ò[]¤Ç°Ï¤¦ */
+		/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã ã£ãŸã‚‰ãƒ•ã‚¡ã‚¤ãƒ«åã‚’[]ã§å›²ã† */
 		set_mlocateC(3, i + 2);
 		if (mfl->type[i + mfl->ptr]) draw_str("[");
 		strncpy(ptr, mfl->name[i + mfl->ptr], sizeof(ptr));
@@ -1221,7 +1221,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 		if (mfl->type[i + mfl->ptr]) draw_str("]");
 	}
 
-	set_mbcolor(0x0); /* Æ©²á¥â¡¼¥É¤ËÌá¤·¤Æ¤ª¤¯ */
+	set_mbcolor(0x0); /* é€éãƒ¢ãƒ¼ãƒ‰ã«æˆ»ã—ã¦ãŠã */
 
 	videoBuffer=(uint16_t*)menu_buffer;
 }
@@ -1231,7 +1231,7 @@ void WinDraw_ClearMenuBuffer(void)
 	memset(menu_buffer, 0, 800*600*2);
 }
 
-/********** ¥½¥Õ¥È¥¦¥§¥¢¥­¡¼¥Ü¡¼¥ÉÉÁ²è **********/
+/********** ã‚½ãƒ•ãƒˆã‚¦ã‚§ã‚¢ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰æç”» **********/
 
 #if defined(PSP) || defined(USE_OGLES11)
 
@@ -1239,18 +1239,18 @@ void WinDraw_ClearMenuBuffer(void)
 // display width 480, buffer width 512
 #define KBDBUF_WIDTH 512
 #elif defined(USE_OGLES11)
-// display width 800, buffer width 1024 ¤À¤±¤ì¤É 800 ¤Ë¤·¤Ê¤¤¤È¤À¤á
+// display width 800, buffer width 1024 ã ã‘ã‚Œã© 800 ã«ã—ãªã„ã¨ã ã‚
 #define KBDBUF_WIDTH 800
 #endif
 
 #define KBD_FS 16 // keyboard font size : 16
 
-// ¥­¡¼¤òÈ¿Å¾¤¹¤ë
-void WinDraw_reverse_key(int x, int y)
+// ã‚­ãƒ¼ã‚’åè»¢ã™ã‚‹
+void WinDraw_reverse_key(int32_t x, int32_t y)
 {
-	WORD *p;
-	int kp;
-	int i, j;
+	uint16_t *p;
+	int32_t kp;
+	int32_t i, j;
 	
 	kp = Keyboard_get_key_ptr(kbd_kx, kbd_ky);
 
@@ -1267,10 +1267,10 @@ void WinDraw_reverse_key(int x, int y)
 
 static void draw_kbd_to_tex()
 {
-	int i, x, y;
-	WORD *p;
+	int32_t i, x, y;
+	uint16_t *p;
 
-	// SJIS ´Á»ú¥³¡¼¥É
+	// SJIS æ¼¢å­—ã‚³ãƒ¼ãƒ‰
 	char zen[] = {0x91, 0x53, 0x00};
 	char larw[] = {0x81, 0xa9, 0x00};
 	char rarw[] = {0x81, 0xa8, 0x00};
@@ -1326,7 +1326,7 @@ static void draw_kbd_to_tex()
 	set_mbcolor(0);
 	set_mcolor(0);
 
-	// ¥­¡¼¥Ü¡¼¥É¤ÎÇØ·Ê
+	// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®èƒŒæ™¯
 	p = kbd_buffer;
 	for (y = 0; y < kbd_h; y++) {
 		for (x = 0; x < kbd_w; x++) {
@@ -1335,14 +1335,14 @@ static void draw_kbd_to_tex()
 		p = p + KBDBUF_WIDTH - kbd_w;
 	}
 
-	// ¥­¡¼¤ÎÉÁ²è
+	// ã‚­ãƒ¼ã®æç”»
 	for (i = 0; kbd_key[i].x != -1; i++) {
 		p = kbd_buffer + kbd_key[i].y * KBDBUF_WIDTH + kbd_key[i].x;
 		for (y = 0; y < kbd_key[i].h; y++) {
 			for (x = 0; x < kbd_key[i].w; x++) {
 				if (x == (kbd_key[i].w - 1)
 				    || y == (kbd_key[i].h - 1)) {
-					// ¥­¡¼¤Ë±Æ¤ò¤Ä¤±Î©ÂÎÅª¤Ë¸«¤»¤ë
+					// ã‚­ãƒ¼ã«å½±ã‚’ã¤ã‘ç«‹ä½“çš„ã«è¦‹ã›ã‚‹
 					*p++ = 0x0000;
 				} else {
 					*p++ = 0xffff;
@@ -1351,7 +1351,7 @@ static void draw_kbd_to_tex()
 			p = p + KBDBUF_WIDTH - kbd_key[i].w;
 		}
 		if (strlen(kbd_key[i].s) == 3 && *(kbd_key[i].s) == 'F') {
-			// FUNC¥­¡¼¹ï°õÉÁ²è
+			// FUNCã‚­ãƒ¼åˆ»å°æç”»
 			set_mlocate(kbd_key[i].x + kbd_key[i].w / 2
 				    - strlen(kbd_key[i].s) * (8 / 2)
 				    + (strlen(kbd_key[i].s) - 1) * 3 / 2,
@@ -1360,7 +1360,7 @@ static void draw_kbd_to_tex()
 			draw_str(kbd_key[i].s);
 			set_mfs(KBD_FS);
 		} else {
-			// ¹ï°õ¤Ï¾å²¼º¸±¦¤È¤â¥»¥ó¥¿¥ê¥ó¥°¤¹¤ë
+			// åˆ»å°ã¯ä¸Šä¸‹å·¦å³ã¨ã‚‚ã‚»ãƒ³ã‚¿ãƒªãƒ³ã‚°ã™ã‚‹
 			set_mlocate(kbd_key[i].x + kbd_key[i].w / 2
 				    - strlen(kbd_key[i].s) * (KBD_FS / 2 / 2),
 				    kbd_key[i].y

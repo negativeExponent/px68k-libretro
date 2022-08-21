@@ -1,6 +1,6 @@
-// ---------------------------------------------------------------------------------------
-//  SYSPORT.C - X68k System Port
-// ---------------------------------------------------------------------------------------
+/*
+ *  SYSPORT.C - X68k System Port
+ */
 
 #include "common.h"
 #include "prop.h"
@@ -9,20 +9,19 @@
 
 uint8_t	SysPort[7];
 
-// -----------------------------------------------------------------------
-//   ΩÈ¥¸≤Ω
-// -----------------------------------------------------------------------
+/*
+ *   ÂàùÊúüÂåñ
+ */
 void SysPort_Init(void)
 {
-	int i;
+	int32_t i;
 	for (i=0; i<7; i++) SysPort[i]=0;
 }
 
-
-// -----------------------------------------------------------------------
-//   §È§§§»
-// -----------------------------------------------------------------------
-void FASTCALL SysPort_Write(DWORD adr, uint8_t data)
+/*
+ *   „Çâ„ÅÑ„Å®
+ */
+void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 {
 	switch(adr)
 	{
@@ -52,10 +51,10 @@ void FASTCALL SysPort_Write(DWORD adr, uint8_t data)
 }
 
 
-// -----------------------------------------------------------------------
-//   §Í°º§…
-// -----------------------------------------------------------------------
-uint8_t FASTCALL SysPort_Read(DWORD adr)
+/*
+ *   „Çä„Éº„Å©
+ */
+uint8_t FASTCALL SysPort_Read(uint32_t adr)
 {
 	uint8_t ret=0xff;
 
@@ -73,17 +72,18 @@ uint8_t FASTCALL SysPort_Read(DWORD adr)
 	case 0xe8e007:
 		ret = SysPort[4];
 		break;
-	case 0xe8e00b:		// 10MHz:0xff°¢16MHz:0xfe°¢030(25MHz):0xdc§Ú§Ω§Ï§æ§Ï ÷§π§È§∑§§
+	case 0xe8e00b:
+		/* 10MHz:0xff„ÄÅ16MHz:0xfe„ÄÅ030(25MHz):0xdc„Çí„Åù„Çå„Åû„ÇåËøî„Åô„Çâ„Åó„ÅÑ */
 		switch(Config.XVIMode)
 		{
-		case 1:			// XVI or RedZone
+		case 1:			/* XVI or RedZone */
 		case 2:
 			ret = 0xfe;
 			break;
-		case 3:			// 030
+		case 3:			/* 030 */
 			ret = 0xdc;
 			break;
-		default:		// 10MHz
+		default:		/* 10MHz */
 			ret = 0xff;
 			break;
 		}

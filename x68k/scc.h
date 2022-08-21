@@ -6,8 +6,8 @@
 
 void SCC_IntCheck(void);
 void SCC_Init(void);
-uint8_t FASTCALL SCC_Read(DWORD adr);
-void FASTCALL SCC_Write(DWORD adr, uint8_t data);
+uint8_t FASTCALL SCC_Read(uint32_t adr);
+void FASTCALL SCC_Write(uint32_t adr, uint8_t data);
 
 extern signed char MouseX;
 extern signed char MouseY;

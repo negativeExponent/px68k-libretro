@@ -21,8 +21,8 @@ typedef struct {
 
 void CDROM_Init(void);
 void CDROM_Cleanup(void);
-uint8_t FASTCALL CDROM_Read(DWORD adr);
-void FASTCALL CDROM_Write(DWORD adr, uint8_t data);
+uint8_t FASTCALL CDROM_Read(uint32_t adr);
+void FASTCALL CDROM_Write(uint32_t adr, uint8_t data);
 
 extern uint8_t CDROM_ASPIChecked;
 

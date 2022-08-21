@@ -8,7 +8,7 @@
 
 #include "libretro.h"
 extern retro_input_state_t input_state_cb;
-extern DWORD libretro_supports_input_bitmasks;
+extern uint32_t libretro_supports_input_bitmasks;
 
 #ifndef MAX_BUTTON
 #define MAX_BUTTON 32
@@ -35,7 +35,7 @@ uint8_t MouseUpState0;
 
 uint8_t JoyPortData[2];
 
-int *r_joy;
+int32_t *r_joy;
 
 void Joystick_Init(void)
 {
@@ -92,15 +92,15 @@ void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 #define DELAY 30      // delay before 1st repeat
 uint8_t keyb_in, joy_in;
 
-static DWORD get_px68k_input_bitmasks(int port)
+static uint32_t get_px68k_input_bitmasks(int32_t port)
 {
    return input_state_cb(port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
 }
 
-static WORD get_px68k_input(int port)
+static uint16_t get_px68k_input(int32_t port)
 {
-   DWORD i = 0;
-   DWORD res = 0;
+   uint32_t i = 0;
+   uint32_t res = 0;
    for (i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R + 1); i++)
       res |= input_state_cb(port, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
    return res;
@@ -110,13 +110,13 @@ static WORD get_px68k_input(int port)
 #define PAD_CPSF_MD  1
 #define PAD_CPSF_SFC 2
 
-void FASTCALL Joystick_Update(int is_menu, int key, int port)
+void FASTCALL Joystick_Update(int32_t is_menu, int32_t key, int32_t port)
 {
 	uint8_t ret0 = 0xff, ret1 = 0xff;
 	uint8_t mret0 = 0xff, mret1 = 0xff;
 	uint8_t temp = 0;
 	static uint8_t pre_ret0 = 0xff, pre_mret0 = 0xff;
-	DWORD res = 0;
+	uint32_t res = 0;
 
 	if (libretro_supports_input_bitmasks)
 		res = get_px68k_input_bitmasks(port);
@@ -193,8 +193,8 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 	/* input overrides section during Menu mode for faster menu browsing
 	 * by pressing and holding key or button aka turbo mode */
 	if (is_menu) {
-		int i;
-		static int repeat_rate, repeat_delay;
+		int32_t i;
+		static int32_t repeat_rate, repeat_delay;
 		static uint8_t last_in;
 		uint8_t inbuf;
 

@@ -17,8 +17,6 @@ extern "C" {
 
 #include <stdint.h>
 
-typedef uint32_t DWORD;
-
 /* setting */
 
 /* #define C68K_BIG_ENDIAN */
@@ -137,7 +135,7 @@ typedef struct c68k_t
 	void (*Write_Byte)(uint32_t address, uint8_t data);
 	void (*Write_Word)(uint32_t address, uint16_t data);
 
-	int32_t  (*Interrupt_CallBack)(int32_t irqline);
+	int32_t (*Interrupt_CallBack)(int32_t irqline);
 	void (*Reset_CallBack)(void);
 
 } c68k_struc;
@@ -146,7 +144,7 @@ typedef struct c68k_t
 /* 68K core var declaration */
 
 extern c68k_struc C68K;
-extern int m68000_ICountBk;
+extern int32_t m68000_ICountBk;
 
 /* 68K core function declaration */
 
@@ -154,7 +152,7 @@ void C68k_Init(c68k_struc *cpu);
 
 void C68k_Reset(c68k_struc *cpu);
 
-int32_t  C68k_Exec(c68k_struc *cpu, int32_t cycle);
+int32_t C68k_Exec(c68k_struc *cpu, int32_t cycle);
 
 void C68k_Set_IRQ(c68k_struc *cpu, int32_t line, int32_t state);
 

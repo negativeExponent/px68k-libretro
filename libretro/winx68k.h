@@ -9,7 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-extern int rfd_sock;
+extern int32_t rfd_sock;
 #endif
 
 #define vline HOGEvline // workaround for redefinition of 'vline'
@@ -28,21 +28,21 @@ extern int rfd_sock;
 
 extern	uint8_t*	FONT;
 
-extern	WORD	VLINE_TOTAL;
-extern	DWORD	VLINE;
-extern	DWORD	vline;
+extern	uint16_t	VLINE_TOTAL;
+extern	uint32_t	VLINE;
+extern	uint32_t	vline;
 
 extern	char	winx68k_dir[MAX_PATH];
 extern	char	winx68k_ini[MAX_PATH];
-extern	int	BIOS030Flag;
+extern	int32_t	BIOS030Flag;
 extern	uint8_t	FrameChanged;
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
-extern int realdisp_w, realdisp_h;
+extern int32_t realdisp_w, realdisp_h;
 #endif
 
-int WinX68k_Reset(void);
-int pmain(int argc, char *argv[]);
+int32_t WinX68k_Reset(void);
+int32_t pmain(int32_t argc, char *argv[]);
 void end_loop_retro(void);
 void exec_app_retro();
 
@@ -61,7 +61,7 @@ BOOL is_installed_idle_process(void);
 void install_idle_process(void);
 void uninstall_idle_process(void);
 
-#define	NELEMENTS(array)	((int)(sizeof(array) / sizeof(array[0])))
+#define	NELEMENTS(array)	((int32_t)(sizeof(array) / sizeof(array[0])))
 
 #endif //winx68k_gtkwarpper_h
 

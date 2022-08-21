@@ -1,6 +1,6 @@
-// ---------------------------------------------------------------------------------------
-//  SASI.C - Shugart Associates System Interface (SASI HDD)
-// ---------------------------------------------------------------------------------------
+/*
+ *  SASI.C - Shugart Associates System Interface (SASI HDD)
+ */
 
 #include "common.h"
 #include "fileio.h"
@@ -13,11 +13,11 @@
 
 uint8_t SASI_Buf[256];
 uint8_t SASI_Phase = 0;
-DWORD SASI_Sector = 0;
-DWORD SASI_Blocks = 0;
+uint32_t SASI_Sector = 0;
+uint32_t SASI_Blocks = 0;
 uint8_t SASI_Cmd[6];
 uint8_t SASI_CmdPtr = 0;
-WORD SASI_Device = 0;
+uint16_t SASI_Device = 0;
 uint8_t SASI_Unit = 0;
 int16_t SASI_BufPtr = 0;
 uint8_t SASI_RW = 0;
@@ -29,7 +29,7 @@ uint8_t SASI_SenseStatPtr = 0;
 
 
 
-int SASI_IsReady(void)
+int32_t SASI_IsReady(void)
 {
 	if ( (SASI_Phase==2)||(SASI_Phase==3)||(SASI_Phase==9) )
 		return 1;
@@ -38,21 +38,21 @@ int SASI_IsReady(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   §Ô§Í§≥§ﬂè¢∑
-// -----------------------------------------------------------------------
-DWORD FASTCALL SASI_Int(uint8_t irq)
+/*
+ *   „Çè„Çä„Åì„ÅøÔΩû
+ */
+uint32_t FASTCALL SASI_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 	if (irq==1)
-		return ((DWORD)IOC_IntVect+2);
+		return ((uint32_t)IOC_IntVect+2);
 	return -1;
 }
 
 
-// -----------------------------------------------------------------------
-//   ΩÈ¥¸≤Ω
-// -----------------------------------------------------------------------
+/*
+ *   ÂàùÊúüÂåñ
+ */
 void SASI_Init(void)
 {
 	SASI_Phase = 0;
@@ -69,9 +69,9 @@ void SASI_Init(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   §∑°›§Ø° •Í°º•…ª˛°À
-// -----------------------------------------------------------------------
+/*
+ *   „Åó‚àí„ÅèÔºà„É™„Éº„ÉâÊôÇÔºâ
+ */
 int16_t SASI_Seek(void)
 {
 	FILEH fp;
@@ -99,9 +99,9 @@ int16_t SASI_Seek(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   §∑°º§Ø° •È•§•»ª˛°À
-// -----------------------------------------------------------------------
+/*
+ *   „Åó„Éº„ÅèÔºà„É©„Ç§„ÉàÊôÇÔºâ
+ */
 int16_t SASI_Flush(void)
 {	FILEH fp;
 
@@ -123,10 +123,10 @@ int16_t SASI_Flush(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   I/O Read
-// -----------------------------------------------------------------------
-uint8_t FASTCALL SASI_Read(DWORD adr)
+/*
+ *   I/O Read
+ */
+uint8_t FASTCALL SASI_Read(uint32_t adr)
 {
 	uint8_t ret = 0;
 	int16_t result;
@@ -134,44 +134,44 @@ uint8_t FASTCALL SASI_Read(DWORD adr)
 	if (adr==0xe96003)
 	{
 		if (SASI_Phase)
-			ret |= 2;		// Busy
+			ret |= 2;		/* Busy */
 		if (SASI_Phase>1)
-			ret |= 1;		// Req
+			ret |= 1;		/* Req */
 		if (SASI_Phase==2)
-			ret |= 8;		// C/D
-		if ((SASI_Phase==3)&&(SASI_RW))	// SASI_RW=1:Read
-			ret |= 4;		// I/O
-		if (SASI_Phase==9)		// Phase=9:SenseStatus√Ê
-			ret |= 4;		// I/O
+			ret |= 8;		/* C/D */
+		if ((SASI_Phase==3)&&(SASI_RW))	/* SASI_RW=1:Read */
+			ret |= 4;		/* I/O */
+		if (SASI_Phase==9)		/* Phase=9:SenseStatus‰∏≠ */
+			ret |= 4;		/* I/O */
 		if ((SASI_Phase==4)||(SASI_Phase==5))
-			ret |= 0x0c;		// I/O & C/D
+			ret |= 0x0c;		/* I/O & C/D */
 		if (SASI_Phase==5)
-			ret |= 0x10;		// MSG
+			ret |= 0x10;		/* MSG */
 	}
 	else if (adr ==0xe96001)
 	{
-		if ((SASI_Phase==3)&&(SASI_RW))	// •«°º•ø•Í°º•…√Êè¢∑
+		if ((SASI_Phase==3)&&(SASI_RW))	/* „Éá„Éº„Çø„É™„Éº„Éâ‰∏≠ÔΩû */
 		{
 			ret = SASI_Buf[SASI_BufPtr++];
 			if (SASI_BufPtr==256)
 			{
 				SASI_Blocks--;
-				if (SASI_Blocks)		// §ﬁ§¿∆…§‡•÷•Ì•√•Ø§¨§¢§Î°©
+				if (SASI_Blocks)		/* „Åæ„Å†Ë™≠„ÇÄ„Éñ„É≠„ÉÉ„ÇØ„Åå„ÅÇ„ÇãÔºü */
 				{
 					SASI_Sector++;
 					SASI_BufPtr = 0;
-					result = SASI_Seek();	// º°§Œ•ª•Ø•ø§Ú•–•√•’•°§À∆…§‡
-					if (!result)		// result=0°ß•§•·°º•∏§Œ∫«∏Â° °·Ãµ∏˙§ •ª•Ø•ø°À§ §È
+					result = SASI_Seek();	/* Ê¨°„ÅÆ„Çª„ÇØ„Çø„Çí„Éê„ÉÉ„Éï„Ç°„Å´Ë™≠„ÇÄ */
+					if (!result)		/* result=0Ôºö„Ç§„É°„Éº„Ç∏„ÅÆÊúÄÂæåÔºàÔºùÁÑ°Âäπ„Å™„Çª„ÇØ„ÇøÔºâ„Å™„Çâ */
 					{
 						SASI_Error = 0x0f;
 						SASI_Phase++;
 					}
 				}
 				else
-					SASI_Phase++;		// ªÿƒÍ•÷•Ì•√•Ø§Œ•Í°º•…¥∞Œª
+					SASI_Phase++;		/* ÊåáÂÆö„Éñ„É≠„ÉÉ„ÇØ„ÅÆ„É™„Éº„ÉâÂÆå‰∫Ü */
 			}
 		}
-		else if (SASI_Phase==4)				// Status Phase
+		else if (SASI_Phase==4)				/* Status Phase */
 		{
 			if (SASI_Error)
 				ret = 0x02;
@@ -179,17 +179,17 @@ uint8_t FASTCALL SASI_Read(DWORD adr)
 				ret = SASI_Stat;
 			SASI_Phase++;
 		}
-		else if (SASI_Phase==5)				// MessagePhase
+		else if (SASI_Phase==5)				/* MessagePhase */
 		{
-			SASI_Phase = 0;				// 0§Ú ÷§π§¿§±è¢∑°£BusFree§Àµ¢§Í§ﬁ§π
+			SASI_Phase = 0;				/* 0„ÇíËøî„Åô„Å†„ÅëÔΩû„ÄÇBusFree„Å´Â∏∞„Çä„Åæ„Åô */
 		}
-		else if (SASI_Phase==9)				// DataPhase(SenseStat¿ÏÕ—)
+		else if (SASI_Phase==9)				/* DataPhase(SenseStatÂ∞ÇÁî®) */
 		{
 			ret = SASI_SenseStatBuf[SASI_SenseStatPtr++];
 			if (SASI_SenseStatPtr==4)
 			{
 				SASI_Error = 0;
-				SASI_Phase = 4;				// StatusPhase§ÿ
+				SASI_Phase = 4;				/* StatusPhase„Å∏ */
 			}
 		}
 		if (SASI_Phase==4)
@@ -205,18 +205,19 @@ uint8_t FASTCALL SASI_Read(DWORD adr)
 }
 
 
-// •≥•ﬁ•Û•…§Œ•¡•ß•√•Ø°£¿µƒæ°¢InsideX68k∆‚§Œµ≠Ω“§«§œ§¡§»¬≠§Í§ §§ ^^;°£
-// Ã§µ≠Ω“§Œ§‚§Œ§»§∑§∆°¢
-//   - C2h° ΩÈ¥¸≤Ω∑œ°©°À°£Unit∞ ≥∞§Œ•—•È•·°º•ø§œÃµ§∑°£DataPhase§«10∏ƒ§Œ•«°º•ø§ÚΩÒ§≠§≥§‡°£
-//   - 06h° •’•©°º•ﬁ•√•»°©°À°£œ¿Õ˝•÷•Ì•√•ØªÿƒÍ§¢§Í° 21h§™§≠§ÀªÿƒÍ§∑§∆§§§Î°À°£•÷•Ì•√•ØøÙ§Œ§»§≥§œ6§¨ªÿƒÍ§µ§Ï§∆§§§Î°£
+/* „Ç≥„Éû„É≥„Éâ„ÅÆ„ÉÅ„Çß„ÉÉ„ÇØ„ÄÇÊ≠£Áõ¥„ÄÅInsideX68kÂÜÖ„ÅÆË®òËø∞„Åß„ÅØ„Å°„Å®Ë∂≥„Çä„Å™„ÅÑ ^^;„ÄÇ
+ * Êú™Ë®òËø∞„ÅÆ„ÇÇ„ÅÆ„Å®„Åó„Å¶„ÄÅ
+ *   - C2hÔºàÂàùÊúüÂåñÁ≥ªÔºüÔºâ„ÄÇUnit‰ª•Â§ñ„ÅÆ„Éë„É©„É°„Éº„Çø„ÅØÁÑ°„Åó„ÄÇDataPhase„Åß10ÂÄã„ÅÆ„Éá„Éº„Çø„ÇíÊõ∏„Åç„Åì„ÇÄ„ÄÇ
+ *   - 06hÔºà„Éï„Ç©„Éº„Éû„ÉÉ„ÉàÔºüÔºâ„ÄÇË´ñÁêÜ„Éñ„É≠„ÉÉ„ÇØÊåáÂÆö„ÅÇ„ÇäÔºà21h„Åä„Åç„Å´ÊåáÂÆö„Åó„Å¶„ÅÑ„ÇãÔºâ„ÄÇ„Éñ„É≠„ÉÉ„ÇØÊï∞„ÅÆ„Å®„Åì„ÅØ6„ÅåÊåáÂÆö„Åï„Çå„Å¶„ÅÑ„Çã„ÄÇ
+ */
 void SASI_CheckCmd(void)
 {
 	int16_t result;
-	SASI_Unit = (SASI_Cmd[1]>>5)&1;			// X68k§«§œ°¢•Ê•À•√•»»÷πÊ§œ0§´1§∑§´ºË§Ï§ §§
+	SASI_Unit = (SASI_Cmd[1]>>5)&1;			/* X68k„Åß„ÅØ„ÄÅ„É¶„Éã„ÉÉ„ÉàÁï™Âè∑„ÅØ0„Åã1„Åó„ÅãÂèñ„Çå„Å™„ÅÑ */
 
 	switch(SASI_Cmd[0])
 	{
-	case 0x00:					// Test Drive Ready
+	case 0x00:					/* Test Drive Ready */
 		if (Config.HDImage[SASI_Device*2+SASI_Unit][0])
 			SASI_Stat = 0;
 		else
@@ -226,7 +227,7 @@ void SASI_CheckCmd(void)
 		}
 		SASI_Phase += 2;
 		break;
-	case 0x01:					// Recalibrate
+	case 0x01:					/* Recalibrate */
 		if (Config.HDImage[SASI_Device*2+SASI_Unit][0])
 		{
 			SASI_Sector = 0;
@@ -239,7 +240,7 @@ void SASI_CheckCmd(void)
 		}
 		SASI_Phase += 2;
 		break;
-	case 0x03:					// Request Sense Status
+	case 0x03:					/* Request Sense Status */
 		SASI_SenseStatBuf[0] = SASI_Error;
 		SASI_SenseStatBuf[1] = (uint8_t)((SASI_Unit<<5)|((SASI_Sector>>16)&0x1f));
 		SASI_SenseStatBuf[2] = (uint8_t)(SASI_Sector>>8);
@@ -249,13 +250,13 @@ void SASI_CheckCmd(void)
 		SASI_Stat = 0;
 		SASI_SenseStatPtr = 0;
 		break;
-	case 0x04:					// Format Drive
+	case 0x04:					/* Format Drive */
 		SASI_Phase += 2;
 		SASI_Stat = 0;
 		break;
-	case 0x08:					// Read Data
-		SASI_Sector = (((DWORD)SASI_Cmd[1]&0x1f)<<16)|(((DWORD)SASI_Cmd[2])<<8)|((DWORD)SASI_Cmd[3]);
-		SASI_Blocks = (DWORD)SASI_Cmd[4];
+	case 0x08:					/* Read Data */
+		SASI_Sector = (((uint32_t)SASI_Cmd[1]&0x1f)<<16)|(((uint32_t)SASI_Cmd[2])<<8)|((uint32_t)SASI_Cmd[3]);
+		SASI_Blocks = (uint32_t)SASI_Cmd[4];
 		SASI_Phase++;
 		SASI_RW = 1;
 		SASI_BufPtr = 0;
@@ -263,13 +264,13 @@ void SASI_CheckCmd(void)
 		result = SASI_Seek();
 		if ( (result==0)||(result==-1) )
 		{
-//			SASI_Phase++;
+			/* SASI_Phase++; */
 			SASI_Error = 0x0f;
 		}
 		break;
-	case 0x0a:					// Write Data
-		SASI_Sector = (((DWORD)SASI_Cmd[1]&0x1f)<<16)|(((DWORD)SASI_Cmd[2])<<8)|((DWORD)SASI_Cmd[3]);
-		SASI_Blocks = (DWORD)SASI_Cmd[4];
+	case 0x0a:					/* Write Data */
+		SASI_Sector = (((uint32_t)SASI_Cmd[1]&0x1f)<<16)|(((uint32_t)SASI_Cmd[2])<<8)|((uint32_t)SASI_Cmd[3]);
+		SASI_Blocks = (uint32_t)SASI_Cmd[4];
 		SASI_Phase++;
 		SASI_RW = 0;
 		SASI_BufPtr = 0;
@@ -278,11 +279,11 @@ void SASI_CheckCmd(void)
 		result = SASI_Seek();
 		if ( (result==0)||(result==-1) )
 		{
-//			SASI_Phase++;
+			/* SASI_Phase++; */
 			SASI_Error = 0x0f;
 		}
 		break;
-	case 0x0b:					// Seek
+	case 0x0b:					/* Seek */
 		if (Config.HDImage[SASI_Device*2+SASI_Unit][0])
 		{
 			SASI_Stat = 0;
@@ -293,7 +294,7 @@ void SASI_CheckCmd(void)
 			SASI_Error = 0x7f;
 		}
 		SASI_Phase += 2;
-//		SASI_Phase = 9;
+		/* SASI_Phase = 9; */
 		break;
 	case 0xc2:
 		SASI_Phase = 10;
@@ -312,13 +313,13 @@ void SASI_CheckCmd(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   I/O Write
-// -----------------------------------------------------------------------
-void FASTCALL SASI_Write(DWORD adr, uint8_t data)
+/*
+ *   I/O Write
+ */
+void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 {
 	int16_t result;
-	int i;
+	int32_t i;
 	uint8_t bit;
 
 	if ( (adr==0xe96007)&&(SASI_Phase==0) )
@@ -349,7 +350,7 @@ void FASTCALL SASI_Write(DWORD adr, uint8_t data)
 	{
 		SASI_Phase++;
 	}
-	else if (adr==0xe96005)						// SASI Reset
+	else if (adr==0xe96005)						/* SASI Reset */
 	{
 		SASI_Phase = 0;
 		SASI_Sector = 0;
@@ -368,38 +369,38 @@ void FASTCALL SASI_Write(DWORD adr, uint8_t data)
 		if (SASI_Phase==2)
 		{
 			SASI_Cmd[SASI_CmdPtr++] = data;
-			if (SASI_CmdPtr==6)			// •≥•ﬁ•Û•…»Øπ‘Ω™Œª
+			if (SASI_CmdPtr==6)			/* „Ç≥„Éû„É≥„ÉâÁô∫Ë°åÁµÇ‰∫Ü */
 			{
-//				SASI_Phase++;
+				/* SASI_Phase++; */
 				SASI_CheckCmd();
 			}
 		}
-		else if ((SASI_Phase==3)&&(!SASI_RW))		// •«°º•ø•È•§•»√Êè¢∑
+		else if ((SASI_Phase==3)&&(!SASI_RW))		/* „Éá„Éº„Çø„É©„Ç§„Éà‰∏≠ÔΩû */
 		{
 			SASI_Buf[SASI_BufPtr++] = data;
 			if (SASI_BufPtr==256)
 			{
-				result = SASI_Flush();		// ∏Ω∫ﬂ§Œ•–•√•’•°§ÚΩÒ§≠Ω–§π
+				result = SASI_Flush();		/* ÁèæÂú®„ÅÆ„Éê„ÉÉ„Éï„Ç°„ÇíÊõ∏„ÅçÂá∫„Åô */
 				SASI_Blocks--;
-				if (SASI_Blocks)		// §ﬁ§¿ΩÒ§Ø•÷•Ì•√•Ø§¨§¢§Î°©
+				if (SASI_Blocks)		/* „Åæ„Å†Êõ∏„Åè„Éñ„É≠„ÉÉ„ÇØ„Åå„ÅÇ„ÇãÔºü */
 				{
 					SASI_Sector++;
 					SASI_BufPtr = 0;
-					result = SASI_Seek();	// º°§Œ•ª•Ø•ø§Ú•–•√•’•°§À∆…§‡
-					if (!result)		// result=0°ß•§•·°º•∏§Œ∫«∏Â° °·Ãµ∏˙§ •ª•Ø•ø°À§ §È
+					result = SASI_Seek();	/* Ê¨°„ÅÆ„Çª„ÇØ„Çø„Çí„Éê„ÉÉ„Éï„Ç°„Å´Ë™≠„ÇÄ */
+					if (!result)		/* result=0Ôºö„Ç§„É°„Éº„Ç∏„ÅÆÊúÄÂæåÔºàÔºùÁÑ°Âäπ„Å™„Çª„ÇØ„ÇøÔºâ„Å™„Çâ */
 					{
 						SASI_Error = 0x0f;
 						SASI_Phase++;
 					}
 				}
 				else
-					SASI_Phase++;		// ªÿƒÍ•÷•Ì•√•Ø§Œ•È•§•»¥∞Œª
+					SASI_Phase++;		/* ÊåáÂÆö„Éñ„É≠„ÉÉ„ÇØ„ÅÆ„É©„Ç§„ÉàÂÆå‰∫Ü */
 			}
 		}
 		else if (SASI_Phase==10)
 		{
 			SASI_SenseStatPtr++;
-			if (SASI_SenseStatPtr==10)			// •≥•ﬁ•Û•…»Øπ‘Ω™Œª
+			if (SASI_SenseStatPtr==10)			/* „Ç≥„Éû„É≥„ÉâÁô∫Ë°åÁµÇ‰∫Ü */
 			{
 				SASI_Phase = 4;
 			}

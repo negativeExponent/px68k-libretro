@@ -7,26 +7,28 @@
 #ifndef MISC_H
 #define MISC_H
 
-inline int Max(int x, int y) { return (x > y) ? x : y; }
-inline int Min(int x, int y) { return (x < y) ? x : y; }
-inline int Abs(int x) { return x >= 0 ? x : -x; }
+#include <stdint.h>
 
-inline int Limit(int v, int max, int min) 
+inline int32_t Max(int32_t x, int32_t y) { return (x > y) ? x : y; }
+inline int32_t Min(int32_t x, int32_t y) { return (x < y) ? x : y; }
+inline int32_t Abs(int32_t x) { return x >= 0 ? x : -x; }
+
+inline int32_t Limit(int32_t v, int32_t max, int32_t min) 
 { 
 	return v > max ? max : (v < min ? min : v); 
 }
 
-inline unsigned int BSwap(unsigned int a)
+inline uint32_t BSwap(uint32_t a)
 {
 	return (a >> 24) | ((a >> 8) & 0xff00) | ((a << 8) & 0xff0000) | (a << 24);
 }
 
-inline unsigned int NtoBCD(unsigned int a)
+inline uint32_t NtoBCD(uint32_t a)
 {
 	return ((a / 10) << 4) + (a % 10);
 }
 
-inline unsigned int BCDtoN(unsigned int v)
+inline uint32_t BCDtoN(uint32_t v)
 {
 	return (v >> 4) * 10 + (v & 15);
 }

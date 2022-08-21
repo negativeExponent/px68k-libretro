@@ -1,7 +1,7 @@
-// ---------------------------------------------------------------------------------------
-//  TVRAM.C - Text VRAM
-//  ToDo : ∆©Ã¿øßΩËÕ˝§»§´øß°π
-// ---------------------------------------------------------------------------------------
+/*
+ *  TVRAM.C - Text VRAM
+ *  ToDo : ÈÄèÊòéËâ≤Âá¶ÁêÜ„Å®„ÅãËâ≤„ÄÖ
+ */
 
 #include	"common.h"
 #include	"winx68k.h"
@@ -20,28 +20,28 @@ uint8_t	TextDrawPattern[2048*4];
 
 uint8_t	Text_TrFlag[1024];
 
-INLINE void TVRAM_WriteByteMask(DWORD adr, uint8_t data);
+INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data);
 
-// -----------------------------------------------------------------------
-//   ¡¥…ÙΩÒ§≠¥π§®°¡
-// -----------------------------------------------------------------------
+/*
+ *   ÂÖ®ÈÉ®Êõ∏„ÅçÊèõ„Åà„Äú
+ */
 void TVRAM_SetAllDirty(void)
 {
 	memset(TextDirtyLine, 1, 1024);
 }
 
 
-// -----------------------------------------------------------------------
-//   ΩÈ¥¸≤Ω
-// -----------------------------------------------------------------------
+/*
+ *   ÂàùÊúüÂåñ
+ */
 void TVRAM_Init(void)
 {
-	int i, j, bit;
+	int32_t i, j, bit;
 	memset(TVRAM, 0, 0x80000);
 	memset(TextDrawWork, 0, 1024*1024);
 	TVRAM_SetAllDirty();
 
-	memset(TextDrawPattern, 0, 2048*4);		// •—•ø°º•Û•∆°º•÷•ÎΩÈ¥¸≤Ω
+	memset(TextDrawPattern, 0, 2048*4);		/* „Éë„Çø„Éº„É≥„ÉÜ„Éº„Éñ„É´ÂàùÊúüÂåñ */
 	for (i=0; i<256; i++)
 	{
 		for (j=0, bit=0x80; j<8; j++, bit>>=1)
@@ -57,18 +57,18 @@ void TVRAM_Init(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   ≈±º˝
-// -----------------------------------------------------------------------
+/*
+ *   Êí§Âèé
+ */
 void TVRAM_Cleanup(void)
 {
 }
 
 
-// -----------------------------------------------------------------------
-//   ∆…§‡§ §Í
-// -----------------------------------------------------------------------
-uint8_t FASTCALL TVRAM_Read(DWORD adr)
+/*
+ *   Ë™≠„ÇÄ„Å™„Çä
+ */
+uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 {
 	adr &= 0x7ffff;
 	adr ^= 1;
@@ -76,10 +76,10 @@ uint8_t FASTCALL TVRAM_Read(DWORD adr)
 }
 
 
-// -----------------------------------------------------------------------
-//   1§–§§§»ΩÒ§Ø§ §Í
-// -----------------------------------------------------------------------
-INLINE void TVRAM_WriteByte(DWORD adr, uint8_t data)
+/*
+ *   1„Å∞„ÅÑ„Å®Êõ∏„Åè„Å™„Çä
+ */
+INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 {
 	if (TVRAM[adr]!=data)
 	{
@@ -89,10 +89,10 @@ INLINE void TVRAM_WriteByte(DWORD adr, uint8_t data)
 }
 
 
-// -----------------------------------------------------------------------
-//   §ﬁ§π§Ø…’§≠§«ΩÒ§Ø§ §Í
-// -----------------------------------------------------------------------
-INLINE void TVRAM_WriteByteMask(DWORD adr, uint8_t data)
+/*
+ *   „Åæ„Åô„Åè‰ªò„Åç„ÅßÊõ∏„Åè„Å™„Çä
+ */
+INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data)
 {
 	data = (TVRAM[adr] & CRTC_Regs[0x2e + ((adr^1) & 1)]) | (data & (~CRTC_Regs[0x2e + ((adr ^ 1) & 1)]));
 	if (TVRAM[adr] != data)
@@ -103,17 +103,17 @@ INLINE void TVRAM_WriteByteMask(DWORD adr, uint8_t data)
 }
 
 
-// -----------------------------------------------------------------------
-//   ΩÒ§Ø§ §Í
-// -----------------------------------------------------------------------
-void FASTCALL TVRAM_Write(DWORD adr, uint8_t data)
+/*
+ *   Êõ∏„Åè„Å™„Çä
+ */
+void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 {
 	adr &= 0x7ffff;
 	adr ^= 1;
-	if (CRTC_Regs[0x2a]&1)			// ∆±ª˛•¢•Ø•ª•π
+	if (CRTC_Regs[0x2a]&1)			/* ÂêåÊôÇ„Ç¢„ÇØ„Çª„Çπ */
 	{
 		adr &= 0x1ffff;
-		if (CRTC_Regs[0x2a]&2)		// Text Mask
+		if (CRTC_Regs[0x2a]&2)		/* Text Mask */
 		{
 			if (CRTC_Regs[0x2b]&0x10) TVRAM_WriteByteMask(adr        , data);
 			if (CRTC_Regs[0x2b]&0x20) TVRAM_WriteByteMask(adr+0x20000, data);
@@ -128,9 +128,9 @@ void FASTCALL TVRAM_Write(DWORD adr, uint8_t data)
 			if (CRTC_Regs[0x2b]&0x80) TVRAM_WriteByte(adr+0x60000, data);
 		}
 	}
-	else					// •∑•Û•∞•Î•¢•Ø•ª•π
+	else					/* „Ç∑„É≥„Ç∞„É´„Ç¢„ÇØ„Çª„Çπ */
 	{
-		if (CRTC_Regs[0x2a]&2)		// Text Mask
+		if (CRTC_Regs[0x2a]&2)		/* Text Mask */
 		{
 			TVRAM_WriteByteMask(adr, data);
 		}
@@ -140,10 +140,10 @@ void FASTCALL TVRAM_Write(DWORD adr, uint8_t data)
 		}
 	}
 	{
-		DWORD *ptr = (DWORD *)TextDrawPattern;
-		DWORD tvram_addr = adr & 0x1ffff;
-		DWORD workadr = ((adr & 0x1ff80) + ((adr ^ 1) & 0x7f)) << 3;
-		DWORD t0, t1;
+		uint32_t *ptr = (uint32_t *)TextDrawPattern;
+		uint32_t tvram_addr = adr & 0x1ffff;
+		uint32_t workadr = ((adr & 0x1ff80) + ((adr ^ 1) & 0x7f)) << 3;
+		uint32_t t0, t1;
 		uint8_t pat;
 
 		pat = TVRAM[tvram_addr + 0x60000];
@@ -162,26 +162,26 @@ void FASTCALL TVRAM_Write(DWORD adr, uint8_t data)
 		t0 |= ptr[(pat * 2)];
 		t1 |= ptr[(pat * 2 + 1)];
 
-		*((DWORD *)&TextDrawWork[workadr]) = t0;
-		*(((DWORD *)(&TextDrawWork[workadr])) + 1) = t1;
+		*((uint32_t *)&TextDrawWork[workadr]) = t0;
+		*(((uint32_t *)(&TextDrawWork[workadr])) + 1) = t1;
 	}
 }
 
 
-// -----------------------------------------------------------------------
-//   §È§π§ø§≥§‘°ºª˛§Œ§¢§√§◊§«°º§»
-// -----------------------------------------------------------------------
+/*
+ *   „Çâ„Åô„Åü„Åì„Å¥„ÉºÊôÇ„ÅÆ„ÅÇ„Å£„Å∑„Åß„Éº„Å®
+ */
 void FASTCALL TVRAM_RCUpdate(void)
 {
-	DWORD adr = ((DWORD)CRTC_Regs[0x2d]<<9);
+	uint32_t adr = ((uint32_t)CRTC_Regs[0x2d]<<9);
 
 	/* XXX: BUG */
-	DWORD *ptr = (DWORD *)TextDrawPattern;
-	DWORD *wptr = (DWORD *)(TextDrawWork + (adr << 3));
-	DWORD t0, t1;
-	DWORD tadr;
+	uint32_t *ptr = (uint32_t *)TextDrawPattern;
+	uint32_t *wptr = (uint32_t *)(TextDrawWork + (adr << 3));
+	uint32_t t0, t1;
+	uint32_t tadr;
 	uint8_t pat;
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 512; i++, adr++) {
 		tadr = adr ^ 1;
@@ -207,15 +207,15 @@ void FASTCALL TVRAM_RCUpdate(void)
 	}
 }
 
-// -----------------------------------------------------------------------
-//   1•È•§•Û…¡≤Ë
-// -----------------------------------------------------------------------
-void FASTCALL Text_DrawLine(int opaq)
+/*
+ *   1„É©„Ç§„É≥ÊèèÁîª
+ */
+void FASTCALL Text_DrawLine(int32_t opaq)
 {
-	DWORD addr;
-	DWORD x, y;
-	DWORD off = 16;
-	DWORD i;
+	uint32_t addr;
+	uint32_t x, y;
+	uint32_t off = 16;
+	uint32_t i;
 	uint8_t t;
 
 	y = TextScrollY + VLINE;

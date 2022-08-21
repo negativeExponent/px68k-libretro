@@ -6,7 +6,7 @@
 #include "file.h"
 
 // ---------------------------------------------------------------------------
-//	πΩ√€/æ√Ã«
+//	ÊßãÁØâ/Ê∂àÊªÖ
 // ---------------------------------------------------------------------------
 
 FileIO::FileIO()
@@ -26,16 +26,16 @@ FileIO::~FileIO()
 }
 
 // ---------------------------------------------------------------------------
-//	•’•°•§•Î§Ú≥´§Ø
+//	„Éï„Ç°„Ç§„É´„ÇíÈñã„Åè
 // ---------------------------------------------------------------------------
 
 bool FileIO::Open(const char* filename, uint32_t flg)
 {
 	Close();
 
-	DWORD access = (flg & readonly ? 0 : GENERIC_WRITE) | GENERIC_READ;
-	DWORD share = (flg & readonly) ? FILE_SHARE_READ : 0;
-	DWORD creation = flg & create ? CREATE_ALWAYS : OPEN_EXISTING;
+	uint32_t access = (flg & readonly ? 0 : GENERIC_WRITE) | GENERIC_READ;
+	uint32_t share = (flg & readonly) ? FILE_SHARE_READ : 0;
+	uint32_t creation = flg & create ? CREATE_ALWAYS : OPEN_EXISTING;
 
 	hfile = CreateFile(filename, access, share, 0, creation, 0, 0);
 	
@@ -44,7 +44,7 @@ bool FileIO::Open(const char* filename, uint32_t flg)
 }
 
 // ---------------------------------------------------------------------------
-//	•’•°•§•Î§Ú ƒ§∏§Î
+//	„Éï„Ç°„Ç§„É´„ÇíÈñâ„Åò„Çã
 // ---------------------------------------------------------------------------
 
 void FileIO::Close()
@@ -58,7 +58,7 @@ void FileIO::Close()
 }
 
 // ---------------------------------------------------------------------------
-//	•’•°•§•Î≥Ã§Œ∆…§ﬂΩ–§∑
+//	„Éï„Ç°„Ç§„É´ÊÆª„ÅÆË™≠„ÅøÂá∫„Åó
 // ---------------------------------------------------------------------------
 
 int32_t FileIO::Read(void* dest, int32_t size)
@@ -67,18 +67,18 @@ int32_t FileIO::Read(void* dest, int32_t size)
 	if (!(flags & open))
 		return -1;
 	
-	DWORD readsize;
+	uint32_t readsize;
 	if (!ReadFile(hfile, dest, size, &readsize, 0))
 		return -1;
 	return readsize;
 }
 
 // ---------------------------------------------------------------------------
-//	•’•°•§•Î§ÿ§ŒΩÒ§≠Ω–§∑
+//	„Éï„Ç°„Ç§„É´„Å∏„ÅÆÊõ∏„ÅçÂá∫„Åó
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
-//	•’•°•§•Î§Ú•∑°º•Ø
+//	„Éï„Ç°„Ç§„É´„Çí„Ç∑„Éº„ÇØ
 // ---------------------------------------------------------------------------
 
 bool FileIO::Seek(int32_t pos, SeekMethod method)
@@ -87,7 +87,7 @@ bool FileIO::Seek(int32_t pos, SeekMethod method)
 	if (!(flags & open))
 		return false;
 	
-	DWORD wmethod;
+	uint32_t wmethod;
 	switch (method)
 	{
 	case begin:	

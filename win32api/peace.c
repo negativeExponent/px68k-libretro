@@ -66,11 +66,11 @@ struct internal_handle {
 	u_int	flags;
 	size_t	psize;
 	u_int	refcount;
-	int	type;
+	int32_t type;
 };
 
 struct internal_file {
-	int	fd;
+	int32_t fd;
 };
 
 #define ptrtohandle(h)							\
@@ -99,8 +99,7 @@ struct internal_file {
 #endif	/* DEBUG */
 
 
-DWORD WINAPI
-FAKE_GetTickCount(void)
+uint32_t FAKE_GetTickCount(void)
 {
 	struct timeval tv;
 
@@ -108,14 +107,13 @@ FAKE_GetTickCount(void)
 	return tv.tv_usec / 1000 + tv.tv_sec * 1000;
 }
 
-BOOL WINAPI
-ReadFile(HANDLE h, PVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
+BOOL ReadFile(void *h, void *buf, uint32_t len, uint32_t *lp, LPOVERLAPPED lpov)
 {
 	struct internal_file *fp;
 
 	(void)lpov;
 
-	if (h == (HANDLE)INVALID_HANDLE_VALUE)
+	if (h == (void *)INVALID_HANDLE_VALUE)
 		return FALSE;
 
 	fp = LocalLock(h);
@@ -126,14 +124,13 @@ ReadFile(HANDLE h, PVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
 	return TRUE;
 }
 
-BOOL WINAPI
-WriteFile(HANDLE h, PCVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
+BOOL WriteFile(void *h, const void *buf, uint32_t len, uint32_t *lp, LPOVERLAPPED lpov)
 {
 	struct internal_file *fp;
 
 	(void)lpov;
 
-	if (h == (HANDLE)INVALID_HANDLE_VALUE)
+	if (h == (void *)INVALID_HANDLE_VALUE)
 		return FALSE;
 
 	fp = LocalLock(h);
@@ -144,14 +141,13 @@ WriteFile(HANDLE h, PCVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
 	return TRUE;
 }
 
-HANDLE WINAPI
-CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
+void *CreateFile(const char *filename, uint32_t rdwr, uint32_t share,
 	    LPSECURITY_ATTRIBUTES sap,
-	    DWORD crmode, DWORD flags, HANDLE template)
+	    uint32_t crmode, uint32_t flags, void *template)
 {
 	struct internal_file *fp;
-	HANDLE h;
-	int fd, fmode = 0;
+	void *h;
+	int32_t fd, fmode = 0;
 
 	(void)share;
 	(void)sap;
@@ -181,7 +177,7 @@ CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
 	}
 	fd = open(filename, fmode, 0644);
 	if (fd < 0)
-		return (HANDLE)INVALID_HANDLE_VALUE;
+		return (void *)INVALID_HANDLE_VALUE;
 
 	h = LocalAlloc(0, sizeof(struct internal_file));
 	sethandletype(h, HTYPE_FILE);
@@ -191,12 +187,11 @@ CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
 	return h;
 }
 
-DWORD WINAPI
-SetFilePointer(HANDLE h, LONG pos, PLONG newposh, DWORD whence)
+uint32_t SetFilePointer(void *h, long pos, long *newposh, uint32_t whence)
 {
 	struct internal_file *fp;
 	off_t newpos;
-	int fd;
+	int32_t fd;
 
 	(void)newposh;
 
@@ -207,8 +202,7 @@ SetFilePointer(HANDLE h, LONG pos, PLONG newposh, DWORD whence)
 	return newpos;
 }
 
-BOOL WINAPI
-FAKE_CloseHandle(HANDLE h)
+BOOL FAKE_CloseHandle(void *h)
 {
 	switch (handletype(h)) {
 	case HTYPE_FILE:
@@ -227,11 +221,10 @@ FAKE_CloseHandle(HANDLE h)
 	return TRUE;
 }
 
-DWORD WINAPI
-GetFileAttributes(LPCSTR path)
+uint32_t GetFileAttributes(const char *path)
 {
 	struct stat sb;
-	DWORD attr = FILE_ATTRIBUTE_NORMAL;
+	uint32_t attr = FILE_ATTRIBUTE_NORMAL;
 
 	if (stat(path, &sb) == 0) {
 		if (S_ISDIR(sb.st_mode))
@@ -244,36 +237,27 @@ GetFileAttributes(LPCSTR path)
 	return -1;
 }
 
-HLOCAL WINAPI
-LocalAlloc(UINT flags, UINT bytes)
+HLOCAL LocalAlloc(uint32_t flags, uint32_t bytes)
 {
-
 	return GlobalAlloc(flags, bytes);
 }
 
-HLOCAL WINAPI
-LocalFree(HLOCAL h)
+HLOCAL LocalFree(HLOCAL h)
 {
-
 	return GlobalFree(h);
 }
 
-PVOID WINAPI
-LocalLock(HLOCAL h)
+void *LocalLock(HLOCAL h)
 {
-
 	return GlobalLock(h);
 }
 
-BOOL WINAPI
-LocalUnlock(HLOCAL h)
+BOOL LocalUnlock(HLOCAL h)
 {
-
 	return GlobalUnlock(h);
 }
 
-HGLOBAL WINAPI
-GlobalAlloc(UINT flags, DWORD bytes)
+HGLOBAL GlobalAlloc(uint32_t flags, uint32_t bytes)
 {
 	struct internal_handle *p;
 
@@ -290,8 +274,7 @@ GlobalAlloc(UINT flags, DWORD bytes)
 	return 0;
 }
 
-HGLOBAL WINAPI
-GlobalFree(HGLOBAL h)
+HGLOBAL GlobalFree(HGLOBAL h)
 {
 	struct internal_handle *ih = h;
 
@@ -310,15 +293,12 @@ GlobalFree(HGLOBAL h)
 	return h;
 }
 
-HGLOBAL WINAPI
-GlobalHandle(PCVOID p)
+HGLOBAL GlobalHandle(const void *p)
 {
-
 	return (HGLOBAL)(p - sizeof(struct internal_handle));
 }
 
-LPVOID WINAPI
-GlobalLock(HGLOBAL h)
+void *GlobalLock(HGLOBAL h)
 {
 	struct internal_handle *ih = h;
 
@@ -329,8 +309,7 @@ GlobalLock(HGLOBAL h)
 	return ih->p;
 }
 
-BOOL WINAPI
-GlobalUnlock(HGLOBAL h)
+BOOL GlobalUnlock(HGLOBAL h)
 {
 	struct internal_handle *ih = h;
 
@@ -346,9 +325,8 @@ GlobalUnlock(HGLOBAL h)
 	return FALSE;
 }
 
-DWORD WINAPI
-GetPrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR defvalue,
-			 LPSTR buf, DWORD len, LPCSTR inifile)
+uint32_t GetPrivateProfileString(const char *sect, const char *key, const char *defvalue,
+			 char *buf, uint32_t len, const char *inifile)
 {
 	char lbuf[256];
 	FILE *fp;
@@ -402,8 +380,7 @@ nofile:
 	return strlen(buf);
 }
 
-UINT WINAPI
-GetPrivateProfileInt(LPCSTR sect, LPCSTR key, INT defvalue, LPCSTR inifile)
+uint32_t GetPrivateProfileInt(const char *sect, const char *key, int32_t defvalue, const char *inifile)
 {
 	char lbuf[256];
 	FILE *fp;
@@ -433,7 +410,7 @@ GetPrivateProfileInt(LPCSTR sect, LPCSTR key, INT defvalue, LPCSTR inifile)
 		/* XXX should be case insensitive */
 		if (!strncasecmp(key, lbuf, strlen(key))
 		    && lbuf[strlen(key)] == '=') {
-			int value;
+			int32_t value;
 			sscanf(&lbuf[strlen(key) + 1], "%d", &value);
 			fclose(fp);
 			return value;

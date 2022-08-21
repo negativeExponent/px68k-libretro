@@ -2,7 +2,7 @@
 // Cyclone 68000 Emulator - Header File
 
 // Copyright (c) 2004,2011 FinalDave (emudave (at) gmail.com)
-// Copyright (c) 2005-2011 Gražvydas "notaz" Ignotas (notasas (at) gmail.com)
+// Copyright (c) 2005-2011 Gra転vydas "notaz" Ignotas (notasas (at) gmail.com)
 
 // This code is licensed under the GNU General Public License version 2.0 and the MAME License.
 // You can choose the license that has the most advantages for you.

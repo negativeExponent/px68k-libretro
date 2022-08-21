@@ -33,14 +33,6 @@
 #define MAX_PATH 256
 #endif
 
-typedef union {
-	struct {
-		BYTE l;
-		BYTE h;
-	} b;
-	WORD w;
-} PAIR;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

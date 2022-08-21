@@ -36,7 +36,7 @@ uint8_t	MouseStat = 0;
 uint8_t	MouseSW = 0;
 
 POINT	CursorPos;
-int	mousex = 0, mousey = 0;
+int32_t	mousex = 0, mousey = 0;
 
 void Mouse_Init(void)
 {
@@ -49,7 +49,7 @@ void Mouse_Init(void)
 // ----------------------------------
 //	Mouse Event Occured
 // ----------------------------------
-void Mouse_Event(int param, float dx, float dy)
+void Mouse_Event(int32_t param, float dx, float dy)
 {
 	//printf("ME(): %f %f\n", dx, dy);
 
@@ -84,12 +84,12 @@ void Mouse_Event(int param, float dx, float dy)
 void Mouse_SetData(void)
 {
 	POINT pt;
-	int x, y;
+	int32_t x, y;
 
 	if (MouseSW) {
 
-		x = (int)MouseDX;
-		y = (int)MouseDY;
+		x = (int32_t)MouseDX;
+		y = (int32_t)MouseDY;
 
 		MouseDX = MouseDY = 0;
 
@@ -126,7 +126,7 @@ void Mouse_SetData(void)
 // ----------------------------------
 //	Start Capture
 // ----------------------------------
-void Mouse_StartCapture(int flag)
+void Mouse_StartCapture(int32_t flag)
 {
 	if (flag && !MouseSW) {
 		MouseSW = 1;

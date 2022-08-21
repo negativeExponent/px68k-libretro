@@ -2,7 +2,7 @@
 
 	c68k_ini.c
 
-	C68K opcode¥¸¥ã¥ó¥×¥Æ¡¼¥Ö¥ëÀ¸À®
+	C68K opcodeã‚¸ãƒ£ãƒ³ãƒ—ãƒ†ãƒ¼ãƒ–ãƒ«ç”Ÿæˆ
 
 ******************************************************************************/
 
@@ -1711,7 +1711,7 @@
 	};
 
 	opcode_struct *ostruct;
-	int i, j, instr;
+	int32_t i, j, instr;
 
 	ostruct = c68k_opcode_jump_table;
 

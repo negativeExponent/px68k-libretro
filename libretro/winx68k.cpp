@@ -11,7 +11,6 @@ extern "C" {
 #include "prop.h"
 #include "status.h"
 #include "joystick.h"
-#include "mkcgrom.h"
 #include "winx68k.h"
 #include "windraw.h"
 #include "winui.h"
@@ -49,34 +48,34 @@ extern "C" {
 #include "fmg_wrap.h"
 
 #ifdef RFMDRV
-int rfd_sock;
+int32_t rfd_sock;
 #endif
 
 #define	APPNAME	"Keropi"
 
-extern	WORD	BG_CHREND;
-extern	WORD	BG_BGTOP;
-extern	WORD	BG_BGEND;
+extern	uint16_t	BG_CHREND;
+extern	uint16_t	BG_BGTOP;
+extern	uint16_t	BG_BGEND;
 extern	uint8_t	BG_CHRSIZE;
 
 char	winx68k_dir[MAX_PATH];
 char	winx68k_ini[MAX_PATH];
 
-WORD	VLINE_TOTAL = 567;
-DWORD	VLINE = 0;
-DWORD	vline = 0;
+uint16_t	VLINE_TOTAL = 567;
+uint32_t	VLINE = 0;
+uint32_t	vline = 0;
 
 uint8_t DispFrame = 0;
-DWORD SoundSampleRate;
+uint32_t SoundSampleRate;
 
-DWORD skippedframes = 0;
+uint32_t skippedframes = 0;
 
-static int ClkUsed = 0;
-static int FrameSkipCount = 0;
-static int FrameSkipQueue = 0;
+static int32_t ClkUsed = 0;
+static int32_t FrameSkipCount = 0;
+static int32_t FrameSkipQueue = 0;
 
-static DWORD old_ram_size = 0;
-static int old_clkdiv = 0;
+static uint32_t old_ram_size = 0;
+static int32_t old_clkdiv = 0;
 
 #ifdef __cplusplus
 };
@@ -105,13 +104,13 @@ WinX68k_SCSICheck(void)
 		0x4e, 0x75,							// $fc002c "rts"
 	};
 
-	WORD *p1, *p2;
-	int scsi;
-	int i;
+	uint16_t *p1, *p2;
+	int32_t scsi;
+	int32_t i;
 
 	scsi = 0;
 	for (i = 0x30600; i < 0x30c00; i += 2) {
-		p1 = (WORD *)(&IPL[i]);
+		p1 = (uint16_t *)(&IPL[i]);
 		p2 = p1 + 1;
 		// xxx: works only for little endian guys
 		if (*p1 == 0xfc00 && *p2 == 0x0000) {
@@ -132,7 +131,7 @@ WinX68k_SCSICheck(void)
 	}
 }
 
-int
+int32_t
 WinX68k_LoadROMs(void)
 {
 	static const char *BIOSFILE[] = {
@@ -141,7 +140,7 @@ WinX68k_LoadROMs(void)
 	static const char FONTFILE[] = "cgrom.dat";
 	static const char FONTFILETMP[] = "cgrom.tmp";
 	FILEH fp;
-	int i;
+	int32_t i;
 	uint8_t tmp;
 
 	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(BIOSFILE); ++i) {
@@ -180,7 +179,7 @@ WinX68k_LoadROMs(void)
 	return TRUE;
 }
 
-int
+int32_t
 WinX68k_Reset(void)
 {
 	OPM_Reset();
@@ -238,7 +237,7 @@ WinX68k_Reset(void)
 }
 
 
-int
+int32_t
 WinX68k_Init(void)
 {
 
@@ -283,9 +282,9 @@ WinX68k_Cleanup(void)
 void WinX68k_Exec(void)
 {
 	//char *test = NULL;
-	int clk_total, clkdiv, usedclk, hsync, clk_next, clk_count, clk_line=0;
-	int KeyIntCnt = 0, MouseIntCnt = 0;
-	DWORD t_start = timeGetTime(), t_end;
+	int32_t clk_total, clkdiv, usedclk, hsync, clk_next, clk_count, clk_line=0;
+	int32_t KeyIntCnt = 0, MouseIntCnt = 0;
+	uint32_t t_start = timeGetTime(), t_end;
 
 	if(!(Memory_ReadD(0xed0008)==Config.ram_size)){
 		Memory_WriteB(0xe8e00d, 0x31);             // SRAM write permission
@@ -341,7 +340,7 @@ void WinX68k_Exec(void)
 	hsync = 1;
 
 	do {
-		int m, n = (ICount>CLOCK_SLICE)?CLOCK_SLICE:ICount;
+		int32_t m, n = (ICount>CLOCK_SLICE)?CLOCK_SLICE:ICount;
 #if defined (HAVE_M68000)
 		C68K.ICount = m68000_ICountBk = 0;			// It must be given before an interrupt occurs (CARAT)
 #endif
@@ -353,7 +352,7 @@ void WinX68k_Exec(void)
 			if ( (vline>=CRTC_VSTART)&&(vline<CRTC_VEND) )
 				VLINE = ((vline-CRTC_VSTART)*CRTC_VStep)/2;
 			else
-				VLINE = (DWORD)-1;
+				VLINE = (uint32_t)-1;
 			if ( (!(MFP[MFP_AER]&0x40))&&(vline==CRTC_IntLine) )
 				MFP_Int(1);
 			if ( MFP[MFP_AER]&0x10 ) {
@@ -465,7 +464,7 @@ void WinX68k_Exec(void)
 		WinDraw_Draw();
 
 	t_end = timeGetTime();
-	if ( (int)(t_end-t_start)>((CRTC_Regs[0x29]&0x10)?14:16) ) {
+	if ( (int32_t)(t_end-t_start)>((CRTC_Regs[0x29]&0x10)?14:16) ) {
 		FrameSkipQueue += ((t_end-t_start)/((CRTC_Regs[0x29]&0x10)?14:16))+1;
 		if ( FrameSkipQueue>100 )
 			FrameSkipQueue = 100;
@@ -483,17 +482,17 @@ extern retro_input_state_t input_state_cb;
 extern char Core_Key_State[512];
 extern char Core_old_Key_State[512];
 
-int mb1=0,mb2=0;
-extern int retrow,retroh,CHANGEAV;
-static int oldrw=0,oldrh=0;
-int end_loop=0;
+int32_t mb1=0,mb2=0;
+extern int32_t retrow,retroh,CHANGEAV;
+static int32_t oldrw=0,oldrh=0;
+int32_t end_loop=0;
 
 enum {menu_out, menu_enter, menu_in};
-int menu_mode = menu_out;
+int32_t menu_mode = menu_out;
 #ifdef  __cplusplus
 };
 #endif
-extern "C" int pmain(int argc, char *argv[])
+extern "C" int32_t pmain(int32_t argc, char *argv[])
 {
 #ifdef RFMDRV
 	struct sockaddr_in dest;
@@ -636,7 +635,7 @@ extern "C" void handle_retrok(void)
 	}
 
 	KEYP(RETROK_ESCAPE,0x1);
-        int i;
+        int32_t i;
 	for(i=1;i<10;i++)
 		KEYP(RETROK_0+i,0x1+i);
 	KEYP(RETROK_0,0xb);
@@ -761,7 +760,7 @@ extern "C" void handle_retrok(void)
 
 extern "C" void exec_app_retro(){
 
-	int menu_key_down;
+	int32_t menu_key_down;
 	//while (1) {
 		// OPM_RomeoOut(Config.BufferSize * 5);
 		if (menu_mode == menu_out
@@ -772,15 +771,15 @@ extern "C" void exec_app_retro(){
 		menu_key_down = -1;
  		//end_loop=1;
 
-		static int mbL = 0, mbR = 0;
+		static int32_t mbL = 0, mbR = 0;
 
-	      	int mouse_x = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-		int mouse_y = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+	      	int32_t mouse_x = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+		int32_t mouse_y = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
 
      		Mouse_Event(0, mouse_x, mouse_y);
 
-		int mouse_l    = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
-		int mouse_r    = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT);
+		int32_t mouse_l    = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
+		int32_t mouse_r    = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT);
 
   	        if(mbL==0 && mouse_l){
       			mbL=1;
@@ -801,7 +800,7 @@ extern "C" void exec_app_retro(){
 			Mouse_Event(2,0,0);
 		}
 
-  		int i;
+  		int32_t i;
 
    		for(i=0;i<320;i++)
       			Core_Key_State[i]=input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0,i) ? 0x80: 0;
@@ -821,7 +820,7 @@ extern "C" void exec_app_retro(){
    		memcpy(Core_old_Key_State,Core_Key_State , sizeof(Core_Key_State) );
 
 		if (menu_mode != menu_out) {
-			int ret;
+			int32_t ret;
 
 			keyb_in = 0;
 			if (Core_Key_State[RETROK_RIGHT] || Core_Key_State[RETROK_PAGEDOWN])

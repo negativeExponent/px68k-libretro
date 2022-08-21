@@ -44,21 +44,21 @@
 extern "C" {
 #endif
 
-FILEH file_open(LPSTR filename);
-FILEH file_create(LPSTR filename, int ftype);
-DWORD file_seek(FILEH handle, long pointer, int16_t mode);
-DWORD file_lread(FILEH handle, void *data, DWORD length);
-DWORD file_lwrite(FILEH handle, void *data, DWORD length);
-WORD file_read(FILEH handle, void *data, WORD length);
-WORD file_write(FILEH handle, void *data, WORD length);
+FILEH file_open(char *filename);
+FILEH file_create(char *filename, int32_t ftype);
+uint32_t file_seek(FILEH handle, long pointer, int16_t mode);
+uint32_t file_lread(FILEH handle, void *data, uint32_t length);
+uint32_t file_lwrite(FILEH handle, void *data, uint32_t length);
+uint16_t file_read(FILEH handle, void *data, uint16_t length);
+uint16_t file_write(FILEH handle, void *data, uint16_t length);
 int16_t file_close(FILEH handle);
-							// •´•Ï•Û•»•’•°•§•Î¡‡∫Ó
-void file_setcd(LPSTR exename);
-FILEH file_open_c(LPSTR filename);
-FILEH file_create_c(LPSTR filename, int ftype);
+							// „Ç´„É¨„É≥„Éà„Éï„Ç°„Ç§„É´Êìç‰Ωú
+void file_setcd(char *exename);
+FILEH file_open_c(char *filename);
+FILEH file_create_c(char *filename, int32_t ftype);
 
-LPSTR getFileName(LPSTR filename);
-void plusyen(LPSTR str, int len);
+char *getFileName(char *filename);
+void plusyen(char *str, int32_t len);
 
 #ifdef _WIN32
 typedef unsigned int u_int;

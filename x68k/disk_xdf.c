@@ -5,13 +5,13 @@
 #include "disk_xdf.h"
 
 static char           XDFFile[4][MAX_PATH];
-static int            XDFCur[4] = {0, 0, 0, 0};
-static int            XDFTrk[4] = {0, 0, 0, 0};
+static int32_t        XDFCur[4] = {0, 0, 0, 0};
+static int32_t        XDFTrk[4] = {0, 0, 0, 0};
 static unsigned char* XDFImg[4] = {0, 0, 0, 0};
 
 void XDF_Init(void)
 {
-	int drv;
+	int32_t drv;
 
 	for (drv=0; drv<4; drv++) {
 		XDFCur[drv] = 0;
@@ -23,12 +23,12 @@ void XDF_Init(void)
 
 void XDF_Cleanup(void)
 {
-	int drv;
+	int32_t drv;
 	for (drv=0; drv<4; drv++) XDF_Eject(drv);
 }
 
 
-int XDF_SetFD(int drv, char* filename)
+int32_t XDF_SetFD(int32_t drv, char* filename)
 {
 	FILEH fp;
 
@@ -51,7 +51,7 @@ int XDF_SetFD(int drv, char* filename)
 }
 
 
-int XDF_Eject(int drv)
+int32_t XDF_Eject(int32_t drv)
 {
 	FILEH fp;
 
@@ -79,7 +79,7 @@ xdf_eject_error:
 }
 
 
-int XDF_Seek(int drv, int trk, FDCID* id)
+int32_t XDF_Seek(int32_t drv, int32_t trk, FDCID* id)
 {
 	if ( (drv<0)||(drv>3) ) return FALSE;
 	if ( (trk<0)||(trk>153) ) return FALSE;
@@ -94,7 +94,7 @@ int XDF_Seek(int drv, int trk, FDCID* id)
 }
 
 
-int XDF_GetCurrentID(int drv, FDCID* id)
+int32_t XDF_GetCurrentID(int32_t drv, FDCID* id)
 {
 	if ( (drv<0)||(drv>3) ) return FALSE;
 	if ( (XDFTrk[drv]<0)||(XDFTrk[drv]>153) ) return FALSE;
@@ -107,7 +107,7 @@ int XDF_GetCurrentID(int drv, FDCID* id)
 }
 
 
-int XDF_ReadID(int drv, FDCID* id)
+int32_t XDF_ReadID(int32_t drv, FDCID* id)
 {
 	if ( (drv<0)||(drv>3) ) return FALSE;
 	if ( (XDFTrk[drv]<0)||(XDFTrk[drv]>153) ) return FALSE;
@@ -121,9 +121,9 @@ int XDF_ReadID(int drv, FDCID* id)
 }
 
 
-int XDF_WriteID(int drv, int trk, unsigned char* buf, int num)
+int32_t XDF_WriteID(int32_t drv, int32_t trk, unsigned char* buf, int32_t num)
 {
-	int i;
+	int32_t i;
 	if ( (drv<0)||(drv>3) ) return FALSE;
 	if ( (trk<0)||(trk>153) ) return FALSE;
 	if ( !XDFImg[drv] ) return FALSE;
@@ -136,9 +136,9 @@ int XDF_WriteID(int drv, int trk, unsigned char* buf, int num)
 }
 
 
-int XDF_Read(int drv, FDCID* id, unsigned char* buf)
+int32_t XDF_Read(int32_t drv, FDCID* id, unsigned char* buf)
 {
-	int pos;
+	int32_t pos;
 	if ( (drv<0)||(drv>3) ) return FALSE;
 	if ( (XDFTrk[drv]<0)||(XDFTrk[drv]>153) ) return FALSE;
 	if ( !XDFImg[drv] ) return FALSE;
@@ -153,9 +153,9 @@ int XDF_Read(int drv, FDCID* id, unsigned char* buf)
 }
 
 
-int XDF_ReadDiag(int drv, FDCID* id, FDCID* retid, unsigned char* buf)
+int32_t XDF_ReadDiag(int32_t drv, FDCID* id, FDCID* retid, unsigned char* buf)
 {
-	int pos;
+	int32_t pos;
 	(void)id;
 	if ( (drv<0)||(drv>3) ) return FALSE;
 	if ( (XDFTrk[drv]<0)||(XDFTrk[drv]>153) ) return FALSE;
@@ -172,9 +172,9 @@ int XDF_ReadDiag(int drv, FDCID* id, FDCID* retid, unsigned char* buf)
 }
 
 
-int XDF_Write(int drv, FDCID* id, unsigned char* buf, int del)
+int32_t XDF_Write(int32_t drv, FDCID* id, unsigned char* buf, int32_t del)
 {
-	int pos;
+	int32_t pos;
 	(void)del;
 	if ( (drv<0)||(drv>3) ) return FALSE;
 	if ( (XDFTrk[drv]<0)||(XDFTrk[drv]>153) ) return FALSE;

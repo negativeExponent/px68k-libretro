@@ -40,26 +40,23 @@
 #include "windows.h"
 #include "mmsystem.h"
 
-DWORD WINAPI
-FAKE_GetLastError(VOID)
+uint32_t FAKE_GetLastError(void)
 {
 	return NO_ERROR;
 }
 
-static int _WritePrivateProfileString_subr(
-			FILE **, long, long, LPCSTR, LPCSTR);
+static int32_t _WritePrivateProfileString_subr(FILE **, long, long, const char *, const char *);
 
-BOOL WINAPI
-WritePrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR str, LPCSTR inifile)
+BOOL WritePrivateProfileString(const char *sect, const char *key, const char *str, const char *inifile)
 {
 	char lbuf[256];
 	char newbuf[256];
 	struct stat sb;
 	FILE *fp;
 	long pos;
-	int found = 0;
-	int notfound = 0;
-	int delta;
+	int32_t found = 0;
+	int32_t notfound = 0;
+	int32_t delta;
 
 	if (stat(inifile, &sb) == 0)
 		fp = fopen(inifile, "r+");
@@ -154,9 +151,8 @@ writefail:
 /*
  * XXX: REWRITE ME!!!
  */
-static int
-_WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
-		LPCSTR buf, LPCSTR file)
+static int32_t _WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
+		const char *buf, const char *file)
 {
 	struct stat sb;
 	char *p;

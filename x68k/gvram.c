@@ -1,6 +1,6 @@
-// ---------------------------------------------------------------------------------------
-//  GVRAM.C - Graphic VRAM
-// ---------------------------------------------------------------------------------------
+/*
+ *  GVRAM.C - Graphic VRAM
+ */
 
 #include	"common.h"
 #include	"windraw.h"
@@ -12,26 +12,26 @@
 #include	"m68000.h"
 #include	<string.h>
 
-	uint8_t	GVRAM[0x80000];
-	WORD	Grp_LineBuf[1024];
-	WORD	Grp_LineBufSP[1024];		// ∆√ºÏ•◊•È•§•™•Í•∆•£°ø»æ∆©Ã¿Õ—•–•√•’•°
-	WORD	Grp_LineBufSP2[1024];		// »æ∆©Ã¿•Ÿ°º•π•◊•Ï°º•ÛÕ—•–•√•’•°° »Û»æ∆©Ã¿•”•√•»≥ «º°À
-	WORD	Grp_LineBufSP_Tr[1024];
-	WORD	Pal16Adr[256];			// 16bit color •—•Ï•√•»•¢•…•Ï•π∑◊ªªÕ—
+uint8_t		GVRAM[0x80000];
+uint16_t	Grp_LineBuf[1024];
+uint16_t	Grp_LineBufSP[1024];		/* ÁâπÊÆä„Éó„É©„Ç§„Ç™„É™„ÉÜ„Ç£ÔºèÂçäÈÄèÊòéÁî®„Éê„ÉÉ„Éï„Ç° */
+uint16_t	Grp_LineBufSP2[1024];		/* ÂçäÈÄèÊòé„Éô„Éº„Çπ„Éó„É¨„Éº„É≥Áî®„Éê„ÉÉ„Éï„Ç°ÔºàÈùûÂçäÈÄèÊòé„Éì„ÉÉ„ÉàÊ†ºÁ¥çÔºâ */
+uint16_t	Grp_LineBufSP_Tr[1024];
+uint16_t	Pal16Adr[256];				/* 16bit color „Éë„É¨„ÉÉ„Éà„Ç¢„Éâ„É¨„ÇπË®àÁÆóÁî® */
 
-// xxx: for little endian only
+/* xxx: for little endian only */
 #define GET_WORD_W8(src) (*(uint8_t *)(src) | *((uint8_t *)(src) + 1) << 8)
 
 
-// -----------------------------------------------------------------------
-//   ΩÈ¥¸≤Ω°¡
-// -----------------------------------------------------------------------
+/*
+ *   ÂàùÊúüÂåñ„Äú
+ */
 void GVRAM_Init(void)
 {
-	int i;
+	int32_t i;
 
 	memset(GVRAM, 0, 0x80000);
-	for (i=0; i<128; i++)			// 16bit color •—•Ï•√•»•¢•…•Ï•π∑◊ªªÕ—
+	for (i=0; i<128; i++)			/* 16bit color „Éë„É¨„ÉÉ„Éà„Ç¢„Éâ„É¨„ÇπË®àÁÆóÁî® */
 	{
 		Pal16Adr[i*2] = i*4;
 		Pal16Adr[i*2+1] = i*4+1;
@@ -39,25 +39,25 @@ void GVRAM_Init(void)
 }
 
 
-// -----------------------------------------------------------------------------------
-//  π‚¬Æ•Ø•Í•¢Õ—•Î°º•¡•Û
-// -----------------------------------------------------------------------------------
+/*
+ *  È´òÈÄü„ÇØ„É™„Ç¢Áî®„É´„Éº„ÉÅ„É≥
+ */
 
 void FASTCALL GVRAM_FastClear(void)
 {
-	DWORD v, h;
+	uint32_t v, h;
 	v = ((CRTC_Regs[0x29]&4)?512:256);
 	h = ((CRTC_Regs[0x29]&3)?512:256);
-	// §‰§√§—§¡§„§Û§»»œ∞œªÿƒÍ§∑§ §§§» —§À§ §Î§‚§Œ§‚§¢§Î° •¿•§• •ﬁ•§•»•«•Â°º•Ø§»§´°À
-{
-	WORD *p;
-	DWORD x, y;
-	DWORD offx, offy;
+	/* „ÇÑ„Å£„Å±„Å°„ÇÉ„Çì„Å®ÁØÑÂõ≤ÊåáÂÆö„Åó„Å™„ÅÑ„Å®Â§â„Å´„Å™„Çã„ÇÇ„ÅÆ„ÇÇ„ÅÇ„ÇãÔºà„ÉÄ„Ç§„Éä„Éû„Ç§„Éà„Éá„É•„Éº„ÇØ„Å®„ÅãÔºâ */
+
+	uint16_t *p;
+	uint32_t x, y;
+	uint32_t offx, offy;
 
 	offy = (GrphScrollY[0] & 0x1ff) << 10;
 	for (y = 0; y < v; ++y) {
 		offx = GrphScrollX[0] & 0x1ff;
-		p = (WORD *)(GVRAM + offy + offx * 2);
+		p = (uint16_t *)(GVRAM + offy + offx * 2);
 
 		for (x = 0; x < h; ++x) {
 			*p++ &= CRTC_FastClrMask;
@@ -67,31 +67,30 @@ void FASTCALL GVRAM_FastClear(void)
 		offy = (offy + 0x400) & 0x7fc00;
 	}
 }
-}
 
 
-// -----------------------------------------------------------------------
-//   VRAM Read
-// -----------------------------------------------------------------------
-uint8_t FASTCALL GVRAM_Read(DWORD adr)
+/*
+ *   VRAM Read
+ */
+uint8_t FASTCALL GVRAM_Read(uint32_t adr)
 {
 	uint8_t ret=0;
 	uint8_t page;
-	WORD *ram = (WORD*)(&GVRAM[adr&0x7fffe]);
+	uint16_t *ram = (uint16_t*)(&GVRAM[adr&0x7fffe]);
 	adr ^= 1;
 	adr -= 0xc00000;
 
-	if (CRTC_Regs[0x28]&8) {			// ∆…§ﬂπ˛§ﬂ¬¶§‚65536•‚°º•…§ŒVRAM«€√÷° ∂Ï∞ﬂ∆¨ · ™ƒ¢°À
+	if (CRTC_Regs[0x28]&8) {			/* Ë™≠„ÅøËæº„ÅøÂÅ¥„ÇÇ65536„É¢„Éº„Éâ„ÅÆVRAMÈÖçÁΩÆÔºàËã¶ËÉÉÈ†≠ÊçïÁâ©Â∏≥Ôºâ */
 		if (adr<0x80000) ret = GVRAM[adr];
 	} else {
 		switch(CRTC_Regs[0x28]&3)
 		{
-		case 0:					// 16 colors
+		case 0:					/* 16 colors */
 			if (!(adr&1))
 			{
-				if (CRTC_Regs[0x28]&4)		// 1024dot
+				if (CRTC_Regs[0x28]&4)		/* 1024dot */
 				{
-					ram = (WORD*)(&GVRAM[((adr&0xff800)>>1)+(adr&0x3fe)]);
+					ram = (uint16_t*)(&GVRAM[((adr&0xff800)>>1)+(adr&0x3fe)]);
 					page = (uint8_t)((adr>>17)&0x08);
 					page += (uint8_t)((adr>>8)&4);
 					ret = (((*ram)>>page)&15);
@@ -103,8 +102,8 @@ uint8_t FASTCALL GVRAM_Read(DWORD adr)
 				}
 			}
 			break;
-		case 1:					// 256
-		case 2:					// Unknown
+		case 1:					/* 256 */
+		case 2:					/* Unknown */
 			if ( adr<0x100000 )
 			{
 				if (!(adr&1))
@@ -113,14 +112,14 @@ uint8_t FASTCALL GVRAM_Read(DWORD adr)
 					ret = (uint8_t)((*ram)>>page);
 				}
 			}
-//			else
-//				BusErrFlag = 1;
+/*			else
+				BusErrFlag = 1; */
 			break;
-		case 3:					// 65536
+		case 3:					/* 65536 */
 			if (adr<0x80000)
 				ret = GVRAM[adr];
-//			else
-//				BusErrFlag = 1;
+/*			else
+				BusErrFlag = 1; */
 			break;
 		}
 	}
@@ -128,21 +127,21 @@ uint8_t FASTCALL GVRAM_Read(DWORD adr)
 }
 
 
-// -----------------------------------------------------------------------
-//   VRAM Write
-// -----------------------------------------------------------------------
-void FASTCALL GVRAM_Write(DWORD adr, uint8_t data)
+/*
+ *   VRAM Write
+ */
+void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t page;
-	int line = 1023, scr = 0;
-	WORD *ram = (WORD*)(&GVRAM[adr&0x7fffe]);
-	WORD temp;
+	int32_t line = 1023, scr = 0;
+	uint16_t *ram = (uint16_t*)(&GVRAM[adr&0x7fffe]);
+	uint16_t temp;
 
 	adr ^= 1;
 	adr -= 0xc00000;
 
 
-	if (CRTC_Regs[0x28]&8)				// 65536•‚°º•…§ŒVRAM«€√÷°©° Nemesis°À
+	if (CRTC_Regs[0x28]&8)				/* 65536„É¢„Éº„Éâ„ÅÆVRAMÈÖçÁΩÆÔºüÔºàNemesisÔºâ */
 	{
 		if ( adr<0x80000 )
 		{
@@ -154,21 +153,21 @@ void FASTCALL GVRAM_Write(DWORD adr, uint8_t data)
 	{
 		switch(CRTC_Regs[0x28]&3)
 		{
-		case 0:					// 16 colors
+		case 0:					/* 16 colors */
 			if (adr&1) break;
-			if (CRTC_Regs[0x28]&4)		// 1024dot
+			if (CRTC_Regs[0x28]&4)		/* 1024dot */
 			{
-				ram = (WORD*)(&GVRAM[((adr&0xff800)>>1)+(adr&0x3fe)]);
+				ram = (uint16_t*)(&GVRAM[((adr&0xff800)>>1)+(adr&0x3fe)]);
 				page = (uint8_t)((adr>>17)&0x08);
 				page += (uint8_t)((adr>>8)&4);
-				temp = ((WORD)data&15)<<page;
+				temp = ((uint16_t)data&15)<<page;
 				*ram = ((*ram)&(~(0xf<<page)))|temp;
 				line = ((adr/2048)-GrphScrollY[0])&1023;
 			}
 			else
 			{
 				page = (uint8_t)((adr>>17)&0x0c);
-				temp = ((WORD)data&15)<<page;
+				temp = ((uint16_t)data&15)<<page;
 				*ram = ((*ram)&(~(0xf<<page)))|temp;
 				switch(adr/0x80000)
 				{
@@ -180,39 +179,39 @@ void FASTCALL GVRAM_Write(DWORD adr, uint8_t data)
 				line = (((adr&0x7ffff)/1024)-scr)&511;
 			}
 			break;
-		case 1:					// 256 colors
-		case 2:					// Unknown
+		case 1:					/* 256 colors */
+		case 2:					/* Unknown */
 			if ( adr<0x100000 )
 			{
 				if ( !(adr&1) )
 				{
 					scr = GrphScrollY[(adr>>18)&2];
 					line = (((adr&0x7ffff)>>10)-scr)&511;
-					TextDirtyLine[line] = 1;			// 32øß4ÃÃ§ﬂ§ø§§§ ª»Õ— ˝À°ª˛
-					scr = GrphScrollY[((adr>>18)&2)+1];		//
-					line = (((adr&0x7ffff)>>10)-scr)&511;		//
+					TextDirtyLine[line] = 1;			/* 32Ëâ≤4Èù¢„Åø„Åü„ÅÑ„Å™‰ΩøÁî®ÊñπÊ≥ïÊôÇ */
+					scr = GrphScrollY[((adr>>18)&2)+1];
+					line = (((adr&0x7ffff)>>10)-scr)&511;
 					if (adr&0x80000) adr+=1;
 					adr &= 0x7ffff;
 					GVRAM[adr] = data;
 				}
 			}
-//			else
-//			{
-//				BusErrFlag = 1;
-//				return;
-//			}
+/*			else
+ 			{
+ 				BusErrFlag = 1;
+ 				return;
+ 			} */
 			break;
-		case 3:					// 65536 colors
+		case 3:					/* 65536 colors */
 			if ( adr<0x80000 )
 			{
 				GVRAM[adr] = data;
 				line = (((adr&0x7ffff)>>10)-GrphScrollY[0])&511;
 			}
-//			else
-//			{
-//				BusErrFlag = 1;
-//				return;
-//			}
+/*			else
+ 			{
+ 				BusErrFlag = 1;
+ 				return;
+ 			} */
 			break;
 		}
 		TextDirtyLine[line] = 1;
@@ -220,15 +219,15 @@ void FASTCALL GVRAM_Write(DWORD adr, uint8_t data)
 }
 
 
-// -----------------------------------------------------------------------
-//   §≥§√§´§È∏Â§œ•È•§•Û√±∞Ã§«§Œ≤ËÃÃ≈∏≥´…Ù
-// -----------------------------------------------------------------------
+/*
+ *   „Åì„Å£„Åã„ÇâÂæå„ÅØ„É©„Ç§„É≥Âçò‰Ωç„Åß„ÅÆÁîªÈù¢Â±ïÈñãÈÉ®
+ */
 LABEL void Grp_DrawLine16(void)
 {
-	WORD *srcp, *destp;
-	DWORD x, y;
-	DWORD i;
-	WORD v, v0;
+	uint16_t *srcp, *destp;
+	uint32_t x, y;
+	uint32_t i;
+	uint16_t v, v0;
 
 	y = GrphScrollY[0] + VLINE;
 	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
@@ -236,8 +235,8 @@ LABEL void Grp_DrawLine16(void)
 	y = (y & 0x1ff) << 10;
 
 	x = GrphScrollX[0] & 0x1ff;
-	srcp = (WORD *)(GVRAM + y + x * 2);
-	destp = (WORD *)Grp_LineBuf;
+	srcp = (uint16_t *)(GVRAM + y + x * 2);
+	destp = (uint16_t *)Grp_LineBuf;
 
 	x = (x ^ 0x1ff) + 1;
 
@@ -274,14 +273,14 @@ LABEL void Grp_DrawLine16(void)
 }
 
 
-LABEL void FASTCALL Grp_DrawLine8(int page, int opaq)
+LABEL void FASTCALL Grp_DrawLine8(int32_t page, int32_t opaq)
 {
-	WORD *srcp, *destp;
-	DWORD x, x0;
-	DWORD y, y0;
-	DWORD off;
-	DWORD i;
-	WORD v;
+	uint16_t *srcp, *destp;
+	uint32_t x, x0;
+	uint32_t y, y0;
+	uint32_t off;
+	uint32_t i;
+	uint16_t v;
 
 	page &= 1;
 
@@ -298,8 +297,8 @@ LABEL void FASTCALL Grp_DrawLine8(int page, int opaq)
 	x0 = GrphScrollX[page * 2 + 1] & 0x1ff;
 
 	off = y0 + x0 * 2;
-	srcp = (WORD *)(GVRAM + y + x * 2);
-	destp = (WORD *)Grp_LineBuf;
+	srcp = (uint16_t *)(GVRAM + y + x * 2);
+	destp = (uint16_t *)Grp_LineBuf;
 
 	x = (x ^ 0x1ff) + 1;
 
@@ -363,14 +362,14 @@ LABEL void FASTCALL Grp_DrawLine8(int page, int opaq)
 	}
 }
 
-				// Manhattan Requiem Opening 7.0¢™7.5MHz
-LABEL void FASTCALL Grp_DrawLine4(DWORD page, int opaq)
+/* Manhattan Requiem Opening 7.0‚Üí7.5MHz */
+LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int32_t opaq)
 {
-	WORD *srcp, *destp;	// XXX: ALIGN
-	DWORD x, y;
-	DWORD off;
-	DWORD i;
-	WORD v;
+	uint16_t *srcp, *destp;	/* XXX: ALIGN */
+	uint32_t x, y;
+	uint32_t off;
+	uint32_t i;
+	uint16_t v;
 
 	page &= 3;
 
@@ -384,8 +383,8 @@ LABEL void FASTCALL Grp_DrawLine4(DWORD page, int opaq)
 
 	x ^= 0x1ff;
 
-	srcp = (WORD *)(GVRAM + off + (page >> 1));
-	destp = (WORD *)Grp_LineBuf;
+	srcp = (uint16_t *)(GVRAM + off + (page >> 1));
+	destp = (uint16_t *)Grp_LineBuf;
 
 	v = 0;
 	i = 0;
@@ -469,14 +468,14 @@ LABEL void FASTCALL Grp_DrawLine4(DWORD page, int opaq)
 	}
 }
 
-					// §≥§Œ≤ËÃÃ•‚°º•…§œ¥™ €§∑§∆≤º§µ§§°ƒ
+/* „Åì„ÅÆÁîªÈù¢„É¢„Éº„Éâ„ÅØÂãòÂºÅ„Åó„Å¶‰∏ã„Åï„ÅÑ‚Ä¶ */
 void FASTCALL Grp_DrawLine4h(void)
 {
-	WORD *srcp, *destp;
-	DWORD x, y;
-	DWORD i;
-	WORD v;
-	int bits;
+	uint16_t *srcp, *destp;
+	uint32_t x, y;
+	uint32_t i;
+	uint16_t v;
+	int32_t bits;
 
 	y = GrphScrollY[0] + VLINE;
 	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
@@ -492,8 +491,8 @@ void FASTCALL Grp_DrawLine4h(void)
 	}
 
 	x = GrphScrollX[0] & 0x1ff;
-	srcp = (WORD *)(GVRAM + y + x * 2);
-	destp = (WORD *)Grp_LineBuf;
+	srcp = (uint16_t *)(GVRAM + y + x * 2);
+	destp = (uint16_t *)Grp_LineBuf;
 
 	x = ((x & 0x1ff) ^ 0x1ff) + 1;
 
@@ -510,15 +509,15 @@ void FASTCALL Grp_DrawLine4h(void)
 }
 
 
-// -------------------------------------------------
-// --- »æ∆©Ã¿°ø∆√ºÏPri§Œ•Ÿ°º•π§»§ §Î•⁄°º•∏§Œ…¡≤Ë ---
-// -------------------------------------------------
+/*
+ * --- ÂçäÈÄèÊòéÔºèÁâπÊÆäPri„ÅÆ„Éô„Éº„Çπ„Å®„Å™„Çã„Éö„Éº„Ç∏„ÅÆÊèèÁîª ---
+ */
 void FASTCALL Grp_DrawLine16SP(void)
 {
-	DWORD x, y;
-	DWORD off;
-	DWORD i;
-	WORD v;
+	uint32_t x, y;
+	uint32_t off;
+	uint32_t i;
+	uint16_t v;
 
 	y = GrphScrollY[0] + VLINE;
 	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
@@ -546,13 +545,13 @@ void FASTCALL Grp_DrawLine16SP(void)
 }
 
 
-void FASTCALL Grp_DrawLine8SP(int page)
+void FASTCALL Grp_DrawLine8SP(int32_t page)
 {
-	DWORD x, x0;
-	DWORD y, y0;
-	DWORD off, off0;
-	DWORD i;
-	WORD v;
+	uint32_t x, x0;
+	uint32_t y, y0;
+	uint32_t off, off0;
+	uint32_t i;
+	uint16_t v;
 
 	page &= 1;
 
@@ -605,11 +604,11 @@ void FASTCALL Grp_DrawLine8SP(int page)
 }
 
 
-void FASTCALL Grp_DrawLine4SP(DWORD page/*, int opaq*/)
+void FASTCALL Grp_DrawLine4SP(uint32_t page/*, int32_t opaq*/)
 {
-	DWORD scrx, scry;
+	uint32_t scrx, scry;
 	page &= 3;
-	switch(page)		// »˛§∑§Ø§ §µ§π§Æ§Î° æ–°À
+	switch(page)		/* Áæé„Åó„Åè„Å™„Åï„Åô„Åé„ÇãÔºàÁ¨ëÔºâ */
 	{
 	case 0:	scrx = GrphScrollX[0]; scry = GrphScrollY[0]; break;
 	case 1: scrx = GrphScrollX[1]; scry = GrphScrollY[1]; break;
@@ -617,11 +616,10 @@ void FASTCALL Grp_DrawLine4SP(DWORD page/*, int opaq*/)
 	case 3: scrx = GrphScrollX[3]; scry = GrphScrollY[3]; break;
 	}
 
-{
-	DWORD x, y;
-	DWORD off;
-	DWORD i;
-	WORD v;
+	uint32_t x, y;
+	uint32_t off;
+	uint32_t i;
+	uint16_t v;
 
 	if (page & 1) {
 		y = scry + VLINE;
@@ -681,16 +679,15 @@ void FASTCALL Grp_DrawLine4SP(DWORD page/*, int opaq*/)
 		}
 	}
 }
-}
 
 
 void FASTCALL Grp_DrawLine4hSP(void)
 {
-	WORD *srcp;
-	DWORD x, y;
-	DWORD i;
-	int bits;
-	WORD v;
+	uint16_t *srcp;
+	uint32_t x, y;
+	uint32_t i;
+	int32_t bits;
+	uint16_t v;
 
 	y = GrphScrollY[0] + VLINE;
 	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
@@ -706,7 +703,7 @@ void FASTCALL Grp_DrawLine4hSP(void)
 	}
 
 	x = GrphScrollX[0] & 0x1ff;
-	srcp = (WORD *)(GVRAM + y + x * 2);
+	srcp = (uint16_t *)(GVRAM + y + x * 2);
 	x = ((x & 0x1ff) ^ 0x1ff) + 1;
 
 	for (i = 0; i < TextDotX; ++i) {
@@ -726,24 +723,24 @@ void FASTCALL Grp_DrawLine4hSP(void)
 
 
 
-// -------------------------------------------------
-// --- »æ∆©Ã¿§Œ¬–æ›§»§ §Î•⁄°º•∏§Œ…¡≤Ë --------------
-// 2•⁄°º•∏∞ æÂ§¢§Î•∞•È•’•£•√•Ø•‚°º•…§Œ§ﬂ§ §Œ§«°¢
-// 256øß2ÃÃ or 16øß4ÃÃ§Œ•‚°º•…§Œ§ﬂ°£
-// 256øßª˛§œ°¢Opaque§«§ §§ ˝§Œ•‚°º•…§œ§§§È§ §§§´§‚°ƒ
-// ° …¨§∫Opaque•‚°º•…§Œ»¶°À
-// -------------------------------------------------
-// §≥§≥§œ§ﬁ§¿32øßx4ÃÃ•‚°º•…§Œº¬¡ı§Ú§∑§∆§ §§§Ï§π°ƒ
-// ° §Ï§∏§π§ø¬≠§Í§ §§§Ë§•°ƒ°À
-// -------------------------------------------------
-							// §‰§±§À§π§√§≠§Í
-LABEL void FASTCALL
-Grp_DrawLine8TR(int page, int opaq)
+/*
+ * --- ÂçäÈÄèÊòé„ÅÆÂØæË±°„Å®„Å™„Çã„Éö„Éº„Ç∏„ÅÆÊèèÁîª --------------
+ * 2„Éö„Éº„Ç∏‰ª•‰∏ä„ÅÇ„Çã„Ç∞„É©„Éï„Ç£„ÉÉ„ÇØ„É¢„Éº„Éâ„ÅÆ„Åø„Å™„ÅÆ„Åß„ÄÅ
+ * 256Ëâ≤2Èù¢ or 16Ëâ≤4Èù¢„ÅÆ„É¢„Éº„Éâ„ÅÆ„Åø„ÄÇ
+ * 256Ëâ≤ÊôÇ„ÅØ„ÄÅOpaque„Åß„Å™„ÅÑÊñπ„ÅÆ„É¢„Éº„Éâ„ÅØ„ÅÑ„Çâ„Å™„ÅÑ„Åã„ÇÇ‚Ä¶
+ * ÔºàÂøÖ„ÅöOpaque„É¢„Éº„Éâ„ÅÆÁ≠àÔºâ
+ *
+ * „Åì„Åì„ÅØ„Åæ„Å†32Ëâ≤x4Èù¢„É¢„Éº„Éâ„ÅÆÂÆüË£Ö„Çí„Åó„Å¶„Å™„ÅÑ„Çå„Åô‚Ä¶
+ * Ôºà„Çå„Åò„Åô„ÅüË∂≥„Çä„Å™„ÅÑ„Çà„ÅÖ‚Ä¶Ôºâ
+ */
+
+/* „ÇÑ„Åë„Å´„Åô„Å£„Åç„Çä */
+LABEL void FASTCALL Grp_DrawLine8TR(int32_t page, int32_t opaq)
 {
 	if (opaq) {
-		DWORD x, y;
-		DWORD v, v0;
-		DWORD i;
+		uint32_t x, y;
+		uint32_t v, v0;
+		uint32_t i;
 
 		page &= 1;
 
@@ -771,18 +768,17 @@ Grp_DrawLine8TR(int page, int opaq)
 				}
 			} else
 				v = GrphPal[v];
-			Grp_LineBuf[i] = (WORD)v;
+			Grp_LineBuf[i] = (uint16_t)v;
 		}
 	}
 }
 
-LABEL void FASTCALL
-Grp_DrawLine8TR_GT(int page, int opaq)
+LABEL void FASTCALL Grp_DrawLine8TR_GT(int32_t page, int32_t opaq)
 {
 	if (opaq) {
-		DWORD x, y;
-		DWORD v, v0;
-		DWORD i;
+		uint32_t x, y;
+		uint32_t v, v0;
+		uint32_t i;
 
 		page &= 1;
 
@@ -799,12 +795,11 @@ Grp_DrawLine8TR_GT(int page, int opaq)
 	}
 }
 
-LABEL void FASTCALL
-Grp_DrawLine4TR(DWORD page, int opaq)
+LABEL void FASTCALL Grp_DrawLine4TR(uint32_t page, int32_t opaq)
 {
-	DWORD x, y;
-	DWORD v, v0;
-	DWORD i;
+	uint32_t x, y;
+	uint32_t v, v0;
+	uint32_t i;
 
 	page &= 3;
 
@@ -837,7 +832,7 @@ Grp_DrawLine4TR(DWORD page, int opaq)
 					}
 				} else
 					v = GrphPal[v];
-				Grp_LineBuf[i] = (WORD)v;
+				Grp_LineBuf[i] = (uint16_t)v;
 			}
 		} else {
 			for (i = 0; i < TextDotX; ++i, x = (x + 1) & 0x1ff) {
@@ -858,10 +853,10 @@ Grp_DrawLine4TR(DWORD page, int opaq)
 							v &= Pal_HalfMask;
 							v += v0;
 							v = GrphPal[v >> 1];
-							Grp_LineBuf[i]=(WORD)v;
+							Grp_LineBuf[i]=(uint16_t)v;
 						}
 					} else
-						Grp_LineBuf[i] = (WORD)v;
+						Grp_LineBuf[i] = (uint16_t)v;
 				}
 			}
 		}
@@ -888,7 +883,7 @@ Grp_DrawLine4TR(DWORD page, int opaq)
 					}
 				} else
 					v = GrphPal[v];
-				Grp_LineBuf[i] = (WORD)v;
+				Grp_LineBuf[i] = (uint16_t)v;
 			}
 		} else {
 			for (i = 0; i < TextDotX; ++i, x = (x + 1) & 0x1ff) {
@@ -905,10 +900,10 @@ Grp_DrawLine4TR(DWORD page, int opaq)
 							v &= Pal_HalfMask;
 							v += v0;
 							v >>= 1;
-							Grp_LineBuf[i]=(WORD)v;
+							Grp_LineBuf[i]=(uint16_t)v;
 						}
 					} else
-						Grp_LineBuf[i] = (WORD)v;
+						Grp_LineBuf[i] = (uint16_t)v;
 				} else if (v != 0)
 					Grp_LineBuf[i] = GrphPal[v];
 			}

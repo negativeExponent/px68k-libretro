@@ -38,7 +38,7 @@
 uint8_t	LastCode = 0;
 uint8_t	KEYCONFFILE[] = "xkeyconf.dat";
 
-int	CurrentHDDNo = 0;
+int32_t	CurrentHDDNo = 0;
 
 uint8_t ini_title[] = "WinX68k";
 
@@ -59,7 +59,7 @@ Win68Conf ConfBk;
 
 extern char filepath[MAX_PATH];
 extern char winx68k_ini[MAX_PATH];
-extern int winx, winy;
+extern int32_t winx, winy;
 extern char joyname[2][MAX_PATH];
 extern char joybtnname[2][MAX_BUTTON][MAX_PATH];
 extern uint8_t joybtnnum[2];
@@ -69,7 +69,7 @@ extern uint8_t joybtnnum[2];
 extern char retro_system_conf[512];
 extern char slash;
 
-int
+int32_t
 set_modulepath(char *path, size_t len)
 {
         strcpy(path,retro_system_conf);
@@ -79,8 +79,8 @@ set_modulepath(char *path, size_t len)
 
 static void LoadDefaults(void)
 {
-	int i;
-	int j;
+	int32_t i;
+	int32_t j;
 
 	Config.MenuFontSize = 0; // start with default normal menu size
 	winx = 0;
@@ -151,7 +151,7 @@ static void LoadDefaults(void)
 
 void LoadConfig(void)
 {
-	int	i, j;
+	int32_t	i, j;
 	char	buf[CFGLEN];
 	FILEH fp;
 
@@ -184,7 +184,7 @@ void LoadConfig(void)
 
 void SaveConfig(void)
 {
-	int	i, j;
+	int32_t	i, j;
 	char	buf[CFGLEN], buf2[CFGLEN];
 	FILEH fp;
 

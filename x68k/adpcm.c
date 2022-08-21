@@ -1,8 +1,8 @@
-// ---------------------------------------------------------------------------------------
-//  ADPCM.C - ADPCM (OKI MSM6258V)
-//    § °¡§Û§´°¢X68Sound.dll§À»Ê§Ÿ§∆•´•∑•„•´•∑•„§∑§ø≤ª§À§ §Î§Û§¿§Ë§ §°°ƒ°ƒ
-//    DSound§Œ•Ø•ª§√§∆§Œ§‚§¢§Î§±§…°¢§Ω§Ï§¿§±§∏§„§ §µ§Ω§¶§ µ§§‚§π§Î
-// ---------------------------------------------------------------------------------------
+/*
+ *  ADPCM.C - ADPCM (OKI MSM6258V)
+ *    „Å™„Äú„Çì„Åã„ÄÅX68Sound.dll„Å´ÊØî„Åπ„Å¶„Ç´„Ç∑„É£„Ç´„Ç∑„É£„Åó„ÅüÈü≥„Å´„Å™„Çã„Çì„Å†„Çà„Å™„ÅÅ‚Ä¶‚Ä¶
+ *    DSound„ÅÆ„ÇØ„Çª„Å£„Å¶„ÅÆ„ÇÇ„ÅÇ„Çã„Åë„Å©„ÄÅ„Åù„Çå„Å†„Åë„Åò„ÇÉ„Å™„Åï„Åù„ÅÜ„Å™Ê∞ó„ÇÇ„Åô„Çã
+ */
 
 #include <math.h>
 
@@ -24,50 +24,50 @@
 	+ 3 * (y[0]-2*y[1]+y[2])) * x + FM_IPSCALE/2) / FM_IPSCALE \
 	- 2*y[0]-3*y[1]+6*y[2]-y[3]) * x + 3*FM_IPSCALE) / (6*FM_IPSCALE) + y[1])
 
-static int ADPCM_VolumeShift = 65536;
-static const int index_shift[16] = {
+static int32_t ADPCM_VolumeShift = 65536;
+static const int32_t index_shift[16] = {
 	-1*16, -1*16, -1*16, -1*16, 2*16, 4*16, 6*16, 8*16,
 	-1*16, -1*16, -1*16, -1*16, 2*16, 4*16, 6*16, 8*16 };
-static const int ADPCM_Clocks[8] = {
+static const int32_t ADPCM_Clocks[8] = {
 	93750, 125000, 187500, 125000, 46875, 62500, 93750, 62500 };
-static int dif_table[49*16];
+static int32_t dif_table[49*16];
 static int16_t ADPCM_BufR[ADPCM_BufSize];
 static int16_t ADPCM_BufL[ADPCM_BufSize];
 
 static long ADPCM_WrPtr = 0;
 static long ADPCM_RdPtr = 0;
-static DWORD ADPCM_SampleRate = 44100*12;
-       DWORD ADPCM_ClockRate = 7800*12;
-static DWORD ADPCM_Count = 0;
-static int ADPCM_Step = 0;
-static int ADPCM_Out = 0;
+static uint32_t ADPCM_SampleRate = 44100*12;
+       uint32_t ADPCM_ClockRate = 7800*12;
+static uint32_t ADPCM_Count = 0;
+static int32_t ADPCM_Step = 0;
+static int32_t ADPCM_Out = 0;
 static uint8_t ADPCM_Playing = 0;
        uint8_t ADPCM_Clock = 0;
-static int ADPCM_PreCounter = 0;
-static int ADPCM_DifBuf = 0;
+static int32_t ADPCM_PreCounter = 0;
+static int32_t ADPCM_DifBuf = 0;
 
 
-static int ADPCM_Pan = 0x00;
-static int OldR = 0, OldL = 0;
-static int Outs[8];
-static int OutsIp[4];
-static int OutsIpR[4];
-static int OutsIpL[4];
+static int32_t ADPCM_Pan = 0x00;
+static int32_t OldR = 0, OldL = 0;
+static int32_t Outs[8];
+static int32_t OutsIp[4];
+static int32_t OutsIpR[4];
+static int32_t OutsIpL[4];
 
-int ADPCM_IsReady(void)
+int32_t ADPCM_IsReady(void)
 {
 	return 1;
 }
 
 
-// -----------------------------------------------------------------------
-//   §∆°º§÷§ÎΩÈ¥¸≤Ω
-// -----------------------------------------------------------------------
+/*
+ *   „Å¶„Éº„Å∂„ÇãÂàùÊúüÂåñ
+ */
 static void ADPCM_InitTable(void)
 {
-	int step, n;
+	int32_t step, n;
 	double val;
-	static int bit[16][4] =
+	static int32_t bit[16][4] =
 	{
 		{ 1, 0, 0, 0}, { 1, 0, 0, 1}, { 1, 0, 1, 0}, { 1, 0, 1, 1},
 		{ 1, 1, 0, 0}, { 1, 1, 0, 1}, { 1, 1, 1, 0}, { 1, 1, 1, 1},
@@ -79,7 +79,7 @@ static void ADPCM_InitTable(void)
 		val = floor(16.0 * pow ((double)1.1, (double)step));
 		for (n=0; n<16; n++) {
 			dif_table[step*16+n] = bit[n][0] *
-			   (int)(val   * bit[n][1] +
+			   (int32_t)(val   * bit[n][1] +
 				 val/2 * bit[n][2] +
 				 val/4 * bit[n][3] +
 				 val/8);
@@ -93,14 +93,14 @@ static void ADPCM_InitTable(void)
 	else if ( val < -0x8000 ) val = -0x8000; \
 }
 
-// -----------------------------------------------------------------------
-//   MPU•Ø•Ì•√•Ø∑–≤· ¨§¿§±•–•√•’•°§À•«°º•ø§ÚŒØ§·§∆§™§Ø
-// -----------------------------------------------------------------------
-void FASTCALL ADPCM_PreUpdate(DWORD clock)
+/*
+ *   MPU„ÇØ„É≠„ÉÉ„ÇØÁµåÈÅéÂàÜ„Å†„Åë„Éê„ÉÉ„Éï„Ç°„Å´„Éá„Éº„Çø„ÇíÊ∫ú„ÇÅ„Å¶„Åä„Åè
+ */
+void FASTCALL ADPCM_PreUpdate(uint32_t clock)
 {
 	/*if (!ADPCM_Playing) return;*/
 	ADPCM_PreCounter += ((ADPCM_ClockRate/24)*clock);
-	while ( ADPCM_PreCounter>=10000000L ) {		// ¢≠ •«°º•ø§Œ¡˜§Í§π§ÆÀ…ªﬂ° A-JAX°À°£200•µ•Û•◊•Í•Û•∞§Ø§È§§§ﬁ§«§œµˆ§Ω§¶°ƒ°£
+	while ( ADPCM_PreCounter>=10000000L ) {		/* ‚Üì „Éá„Éº„Çø„ÅÆÈÄÅ„Çä„Åô„ÅéÈò≤Ê≠¢ÔºàA-JAXÔºâ„ÄÇ200„Çµ„É≥„Éó„É™„É≥„Ç∞„Åè„Çâ„ÅÑ„Åæ„Åß„ÅØË®±„Åù„ÅÜ‚Ä¶„ÄÇ*/
 		ADPCM_DifBuf -= ( (ADPCM_SampleRate*400)/ADPCM_ClockRate );
 		if ( ADPCM_DifBuf<=0 ) {
 			ADPCM_DifBuf = 0;
@@ -111,20 +111,20 @@ void FASTCALL ADPCM_PreUpdate(DWORD clock)
 }
 
 
-// -----------------------------------------------------------------------
-//   DSound§¨ªÿƒÍ§∑§∆§Ø§Î ¨§¿§±•–•√•’•°§À•«°º•ø§ÚΩÒ§≠Ω–§π
-// -----------------------------------------------------------------------
-void FASTCALL ADPCM_Update(int16_t *buffer, DWORD length, int rate, uint8_t *pbsp, uint8_t *pbep)
+/*
+ *   DSound„ÅåÊåáÂÆö„Åó„Å¶„Åè„ÇãÂàÜ„Å†„Åë„Éê„ÉÉ„Éï„Ç°„Å´„Éá„Éº„Çø„ÇíÊõ∏„ÅçÂá∫„Åô
+ */
+void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, int32_t rate, uint8_t *pbsp, uint8_t *pbep)
 {
-	int outs;
-	signed int outl, outr;
+	int32_t outs;
+	int32_t outl, outr;
 
 	if ( length<=0 ) return;
 
 	while ( length ) {
 		if (buffer >= (int16_t *)pbep)
 			buffer = (int16_t*)pbsp;
-		int tmpl, tmpr;
+		int32_t tmpl, tmpr;
 
 		if ( (ADPCM_WrPtr==ADPCM_RdPtr)&&(!(DMA[3].CCR&0x40)) ) DMA_Exec(3);
 		if ( ADPCM_WrPtr!=ADPCM_RdPtr ) {
@@ -138,14 +138,14 @@ void FASTCALL ADPCM_Update(int16_t *buffer, DWORD length, int rate, uint8_t *pbs
 		}
 
 		if ( Config.Sound_LPF ) {
-			outr = (int)(outr*40*ADPCM_VolumeShift);
+			outr = (int32_t)(outr*40*ADPCM_VolumeShift);
 			outs = (outr + Outs[3]*2 + Outs[2] + Outs[1]*157 - Outs[0]*61) >> 8;
 			Outs[2] = Outs[3];
 			Outs[3] = outr;
 			Outs[0] = Outs[1];
 			Outs[1] = outs;
 		} else {
-			outs = (int)(outr*ADPCM_VolumeShift);
+			outs = (int32_t)(outr*ADPCM_VolumeShift);
 		}
 
 		OutsIpR[0] = OutsIpR[1];
@@ -154,14 +154,14 @@ void FASTCALL ADPCM_Update(int16_t *buffer, DWORD length, int rate, uint8_t *pbs
 		OutsIpR[3] = outs;
 
 		if ( Config.Sound_LPF ) {
-			outl = (int)(outl*40*ADPCM_VolumeShift);
+			outl = (int32_t)(outl*40*ADPCM_VolumeShift);
 			outs = (outl + Outs[7]*2 + Outs[6] + Outs[5]*157 - Outs[4]*61) >> 8;
 			Outs[6] = Outs[7];
 			Outs[7] = outl;
 			Outs[4] = Outs[5];
 			Outs[5] = outs;
 		} else {
-			outs = (int)(outl*ADPCM_VolumeShift);
+			outs = (int32_t)(outl*ADPCM_VolumeShift);
 		}
 
 		OutsIpL[0] = OutsIpL[1];
@@ -175,7 +175,7 @@ void FASTCALL ADPCM_Update(int16_t *buffer, DWORD length, int rate, uint8_t *pbs
 		tmpl = INTERPOLATE(OutsIpL, 0);
 		if ( tmpl>32767 ) tmpl = 32767; else if ( tmpl<(-32768) ) tmpl = -32768;
 		*(buffer++) = (int16_t)tmpl;
-		// PSP∞ ≥∞§œrate§œ0
+		/* PSP‰ª•Â§ñ„ÅØrate„ÅØ0 */
 		if (rate == 22050) {
 			if (buffer >= (int16_t *)pbep) {
 				buffer = (int16_t *)pbsp;
@@ -205,10 +205,10 @@ void FASTCALL ADPCM_Update(int16_t *buffer, DWORD length, int rate, uint8_t *pbs
 }
 
 
-// -----------------------------------------------------------------------
-//   1nibble° 4bit°À§Ú•«•≥°º•…
-// -----------------------------------------------------------------------
-INLINE void ADPCM_WriteOne(int val)
+/*
+ *   1nibbleÔºà4bitÔºâ„Çí„Éá„Ç≥„Éº„Éâ
+ */
+INLINE void ADPCM_WriteOne(int32_t val)
 {
 	ADPCM_Out += dif_table[ADPCM_Step+val];
 	if ( ADPCM_Out>ADPCMMAX ) ADPCM_Out = ADPCMMAX; else if ( ADPCM_Out<ADPCMMIN ) ADPCM_Out = ADPCMMIN;
@@ -229,8 +229,8 @@ INLINE void ADPCM_WriteOne(int val)
 
 	while ( ADPCM_SampleRate>ADPCM_Count ) {
 		if ( ADPCM_Playing ) {
-			int ratio = (((ADPCM_Count/100)*FM_IPSCALE)/(ADPCM_SampleRate/100));
-			int tmp = INTERPOLATE(OutsIp, ratio);
+			int32_t ratio = (((ADPCM_Count/100)*FM_IPSCALE)/(ADPCM_SampleRate/100));
+			int32_t tmp = INTERPOLATE(OutsIp, ratio);
 			if ( tmp>ADPCMMAX ) tmp = ADPCMMAX; else if ( tmp<ADPCMMIN ) tmp = ADPCMMIN;
 			if ( !(ADPCM_Pan&1) )
 				ADPCM_BufR[ADPCM_WrPtr] = (int16_t)tmp;
@@ -248,10 +248,10 @@ INLINE void ADPCM_WriteOne(int val)
 }
 
 
-// -----------------------------------------------------------------------
-//   I/O Write
-// -----------------------------------------------------------------------
-void FASTCALL ADPCM_Write(DWORD adr, uint8_t data)
+/*
+ *   I/O Write
+ */
+void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 {
 	if ( adr==0xe92001 ) {
 		if ( data&1 ) {
@@ -267,17 +267,17 @@ void FASTCALL ADPCM_Write(DWORD adr, uint8_t data)
 		}
 	} else if ( adr==0xe92003 ) {
 		if ( ADPCM_Playing ) {
-			ADPCM_WriteOne((int)(data&15));
-			ADPCM_WriteOne((int)((data>>4)&15));
+			ADPCM_WriteOne((int32_t)(data&15));
+			ADPCM_WriteOne((int32_t)((data>>4)&15));
 		}
 	}
 }
 
 
-// -----------------------------------------------------------------------
-//   I/O Read° •π•∆°º•ø•π•¡•ß•√•Ø°À
-// -----------------------------------------------------------------------
-uint8_t FASTCALL ADPCM_Read(DWORD adr)
+/*
+ *   I/O ReadÔºà„Çπ„ÉÜ„Éº„Çø„Çπ„ÉÅ„Çß„ÉÉ„ÇØÔºâ
+ */
+uint8_t FASTCALL ADPCM_Read(uint32_t adr)
 {
 	if ( adr==0xe92001 )
 		return ((ADPCM_Playing)?0xc0:0x40);
@@ -286,24 +286,24 @@ uint8_t FASTCALL ADPCM_Read(DWORD adr)
 }
 
 
-// -----------------------------------------------------------------------
-//   §‹§Í§Â°º§‡
-// -----------------------------------------------------------------------
+/*
+ *   „Åº„Çä„ÇÖ„Éº„ÇÄ
+ */
 void ADPCM_SetVolume(uint8_t vol)
 {
 	if ( vol>16 ) vol=16;
 
 	if ( vol )
-		ADPCM_VolumeShift = (int)((double)16/pow(1.189207115, (16-vol)));
+		ADPCM_VolumeShift = (int32_t)((double)16/pow(1.189207115, (16-vol)));
 	else
-		ADPCM_VolumeShift = 0;		// Mute
+		ADPCM_VolumeShift = 0; /* Mute */
 }
 
 
-// -----------------------------------------------------------------------
-//   Panning
-// -----------------------------------------------------------------------
-void ADPCM_SetPan(int n)
+/*
+ *   Panning
+ */
+void ADPCM_SetPan(int32_t n)
 {
 	if ( (ADPCM_Pan&0x0c)!=(n&0x0c) ) {
 		ADPCM_Count = 0;
@@ -314,10 +314,10 @@ void ADPCM_SetPan(int n)
 }
 
 
-// -----------------------------------------------------------------------
-//   Clock
-// -----------------------------------------------------------------------
-void ADPCM_SetClock(int n)
+/*
+ *   Clock
+ */
+void ADPCM_SetClock(int32_t n)
 {
 	if ( (ADPCM_Clock&4)!=n ) {
 		ADPCM_Count = 0;
@@ -327,10 +327,10 @@ void ADPCM_SetClock(int n)
 }
 
 
-// -----------------------------------------------------------------------
-//   ΩÈ¥¸≤Ω
-// -----------------------------------------------------------------------
-void ADPCM_Init(DWORD samplerate)
+/*
+ *   ÂàùÊúüÂåñ
+ */
+void ADPCM_Init(uint32_t samplerate)
 {
 	ADPCM_WrPtr = 0;
 	ADPCM_RdPtr = 0;

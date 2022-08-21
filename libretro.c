@@ -59,17 +59,17 @@ static bool joypad1, joypad2;
 
 static bool opt_analog;
 
-int retrow = 800;
-int retroh = 600;
-int CHANGEAV = 0;
-int CHANGEAV_TIMING = 0; /* Separate change of geometry from change of refresh rate */
-int VID_MODE = MODE_NORM; /* what framerate we start in */
+int32_t retrow = 800;
+int32_t retroh = 600;
+int32_t CHANGEAV = 0;
+int32_t CHANGEAV_TIMING = 0; /* Separate change of geometry from change of refresh rate */
+int32_t VID_MODE = MODE_NORM; /* what framerate we start in */
 static float FRAMERATE;
-DWORD libretro_supports_input_bitmasks = 0;
-unsigned int total_usec = (unsigned int) -1;
+uint32_t libretro_supports_input_bitmasks = 0;
+int64_t total_usec = -1;
 
 static int16_t soundbuf[1024 * 2];
-static int soundbuf_size;
+static int32_t soundbuf_size;
 
 uint16_t *videoBuffer;
 
@@ -79,7 +79,7 @@ static retro_input_poll_t input_poll_cb;
 static retro_set_rumble_state_t rumble_cb;
 static unsigned no_content;
 
-static int opt_rumble_enabled = 1;
+static int32_t opt_rumble_enabled = 1;
 
 #define MAX_DISKS 10
 
@@ -165,15 +165,15 @@ static void extract_directory(char *buf, const char *path, size_t size)
 /* BEGIN MIDI INTERFACE */
 #include "x68k/midi.h"
 #include "win32api/mmsystem.h"
-static int libretro_supports_midi_output = 0;
+static int32_t libretro_supports_midi_output = 0;
 static struct retro_midi_interface midi_cb = { 0 };
 
-WINMMAPI MMRESULT WINAPI midiOutClose(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
-WINMMAPI MMRESULT WINAPI midiOutReset(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
-WINMMAPI MMRESULT WINAPI midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh) { return !MIDIERR_STILLPLAYING; }
-WINMMAPI MMRESULT WINAPI midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh) { return MMSYSERR_NOERROR; }
+uint32_t midiOutClose(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
+uint32_t midiOutReset(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
+uint32_t midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh) { return !MIDIERR_STILLPLAYING; }
+uint32_t midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh) { return MMSYSERR_NOERROR; }
 
-WINMMAPI MMRESULT WINAPI midiOutShortMsg(HMIDIOUT hmo, DWORD dwMsg)
+uint32_t midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg)
 {
    if (libretro_supports_midi_output && midi_cb.output_enabled()) {
       midi_cb.write(dwMsg         & 0xFF, 0); /* status byte */
@@ -184,9 +184,9 @@ WINMMAPI MMRESULT WINAPI midiOutShortMsg(HMIDIOUT hmo, DWORD dwMsg)
    return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
+uint32_t midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 {
-   int i;
+   int32_t i;
    if (libretro_supports_midi_output && midi_cb.output_enabled()) {
       for (i = 0; i < pmh->dwBufferLength; i++)
          midi_cb.write((uint8_t)pmh->lpData[i], 0);
@@ -195,8 +195,8 @@ WINMMAPI MMRESULT WINAPI midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
    return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI midiOutOpen(LPHMIDIOUT phmo, UINT uDeviceID, DWORD dwCallback,
-    DWORD dwInstance, DWORD fdwOpen)
+uint32_t midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
+    uint32_t dwInstance, uint32_t fdwOpen)
 {
    if (libretro_supports_midi_output && midi_cb.output_enabled()) {
       *phmo = &midi_cb;
@@ -438,9 +438,9 @@ void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb; }
 
 static char CMDFILE[512];
 
-static int loadcmdfile(char *argv)
+static int32_t loadcmdfile(char *argv)
 {
-   int res = 0;
+   int32_t res = 0;
 
    FILE *fp = fopen(argv, "r");
 
@@ -454,9 +454,9 @@ static int loadcmdfile(char *argv)
    return res;
 }
 
-static int HandleExtension(char *path, char *ext)
+static int32_t HandleExtension(char *path, char *ext)
 {
-   int len = strlen(path);
+   int32_t len = strlen(path);
 
    if (len >= 4 &&
          path[len - 4] == '.' &&
@@ -477,9 +477,9 @@ static unsigned char ARGUC = 0;
 /* Args for Core */
 static char XARGV[64][1024];
 static const char* xargv_cmd[64];
-static int PARAMCOUNT = 0;
+static int32_t PARAMCOUNT = 0;
 
-extern int cmain(int argc, char *argv[]);
+extern int32_t cmain(int32_t argc, char *argv[]);
 
 static void parse_cmdline(const char *argv);
 
@@ -557,7 +557,7 @@ static bool read_m3u(const char *file)
 
 static void Add_Option(const char* option)
 {
-   static int first = 0;
+   static int32_t first = 0;
 
    if(first == 0)
    {
@@ -568,13 +568,13 @@ static void Add_Option(const char* option)
    sprintf(XARGV[PARAMCOUNT++], "%s\0", option);
 }
 
-static int isM3U = 0;
+static int32_t isM3U = 0;
 
-static int load(const char *argv)
+static int32_t load(const char *argv)
 {
    if (strlen(argv) > strlen("cmd"))
    {
-      int res = 0;
+      int32_t res = 0;
       if (HandleExtension((char*)argv, "cmd") || HandleExtension((char*)argv, "CMD"))
       {
          res = loadcmdfile((char*)argv);
@@ -614,10 +614,10 @@ static int load(const char *argv)
    return 1;
 }
 
-static int pre_main(void)
+static int32_t pre_main(void)
 {
-   int i = 0;
-   int Only1Arg;
+   int32_t i = 0;
+   int32_t Only1Arg;
 
    for (i = 0; i < 64; i++)
       xargv_cmd[i] = NULL;
@@ -631,7 +631,7 @@ static int pre_main(void)
 
    if (Only1Arg)
    {
-      int cfgload = 0;
+      int32_t cfgload = 0;
 
       Add_Option("px68k");
 
@@ -677,7 +677,7 @@ run_pmain:
 static void parse_cmdline(const char *argv)
 {
    char *p, *p2, *start_of_word;
-   int c, c2;
+   int32_t c, c2;
    static char buffer[512 * 4];
    enum states { DULL, IN_WORD, IN_STRING } state = DULL;
 
@@ -847,7 +847,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
 void retro_set_environment(retro_environment_t cb)
 {
-   int nocontent = 1;
+   int32_t nocontent = 1;
 
    static const struct retro_controller_description port[] = {
       { "RetroPad",              RETRO_DEVICE_JOYPAD },
@@ -869,7 +869,7 @@ void retro_set_environment(retro_environment_t cb)
 
 static void update_variables(void)
 {
-   int i = 0, snd_opt = 0;
+   int32_t i = 0, snd_opt = 0;
    char key[256] = {0};
    struct retro_variable var = {0};
 
@@ -918,7 +918,7 @@ static void update_variables(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      int value = 0;
+      int32_t value = 0;
       if (strcmp(var.value, "1MB") == 0)
          value = 1;
       else if (strcmp(var.value, "2MB") == 0)
@@ -1079,7 +1079,7 @@ static void update_variables(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      int value = 0;
+      int32_t value = 0;
       if (!strcmp(var.value, "Joystick"))
          value = 0;
       else if (!strcmp(var.value, "Mouse"))
@@ -1145,7 +1145,7 @@ static void update_variables(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      int temp = Config.AdjustFrameRates;
+      int32_t temp = Config.AdjustFrameRates;
       if (!strcmp(var.value, "disabled"))
          Config.AdjustFrameRates = 0;
       else if (!strcmp(var.value, "enabled"))
@@ -1208,7 +1208,7 @@ static void frame_time_cb(retro_usec_t usec)
 {
    total_usec += usec;
    /* -1 is reserved as an error code for unavailable a la stdlib clock() */
-   if (total_usec == (unsigned int) -1)
+   if (total_usec == -1)
       total_usec = 0;
 }
 
@@ -1219,8 +1219,8 @@ static void setup_frame_time_cb(void)
    cb.callback = frame_time_cb;
    cb.reference = ceil(1000000 / FRAMERATE);
    if (!environ_cb(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &cb))
-      total_usec = (unsigned int) -1;
-   else if (total_usec == (unsigned int) -1)
+      total_usec = -1;
+   else if (total_usec == -1)
       total_usec = 0;
 }
 
@@ -1405,11 +1405,11 @@ void retro_reset(void)
 		MIDI_Reset();
 }
 
-static int firstcall = 1;
+static int32_t firstcall = 1;
 
 static void rumbleFrames(void)
 {
-   static int last_read_state;
+   static int32_t last_read_state;
 
    if (!rumble_cb)
       return;
@@ -1476,7 +1476,7 @@ void retro_run(void)
 
    if (Config.AudioDesyncHack)
    {
-      int nsamples = audio_samples_avail();
+      int32_t nsamples = audio_samples_avail();
       if (nsamples > soundbuf_size)
          audio_samples_discard(nsamples - soundbuf_size);
    }

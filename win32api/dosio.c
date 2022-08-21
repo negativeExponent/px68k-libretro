@@ -39,11 +39,10 @@
 extern char slash;
 
 static char	curpath[MAX_PATH+32] = "";
-static LPSTR	curfilep = curpath;
+static char	*curfilep = curpath;
 
-/* •’•°•§•Î¡‡∫Ó */
-FILEH
-file_open(LPSTR filename)
+/* „Éï„Ç°„Ç§„É´Êìç‰Ωú */
+FILEH file_open(char *filename)
 {
 	FILEH	ret;
 
@@ -58,8 +57,7 @@ file_open(LPSTR filename)
 	return ret;
 }
 
-FILEH
-file_create(LPSTR filename, int ftype)
+FILEH file_create(char *filename, int32_t ftype)
 {
 	FILEH	ret;
 
@@ -72,91 +70,78 @@ file_create(LPSTR filename, int ftype)
 	return ret;
 }
 
-DWORD
-file_seek(FILEH handle, long pointer, int16_t mode)
+uint32_t file_seek(FILEH handle, long pointer, int16_t mode)
 {
-
 	return SetFilePointer(handle, pointer, 0, mode);
 }
 
-DWORD
-file_lread(FILEH handle, void *data, DWORD length)
+uint32_t file_lread(FILEH handle, void *data, uint32_t length)
 {
-	DWORD	readsize;
+	uint32_t	readsize;
 
 	if (ReadFile(handle, data, length, &readsize, NULL) == 0)
 		return 0;
 	return readsize;
 }
 
-DWORD
-file_lwrite(FILEH handle, void *data, DWORD length)
+uint32_t file_lwrite(FILEH handle, void *data, uint32_t length)
 {
-	DWORD	writesize;
+	uint32_t	writesize;
 
 	if (WriteFile(handle, data, length, &writesize, NULL) == 0)
 		return 0;
 	return writesize;
 }
 
-WORD
-file_read(FILEH handle, void *data, WORD length)
+uint16_t file_read(FILEH handle, void *data, uint16_t length)
 {
-	DWORD	readsize;
+	uint32_t	readsize;
 
 	if (ReadFile(handle, data, length, &readsize, NULL) == 0)
 		return 0;
-	return (WORD)readsize;
+	return (uint16_t)readsize;
 }
 
-WORD
-file_write(FILEH handle, void *data, WORD length)
+uint16_t file_write(FILEH handle, void *data, uint16_t length)
 {
-	DWORD	writesize;
+	uint32_t	writesize;
 
 	if (WriteFile(handle, data, length, &writesize, NULL) == 0)
 		return 0;
-	return (WORD)writesize;
+	return (uint16_t)writesize;
 }
 
-int16_t
-file_close(FILEH handle)
+int16_t file_close(FILEH handle)
 {
-
 	FAKE_CloseHandle(handle);
 	return 0;
 }
 
-void
-file_setcd(LPSTR exename)
+void file_setcd(char *exename)
 {
-
 	strncpy(curpath, exename, sizeof(curpath));
 	plusyen(curpath, sizeof(curpath));
 	curfilep = curpath + strlen(exename) + 1;
 	*curfilep = '\0';
 }
 
-FILEH
-file_open_c(LPSTR filename)
+FILEH file_open_c(char *filename)
 {
 
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_open(curpath);
 }
 
-FILEH
-file_create_c(LPSTR filename, int ftype)
+FILEH file_create_c(char *filename, int32_t ftype)
 {
 
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_create(curpath, ftype);
 }
 
-LPSTR
-getFileName(LPSTR filename)
+char *getFileName(char *filename)
 {
-	LPSTR p, q;
+	char *p, *q;
 
 	for (p = q = filename; *p != '\0'; p++)
 		if (*p == slash)
@@ -164,10 +149,9 @@ getFileName(LPSTR filename)
 	return q;
 }
 
-void
-plusyen(LPSTR str, int len)
+void plusyen(char *str, int32_t len)
 {
-	int	pos = strlen(str);
+	int32_t 	pos = strlen(str);
 
 	if (pos) {
 		if (str[pos-1] == slash)

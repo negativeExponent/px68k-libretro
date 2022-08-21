@@ -3,6 +3,7 @@
 
 #include <sys/param.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -11,41 +12,14 @@
 #include <errno.h>
 #include <assert.h>
 
-typedef	signed int	INT;
-typedef	signed long	LONG;
-
-typedef	unsigned int	UINT;
-
-typedef	unsigned char	BYTE;
-typedef	unsigned short	WORD;
-typedef	unsigned int	DWORD;
-
 typedef	int		BOOL;
-typedef	WORD		WPARAM;
-typedef	DWORD		LPARAM;
-typedef	LONG		LRESULT;
-
-typedef	void		VOID;
-typedef	void		*PVOID;
-typedef	void		*LPVOID;
-typedef	const void	*PCVOID;
-typedef	long		*PLONG;
-typedef	BYTE		*LPBYTE;
-typedef	WORD		*LPWORD;
-typedef	DWORD		*PDWORD;
-typedef	DWORD		*LPDWORD;
-typedef char		*LPSTR;
-typedef const char	*LPCSTR;
 
 typedef	void *		LPSECURITY_ATTRIBUTES;
 typedef	void *		LPOVERLAPPED;
 
-typedef	int		HWND;
 typedef void *		HANDLE;
 typedef	HANDLE		HLOCAL;
 typedef	HANDLE		HGLOBAL;
-
-typedef	void *		DRAWITEMSTRUCT;
 
 #ifndef FASTCALL
 #define FASTCALL
@@ -67,12 +41,6 @@ typedef	void *		DRAWITEMSTRUCT;
 #define	AVE(a, b)	(((a)+(b))/2)
 #endif
 
-/*
- * DUMMY DEFINITION
- */
-#define	WINAPI
-#define	CALLBACK
-
 #ifdef __GNUC__
 #ifndef UNUSED
 #define UNUSED __attribute ((unused))
@@ -85,7 +53,7 @@ typedef	void *		DRAWITEMSTRUCT;
 #define	INLINE	static inline
 #endif
 
-#define	RGB(r,g,b)	((DWORD)((uint8_t)(r))|((WORD)((uint8_t)(g)))|((DWORD)((uint8_t)(b))))
+#define	RGB(r,g,b)	((uint32_t)((uint8_t)(r))|((uint16_t)((uint8_t)(g)))|((uint32_t)((uint8_t)(b))))
 
 #define	MB_APPLMODAL		0
 
@@ -138,53 +106,9 @@ typedef	void *		DRAWITEMSTRUCT;
  */
 #define	timeGetTime()		FAKE_GetTickCount()
 
-/*
- * WIN32 structure
- */
 typedef struct {
-	WORD	bfType;
-	DWORD	bfSize;
-	WORD	bfReserved1;
-	WORD	bfReserved2;
-	DWORD	bfOffBits;
-} __attribute__ ((packed)) BITMAPFILEHEADER;
-
-typedef struct {
-	DWORD	biSize;
-	LONG	biWidth;
-	LONG	biHeight;
-	WORD	biPlanes;
-	WORD	biBitCount;
-	DWORD	biCompression;
-	DWORD	biSizeImage;
-	LONG	biXPelsPerMeter;
-	LONG	biYPelsPerMeter;
-	DWORD	biClrUsed;
-	DWORD	biClrImportant;
-} __attribute__ ((packed)) BITMAPINFOHEADER;
-
-typedef struct {
-	BYTE	rgbBlue;
-	BYTE	rgbGreen;
-	BYTE	rgbRed;
-	BYTE	rgbReserved;
-} __attribute__ ((packed)) RGBQUAD;
-
-typedef struct {
-	BITMAPINFOHEADER	bmiHeader;
-	RGBQUAD			bmiColors[1];
-} __attribute__ ((packed)) BITMAPINFO;
-
-typedef struct {
-	DWORD	top;
-	DWORD	left;
-	DWORD	bottom;
-	DWORD	right;
-} RECT;
-
-typedef struct {
-	WORD	x;
-	WORD	y;
+	uint16_t	x;
+	uint16_t	y;
 } POINT;
 
 /*
@@ -193,9 +117,9 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-BOOL	WINAPI WritePrivateProfileString(LPCSTR, LPCSTR, LPCSTR, LPCSTR);
+BOOL	WritePrivateProfileString(const char *, const char *, const char *, const char *);
 
-DWORD	WINAPI FAKE_GetLastError(void);
+uint32_t	FAKE_GetLastError(void);
 #ifdef __cplusplus
 };
 #endif

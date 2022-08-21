@@ -1,8 +1,8 @@
-// ---------------------------------------------------------------------------------------
-//  FDC.C - Floppy Disk Controller (uPD72065)
-//  ToDo : Ì¤¼ÂÁõ¥³¥Þ¥ó¥É¡¢¸Õ»¶½­¤¤ÉôÊ¬¡ÊÂ¿¿ô¡Ë¤Î¸«Ä¾¤·¡¢DMAC¤È¤ÎÏ¢·ÈÉô¤Î¸«Ä¾¤·
-//    D88¤Ç¤Î¥¨¥é¡¼½èÍý¤È¤«¥Þ¥·¤Ë¤Ê¤Ã¤¿¤Ï¤º¡Ä¡Ä¤Ç¤â¤½¤ÎÊ¬±ø¤¤¡Ä¡Ä
-// ---------------------------------------------------------------------------------------
+/*
+ *  FDC.C - Floppy Disk Controller (uPD72065)
+ *  ToDo : æœªå®Ÿè£…ã‚³ãƒžãƒ³ãƒ‰ã€èƒ¡æ•£è‡­ã„éƒ¨åˆ†ï¼ˆå¤šæ•°ï¼‰ã®è¦‹ç›´ã—ã€DMACã¨ã®é€£æºéƒ¨ã®è¦‹ç›´ã—
+ *    D88ã§ã®ã‚¨ãƒ©ãƒ¼å‡¦ç†ã¨ã‹ãƒžã‚·ã«ãªã£ãŸã¯ãšâ€¦â€¦ã§ã‚‚ãã®åˆ†æ±šã„â€¦â€¦
+ */
 
 #include "fdc.h"
 #include "fdd.h"
@@ -62,22 +62,22 @@ typedef struct {
 
 
 typedef struct {
-	int cmd;
+	int32_t cmd;
 
-	int cyl;
-	int drv;
-	int ready;
-	int ctrl;
-	int wexec;
+	int32_t cyl;
+	int32_t drv;
+	int32_t ready;
+	int32_t ctrl;
+	int32_t wexec;
 
-	int rdptr;
-	int wrptr;
-	int rdnum;
-	int wrnum;
-	int bufnum;
-	int st0;
-	int st1;
-	int st2;
+	int32_t rdptr;
+	int32_t wrptr;
+	int32_t rdnum;
+	int32_t wrnum;
+	int32_t bufnum;
+	int32_t st0;
+	int32_t st1;
+	int32_t st2;
 	uint8_t RspBuf[10];
 	uint8_t PrmBuf[10];
 	uint8_t DataBuf[0x8000];
@@ -93,29 +93,29 @@ static FDC fdc;
 #define MF(p) ((p->us>>6)&1)
 #define MT(p) ((p->us>>7)&1)
 
-// -----------------------------------------------------------------------
-//   ³ä¤ê¹þ¤ß¥Ù¥¯¥¿
-// -----------------------------------------------------------------------
-DWORD FASTCALL FDC_Int(uint8_t irq)
+/*
+ *   å‰²ã‚Šè¾¼ã¿ãƒ™ã‚¯ã‚¿
+ */
+uint32_t FASTCALL FDC_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 	if (irq==1)
-		return ((DWORD)IOC_IntVect);
+		return ((uint32_t)IOC_IntVect);
 	else
 		return -1;
 }
 
 
-// -----------------------------------------------------------------------
-//   ½é´ü²½
-// -----------------------------------------------------------------------
+/*
+ *   åˆæœŸåŒ–
+ */
 void FDC_Init(void)
 {
 	memset(&fdc, 0, sizeof(FDC));
 }
 
 
-void FDC_SetForceReady(int n)
+void FDC_SetForceReady(int32_t n)
 {
 	fdc.ready = n;
 }
@@ -128,9 +128,9 @@ static void FDC_SetInt(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   Excution Phase ¤Î½ªÎ»
-// -----------------------------------------------------------------------
+/*
+ *   Excution Phase ã®çµ‚äº†
+ */
 void FDC_EPhaseEnd(void)
 {
 	FDCID id;
@@ -150,7 +150,7 @@ void FDC_EPhaseEnd(void)
 }
 
 
-int FDC_IsDataReady(void)
+int32_t FDC_IsDataReady(void)
 {
 	return ((fdc.bufnum)?1:0);
 }
@@ -164,11 +164,11 @@ static void FDC_ExecCmd(void)
 	FDCPRM2* prm2 = (FDCPRM2*)fdc.PrmBuf;
 	FDCRSP* rsp   = (FDCRSP*)fdc.RspBuf;
 	FDCID id;
-	int ret;
+	int32_t ret;
 
 
 	switch ( fdc.cmd ) {
-	case 2:		// ReadDiagnostic
+	case 2:		/* ReadDiagnostic */
 		fdc.st0 = prm1->us&7;
 		if ( (FDD_IsReady(fdc.drv))||(fdc.ready) ) {
 			if ( !FDD_Seek(fdc.drv, (fdc.cyl<<1)+HD(prm0), &id) ) {
@@ -198,18 +198,18 @@ static void FDC_ExecCmd(void)
 		}
 		if ( fdc.st0&0x40 ) FDC_EPhaseEnd();
 		break;
-	case 3:		// Specify
+	case 3:		/* Specify */
 		/* Nothing to do */
 		break;
-	case 4:		// SenseDeviceStatus
+	case 4:		/* SenseDeviceStatus */
 		fdc.st0 = prm1->us&7;
 		rsp->st0 = fdc.st0;
 		if ( !fdc.cyl )                            rsp->st0 |= 0x10;
 		if ( (FDD_IsReady(fdc.drv))||(fdc.ready) ) rsp->st0 |= 0x20;
 		if ( FDD_IsReadOnly(fdc.drv) )             rsp->st0 |= 0x40;
 		break;
-	case 5:		// WriteData
-	case 9:		// WriteDeletedData
+	case 5:		/* WriteData */
+	case 9:		/* WriteDeletedData */
 		fdc.st0 = prm1->us&7;
 		if ( FDD_IsReadOnly(fdc.drv) ) {
 			fdc.st0 |= 0x40;
@@ -227,11 +227,11 @@ static void FDC_ExecCmd(void)
 		}
 		if ( fdc.st0&0x40 ) FDC_EPhaseEnd();
 		break;
-	case 6:		// ReadData
-	case 12:	// ReadDeletedData
-	case 17:	// ScanEqual
-	case 25:	// ScanLowOrEqual
-	case 29:	// ScanHighOrEqual
+	case 6:		/* ReadData */
+	case 12:	/* ReadDeletedData */
+	case 17:	/* ScanEqual */
+	case 25:	/* ScanLowOrEqual */
+	case 29:	/* ScanHighOrEqual */
 		fdc.st0 = prm1->us&7;
 		if ( (FDD_IsReady(fdc.drv))||(fdc.ready) ) {
 			if ( !FDD_Seek(fdc.drv, (fdc.cyl<<1)+HD(prm0), &id) ) {
@@ -264,24 +264,24 @@ static void FDC_ExecCmd(void)
 		}
 		if ( fdc.st0&0x40 ) FDC_EPhaseEnd();
 		break;
-	case 7:		// Recalibrate
+	case 7:		/* Recalibrate */
 		fdc.st0 = prm1->us&7;
 		fdc.cyl = 0;
 		if ( (!FDD_IsReady(fdc.drv))&&(!fdc.ready) ) {
-			fdc.st0 |= 0x48;		// FD¤Ê¤·
+			fdc.st0 |= 0x48;		/* FDãªã— */
 		} else if ( (fdc.drv>=0)&&(fdc.drv<2) ) {
-			fdc.st0 |= 0x20;		// FD¤¢¤ê¡¢¥É¥é¥¤¥Ö¤¢¤ê
+			fdc.st0 |= 0x20;		/* FDã‚ã‚Šã€ãƒ‰ãƒ©ã‚¤ãƒ–ã‚ã‚Š */
 		} else {
-			fdc.st0 |= 0x50;		// ¥É¥é¥¤¥Ö¤Ê¤·
+			fdc.st0 |= 0x50;		/* ãƒ‰ãƒ©ã‚¤ãƒ–ãªã— */
 		}
 		FDC_SetInt();
 		break;
-	case 8:		// SenseIntStatus
+	case 8:		/* SenseIntStatus */
 		rsp->st0 = fdc.st0;
 		rsp->st1 = fdc.cyl;
 		fdc.st0 = 0x80;
 		break;
-	case 10:	// ReadID
+	case 10:	/* ReadID */
 		memset(&id, 0, sizeof(FDCID));
 		fdc.st0 = prm1->us&7;
 		if ( (FDD_IsReady(fdc.drv))||(fdc.ready) ) {
@@ -309,7 +309,7 @@ static void FDC_ExecCmd(void)
 		rsp->st2 = fdc.st2;
 		FDC_SetInt();
 		break;
-	case 13:	// WriteID
+	case 13:	/* WriteID */
 		fdc.st0 = prm1->us&7;
 		if ( FDD_IsReadOnly(fdc.drv) ) {
 			fdc.st0 |= 0x40;
@@ -322,7 +322,7 @@ static void FDC_ExecCmd(void)
 		}
 		if ( fdc.st0&0x40 ) FDC_EPhaseEnd();
 		break;
-	case 15:	// Seek
+	case 15:	/* Seek */
 		fdc.st0 = prm1->us&0x07;
 		if ( FDD_IsReady(fdc.drv) ) {
 			fdc.cyl = prm1->n;
@@ -360,11 +360,11 @@ static void FDC_WriteBuffer(void)
 	FDCPRM0* prm0 = (FDCPRM0*)fdc.PrmBuf;
 	FDCPRM2* prm2 = (FDCPRM2*)fdc.PrmBuf;
 	FDCID id;
-	int i;
+	int32_t i;
 
 	switch ( fdc.cmd ) {
-	case 5:		// WriteData
-	case 9:		// WriteDeletedData
+	case 5:		/* WriteData */
+	case 9:		/* WriteDeletedData */
 		id.c = prm0->c;
 		id.h = prm0->h;
 		id.r = prm0->r;
@@ -377,7 +377,7 @@ static void FDC_WriteBuffer(void)
 			FDC_NextTrack();
 		}
 		break;
-	case 13:	// WriteID
+	case 13:	/* WriteID */
 		fdc.DataBuf[fdc.wrptr] = prm2->d;
 		if ( !FDD_WriteID(fdc.drv, (fdc.cyl<<1)+HD(prm2), fdc.DataBuf, prm2->sc) ) {
 			fdc.st0 |= 0x40;
@@ -385,7 +385,7 @@ static void FDC_WriteBuffer(void)
 		}
 		FDC_EPhaseEnd();
 		break;
-	case 17:	// ScanEqual
+	case 17:	/* ScanEqual */
 		for (i=0; i<fdc.bufnum; i++) {
 			if ( (fdc.DataBuf[i]!=0xff)&&(fdc.ScanBuf[i]!=fdc.DataBuf[i]) ) {
 				fdc.st0 |= 0x40;
@@ -397,7 +397,7 @@ static void FDC_WriteBuffer(void)
 		}
 		FDC_NextTrack();
 		break;
-	case 25:	// ScanLowOrEqual
+	case 25:	/* ScanLowOrEqual */
 		for (i=0; i<fdc.bufnum; i++) {
 			if ( fdc.DataBuf[i]!=0xff ) {
 				if ( fdc.ScanBuf[i]>fdc.DataBuf[i] ) {
@@ -413,7 +413,7 @@ static void FDC_WriteBuffer(void)
 		}
 		FDC_NextTrack();
 		break;
-	case 29:	// ScanHighOrEqual
+	case 29:	/* ScanHighOrEqual */
 		for (i=0; i<fdc.bufnum; i++) {
 			if ( fdc.DataBuf[i]!=0xff ) {
 				if ( fdc.ScanBuf[i]<fdc.DataBuf[i] ) {
@@ -433,10 +433,10 @@ static void FDC_WriteBuffer(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   I/O Read
-// -----------------------------------------------------------------------
-uint8_t FASTCALL FDC_Read(DWORD adr)
+/*
+ *   I/O Read
+ */
+uint8_t FASTCALL FDC_Read(uint32_t adr)
 {
 	uint8_t ret = 0x00;
 	if ( adr==0xe94001 ) {					/* FDC Status */
@@ -463,23 +463,23 @@ uint8_t FASTCALL FDC_Read(DWORD adr)
 }
 
 
-// -----------------------------------------------------------------------
-//   I/O Write
-// -----------------------------------------------------------------------
-void FASTCALL FDC_Write(DWORD adr, uint8_t data)
+/*
+ *   I/O Write
+ */
+void FASTCALL FDC_Write(uint32_t adr, uint8_t data)
 {
 	if ( adr==0xe94003 ) {
-		if ( fdc.bufnum ) {                 // WriteData
+		if ( fdc.bufnum ) {                 /* WriteData */
 			fdc.DataBuf[fdc.wrptr++] = data;
 			if ( fdc.wrptr>=fdc.bufnum ) {
 				FDC_WriteBuffer();
 				fdc.wrptr = 0;
 			}
 		} else {
-			if ( fdc.wrnum ) {          // Writing params
+			if ( fdc.wrnum ) {          /* Writing params */
 				fdc.PrmBuf[fdc.wrptr++] = data;
 				fdc.wrnum--;
-			} else {                    // Command start
+			} else {                    /* Command start */
 				fdc.cmd = data&0x1f;
 				fdc.rdptr = 0;
 				fdc.wrptr = 0;
@@ -497,12 +497,12 @@ void FASTCALL FDC_Write(DWORD adr, uint8_t data)
 			}
 		}
 	} else if ( adr==0xe94005 ) {
-		if ( (fdc.ctrl&0x01)&&(!(data&0x01)) ) {	// Drive0 control (Down edge)
+		if ( (fdc.ctrl&0x01)&&(!(data&0x01)) ) {	/* Drive0 control (Down edge) */
 			if ( fdc.ctrl&0x20 ) FDD_EjectFD(0);
 			FDD_SetEMask(0, (fdc.ctrl&0x40)?1:0);
 			FDD_SetBlink(0, (fdc.ctrl&0x80)?1:0);
 		}
-		if ( (fdc.ctrl&0x02)&&(!(data&0x02)) ) {	// Drive1 control (Down edge)
+		if ( (fdc.ctrl&0x02)&&(!(data&0x02)) ) {	/* Drive1 control (Down edge) */
 			if ( fdc.ctrl&0x20 ) FDD_EjectFD(1);
 			FDD_SetEMask(1, (fdc.ctrl&0x40)?1:0);
 			FDD_SetBlink(1, (fdc.ctrl&0x80)?1:0);

@@ -11,13 +11,13 @@
 #define	FSEEK_CUR	1
 #define	FSEEK_END	2
 
-LPSTR getFileName(LPSTR filename);
+char *getFileName(char *filename);
 
 FILEH	File_Open(uint8_t *filename);
 FILEH	File_Create(uint8_t *filename);
-DWORD	File_Seek(FILEH handle, long pointer, int16_t mode);
-DWORD	File_Read(FILEH handle, void *data, DWORD length);
-DWORD	File_Write(FILEH handle, void *data, DWORD length);
+uint32_t	File_Seek(FILEH handle, long pointer, int16_t mode);
+uint32_t	File_Read(FILEH handle, void *data, uint32_t length);
+uint32_t	File_Write(FILEH handle, void *data, uint32_t length);
 int16_t	File_Close(FILEH handle);
 #define	File_Open	file_open
 #define	File_Create	file_create

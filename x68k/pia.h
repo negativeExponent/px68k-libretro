@@ -9,7 +9,7 @@ extern	uint8_t	PIA_PortB;
 extern	uint8_t	PIA_PortC;
 
 void PIA_Init(void);
-uint8_t FASTCALL PIA_Read(DWORD adr);
-void FASTCALL PIA_Write(DWORD adr, uint8_t data);
+uint8_t FASTCALL PIA_Read(uint32_t adr);
+void FASTCALL PIA_Write(uint32_t adr, uint8_t data);
 
 #endif

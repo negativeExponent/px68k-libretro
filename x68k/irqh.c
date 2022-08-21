@@ -1,6 +1,6 @@
-// ---------------------------------------------------------------------------------------
-//  IRQH.C - IRQ Handler (²Í¶õ¤Î¥Ç¥Ğ¥¤¥¹¤Ë¤ç)
-// ---------------------------------------------------------------------------------------
+/*
+ *  IRQH.C - IRQ Handler (æ¶ç©ºã®ãƒ‡ãƒã‚¤ã‚¹ã«ã‚‡)
+ */
 
 #include "common.h"
 #include "../m68000/m68000.h"
@@ -8,42 +8,42 @@
 
 #if defined (HAVE_CYCLONE)
 extern struct Cyclone m68k;
-typedef signed int  FASTCALL C68K_INT_CALLBACK(signed int level);
+typedef int32_t FASTCALL C68K_INT_CALLBACK(int32_t level);
 #elif defined (HAVE_M68000)
-typedef signed int  FASTCALL C68K_INT_CALLBACK(signed int level);
+typedef int32_t FASTCALL C68K_INT_CALLBACK(int32_t level);
 #elif defined (HAVE_MUSASHI)
-typedef signed int  FASTCALL C68K_INT_CALLBACK(signed int level);
+typedef int32_t FASTCALL C68K_INT_CALLBACK(int32_t level);
 #endif
 
-	uint8_t	IRQH_IRQ[8];
-	void	*IRQH_CallBack[8];
+uint8_t	IRQH_IRQ[8];
+void	*IRQH_CallBack[8];
 
-// -----------------------------------------------------------------------
-//   ½é´ü²½
-// -----------------------------------------------------------------------
+/*
+ *   åˆæœŸåŒ–
+ */
 void IRQH_Init(void)
 {
 	memset(IRQH_IRQ, 0, 8);
 }
 
 
-// -----------------------------------------------------------------------
-//   ¥Ç¥Õ¥©¥ë¥È¤Î¥Ù¥¯¥¿¤òÊÖ¤¹¡Ê¤³¤ì¤¬µ¯¤³¤Ã¤¿¤éÊÑ¤À¤ª¡Ë
-// -----------------------------------------------------------------------
-DWORD FASTCALL IRQH_DefaultVector(uint8_t irq)
+/*
+ *   ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ãƒ™ã‚¯ã‚¿ã‚’è¿”ã™ï¼ˆã“ã‚ŒãŒèµ·ã“ã£ãŸã‚‰å¤‰ã ãŠï¼‰
+ */
+uint32_t FASTCALL IRQH_DefaultVector(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 	return -1;
 }
 
 
-// -----------------------------------------------------------------------
-//   Â¾¤Î³ä¤ê¹ş¤ß¤Î¥Á¥§¥Ã¥¯
-//   ³Æ¥Ç¥Ğ¥¤¥¹¤Î¥Ù¥¯¥¿¤òÊÖ¤¹¥ë¡¼¥Á¥ó¤«¤é¸Æ¤Ğ¤ì¤Ş¤¹
-// -----------------------------------------------------------------------
+/*
+ *   ä»–ã®å‰²ã‚Šè¾¼ã¿ã®ãƒã‚§ãƒƒã‚¯
+ *   å„ãƒ‡ãƒã‚¤ã‚¹ã®ãƒ™ã‚¯ã‚¿ã‚’è¿”ã™ãƒ«ãƒ¼ãƒãƒ³ã‹ã‚‰å‘¼ã°ã‚Œã¾ã™
+ */
 void IRQH_IRQCallBack(uint8_t irq)
 {
-	int i;
+	int32_t i;
 
 	IRQH_IRQ[irq&7] = 0;
 #if defined (HAVE_CYCLONE)
@@ -64,10 +64,10 @@ void IRQH_IRQCallBack(uint8_t irq)
 			m68k.irq = i;
 #elif defined (HAVE_M68000)
 			C68k_Set_IRQ_Callback(&C68K, IRQH_CallBack[i]);
-			C68k_Set_IRQ(&C68K, i, HOLD_LINE); // xxx 
-			if ( C68K.ICount) {					// Â¿½Å³ä¤ê¹ş¤ß»ş¡ÊCARAT¡Ë
-				m68000_ICountBk += C68K.ICount;		// ¶¯À©Åª¤Ë³ä¤ê¹ş¤ß¥Á¥§¥Ã¥¯¤ò¤µ¤»¤ë
-				C68K.ICount = 0;				// ¶ìÆù¤Îºö ^^;
+			C68k_Set_IRQ(&C68K, i, HOLD_LINE);	/* xxx */
+			if ( C68K.ICount) {					/* å¤šé‡å‰²ã‚Šè¾¼ã¿æ™‚ï¼ˆCARATï¼‰ */
+				m68000_ICountBk += C68K.ICount;	/* å¼·åˆ¶çš„ã«å‰²ã‚Šè¾¼ã¿ãƒã‚§ãƒƒã‚¯ã‚’ã•ã›ã‚‹ */
+				C68K.ICount = 0;				/* è‹¦è‚‰ã®ç­– ^^; */
 			}
 #elif defined (HAVE_C68K)
 			C68k_Set_IRQ(&C68K, i);
@@ -79,12 +79,12 @@ void IRQH_IRQCallBack(uint8_t irq)
 	}
 }
 
-// -----------------------------------------------------------------------
-//   ³ä¤ê¹ş¤ßÈ¯À¸
-// -----------------------------------------------------------------------
+/*
+ *   å‰²ã‚Šè¾¼ã¿ç™ºç”Ÿ
+ */
 void IRQH_Int(uint8_t irq, void* handler)
 {
-	int i;
+	int32_t i;
 	IRQH_IRQ[irq&7] = 1;
 	if (handler==NULL)
 	    IRQH_CallBack[irq&7] = &IRQH_DefaultVector;
@@ -98,10 +98,10 @@ void IRQH_Int(uint8_t irq, void* handler)
 	        m68k.irq = i;
 #elif defined (HAVE_M68000)
 			C68k_Set_IRQ_Callback(&C68K, IRQH_CallBack[i]);
-            C68k_Set_IRQ(&C68K, i, HOLD_LINE); //xxx
-			if ( C68K.ICount ) {					// Â¿½Å³ä¤ê¹ş¤ß»ş¡ÊCARAT¡Ë
-				m68000_ICountBk += C68K.ICount;		// ¶¯À©Åª¤Ë³ä¤ê¹ş¤ß¥Á¥§¥Ã¥¯¤ò¤µ¤»¤ë
-				C68K.ICount = 0;				// ¶ìÆù¤Îºö ^^;
+            C68k_Set_IRQ(&C68K, i, HOLD_LINE);	/* xxx */
+			if ( C68K.ICount ) {				/* å¤šé‡å‰²ã‚Šè¾¼ã¿æ™‚ï¼ˆCARATï¼‰ */
+				m68000_ICountBk += C68K.ICount;	/* å¼·åˆ¶çš„ã«å‰²ã‚Šè¾¼ã¿ãƒã‚§ãƒƒã‚¯ã‚’ã•ã›ã‚‹ */
+				C68K.ICount = 0;				/* è‹¦è‚‰ã®ç­– ^^; */
 			}
 #elif defined (HAVE_C68K)
 			C68k_Set_IRQ(&C68K, i);
@@ -113,11 +113,11 @@ void IRQH_Int(uint8_t irq, void* handler)
 	}
 }
 
-signed int  my_irqh_callback(signed int  level)
+int32_t my_irqh_callback(int32_t level)
 {
-    int i;
+    int32_t i;
     C68K_INT_CALLBACK *func = IRQH_CallBack[level&7];
-    int vect = (func)(level&7);
+    int32_t vect = (func)(level&7);
 
     for (i=7; i>0; i--)
     {
@@ -134,5 +134,5 @@ signed int  my_irqh_callback(signed int  level)
 		}
     }
 
-    return (signed int )vect;
+    return (int32_t)vect;
 }

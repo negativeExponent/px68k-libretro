@@ -1,6 +1,6 @@
-// ---------------------------------------------------------------------------------------
-//  RTC.C - RTC (Real Time Clock / RICOH RP5C15)
-// ---------------------------------------------------------------------------------------
+/*
+ *  RTC.C - RTC (Real Time Clock / RICOH RP5C15)
+ */
 
 #include "common.h"
 #include "mfp.h"
@@ -9,13 +9,13 @@
 
 uint8_t	RTC_Regs[2][16];
 uint8_t	RTC_Bank = 0;
-static int RTC_Timer1 = 0;
-static int RTC_Timer16 = 0;
+static int32_t RTC_Timer1 = 0;
+static int32_t RTC_Timer16 = 0;
 
 
-// -----------------------------------------------------------------------
-//   ΩÈ¥¸≤Ω
-// -----------------------------------------------------------------------
+/*
+ *   ÂàùÊúüÂåñ
+ */
 void RTC_Init(void)
 {
 	memset(&RTC_Regs[1][0], 0, 16);
@@ -25,10 +25,10 @@ void RTC_Init(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   §»§±§§§Œ§Í°º§…
-// -----------------------------------------------------------------------
-uint8_t FASTCALL RTC_Read(DWORD adr)
+/*
+ *   „Å®„Åë„ÅÑ„ÅÆ„Çä„Éº„Å©
+ */
+uint8_t FASTCALL RTC_Read(uint32_t adr)
 {
 	uint8_t ret = 0;
 	struct tm *tm;
@@ -73,23 +73,23 @@ uint8_t FASTCALL RTC_Read(DWORD adr)
 }
 
 
-// -----------------------------------------------------------------------
-//   §È§§§»
-// -----------------------------------------------------------------------
-void FASTCALL RTC_Write(DWORD adr, uint8_t data)
+/*
+ *   „Çâ„ÅÑ„Å®
+ */
+void FASTCALL RTC_Write(uint32_t adr, uint8_t data)
 {
 	if ( adr==0xe8a001 ) {
-//		RTC_Timer1  = 0;
-//		RTC_Timer16 = 0;
+		/*RTC_Timer1  = 0;
+		RTC_Timer16 = 0;*/
 	} else if ( adr==0xe8a01b ) {
-		RTC_Regs[0][13] = RTC_Regs[1][13] = data&0x0c;		// Alarm/Timer Enable¿©∏Ê
+		RTC_Regs[0][13] = RTC_Regs[1][13] = data&0x0c;		/* Alarm/Timer EnableÂà∂Âæ° */
 	} else if ( adr==0xe8a01f ) {
-		RTC_Regs[0][15] = RTC_Regs[1][15] = data&0x0c;		// Alarm√ºª“Ω–Œœ¿©∏Ê
+		RTC_Regs[0][15] = RTC_Regs[1][15] = data&0x0c;		/* AlarmÁ´ØÂ≠êÂá∫ÂäõÂà∂Âæ° */
 	}
 }
 
 
-void RTC_Timer(int clock)
+void RTC_Timer(int32_t clock)
 {
 	RTC_Timer1  += clock;
 	RTC_Timer16 += clock;

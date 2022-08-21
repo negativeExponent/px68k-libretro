@@ -1,6 +1,6 @@
-// ---------------------------------------------------------------------------------------
-//  SCC.C - Z8530 SCC¡Ê¥Ş¥¦¥¹¤Î¤ß¡Ë
-// ---------------------------------------------------------------------------------------
+/*
+ *  SCC.C - Z8530 SCCï¼ˆãƒã‚¦ã‚¹ã®ã¿ï¼‰
+ */
 
 #include "common.h"
 #include "scc.h"
@@ -12,44 +12,44 @@ signed char MouseX = 0;
 signed char MouseY = 0;
 uint8_t MouseSt = 0;
 
-uint8_t SCC_RegsA[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-uint8_t SCC_RegNumA = 0;
-uint8_t SCC_RegSetA = 0;
-uint8_t SCC_RegsB[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-uint8_t SCC_RegNumB = 0;
-uint8_t SCC_RegSetB = 0;
-uint8_t SCC_Vector = 0;
-uint8_t SCC_Dat[3] = {0, 0, 0};
-uint8_t SCC_DatNum = 0;
+static uint8_t SCC_RegsA[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static uint8_t SCC_RegNumA = 0;
+static uint8_t SCC_RegSetA = 0;
+static uint8_t SCC_RegsB[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static uint8_t SCC_RegNumB = 0;
+static uint8_t SCC_RegSetB = 0;
+static uint8_t SCC_Vector = 0;
+static uint8_t SCC_Dat[3] = {0, 0, 0};
+static uint8_t SCC_DatNum = 0;
 
 
-// -----------------------------------------------------------------------
-//   ¤ï¤ê¤³¤ß
-// -----------------------------------------------------------------------
-DWORD FASTCALL SCC_Int(uint8_t irq)
+/*
+ *   ã‚ã‚Šã“ã¿
+ */
+uint32_t FASTCALL SCC_Int(uint8_t irq)
 {
-	DWORD ret = (DWORD)(-1);
+	uint32_t ret = (uint32_t)(-1);
 	IRQH_IRQCallBack(irq);
 	if ( (irq==5)&&(!(SCC_RegsB[9]&2)) )
 	{
 		if (SCC_RegsB[9]&1)
 		{
 			if (SCC_RegsB[9]&0x10)
-				ret = ((DWORD)(SCC_Vector&0x8f)+0x20);
+				ret = ((uint32_t)(SCC_Vector&0x8f)+0x20);
 			else
-				ret = ((DWORD)(SCC_Vector&0xf1)+4);
+				ret = ((uint32_t)(SCC_Vector&0xf1)+4);
 		}
 		else
-			ret = ((DWORD)SCC_Vector);
+			ret = ((uint32_t)SCC_Vector);
 	}
 
 	return ret;
 }
 
 
-// -----------------------------------------------------------------------
-//   ³ä¤ê¹ş¤ß¤Î¥Á¥§¥Ã¥¯
-// -----------------------------------------------------------------------
+/*
+ *   å‰²ã‚Šè¾¼ã¿ã®ãƒã‚§ãƒƒã‚¯
+ */
 void SCC_IntCheck(void)
 {
 	if ( (SCC_DatNum) && ((SCC_RegsB[1]&0x18)==0x10) && (SCC_RegsB[9]&0x08) )
@@ -63,9 +63,9 @@ void SCC_IntCheck(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   ½é´ü²½
-// -----------------------------------------------------------------------
+/*
+ *   åˆæœŸåŒ–
+ */
 void SCC_Init(void)
 {
 	MouseX = 0;
@@ -80,10 +80,10 @@ void SCC_Init(void)
 }
 
 
-// -----------------------------------------------------------------------
-//   I/O Write
-// -----------------------------------------------------------------------
-void FASTCALL SCC_Write(DWORD adr, uint8_t data)
+/*
+ *   I/O Write
+ */
+void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 {
 	if (adr>=0xe98008) return;
 
@@ -93,8 +93,9 @@ void FASTCALL SCC_Write(DWORD adr, uint8_t data)
 		{
 			if (SCC_RegNumB == 5)
 			{
-				if ( (!(SCC_RegsB[5]&2))&&(data&2)&&(SCC_RegsB[3]&1)&&(!SCC_DatNum) )	// ¥Ç¡¼¥¿¤¬Ìµ¤¤»ş¤À¤±¤Ë¤·¤ä¤¦¡Ê°Ç¤Î·ìÂ²¡Ë
-				{			// ¥Ş¥¦¥¹¥Ç¡¼¥¿À¸À®
+				if ( (!(SCC_RegsB[5]&2))&&(data&2)&&(SCC_RegsB[3]&1)&&(!SCC_DatNum) )	/* ãƒ‡ãƒ¼ã‚¿ãŒç„¡ã„æ™‚ã ã‘ã«ã—ã‚„ã†ï¼ˆé—‡ã®è¡€æ—ï¼‰ */
+				{
+					/* ãƒã‚¦ã‚¹ãƒ‡ãƒ¼ã‚¿ç”Ÿæˆ */
 					Mouse_SetData();
 					SCC_DatNum = 3;
 					SCC_Dat[2] = MouseSt;
@@ -162,10 +163,10 @@ void FASTCALL SCC_Write(DWORD adr, uint8_t data)
 }
 
 
-// -----------------------------------------------------------------------
-//   I/O Read
-// -----------------------------------------------------------------------
-uint8_t FASTCALL SCC_Read(DWORD adr)
+/*
+ *   I/O Read
+ */
+uint8_t FASTCALL SCC_Read(uint32_t adr)
 {
 	uint8_t ret=0;
 
@@ -191,7 +192,7 @@ uint8_t FASTCALL SCC_Read(DWORD adr)
 		switch(SCC_RegNumA)
 		{
 		case 0:
-			ret = 4;			// Á÷¿®¥Ğ¥Ã¥Õ¥¡¶õ¡ÊXna¡Ë
+			ret = 4;			/* é€ä¿¡ãƒãƒƒãƒ•ã‚¡ç©ºï¼ˆXnaï¼‰ */
 			break;
 		case 3:
 			ret = ((SCC_DatNum)?4:0);
