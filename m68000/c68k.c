@@ -284,34 +284,34 @@ void C68k_Set_Fetch(c68k_struc *CPU, uint32_t low_adr, uint32_t high_adr, uintpt
 	メモリリード/ライト関数設定
 --------------------------------------------------------*/
 
-void C68k_Set_ReadB(c68k_struc *CPU, uint8_t (*Func)(uint32_t address))
+void C68k_Set_ReadB(c68k_struc *CPU, uint32_t (*Func)(uint32_t address))
 {
 	CPU->Read_Byte = Func;
 	CPU->Read_Byte_PC_Relative = Func;
 }
 
-void C68k_Set_ReadW(c68k_struc *CPU, uint16_t (*Func)(uint32_t address))
+void C68k_Set_ReadW(c68k_struc *CPU, uint32_t (*Func)(uint32_t address))
 {
 	CPU->Read_Word = Func;
 	CPU->Read_Word_PC_Relative = Func;
 }
 
-void C68k_Set_ReadB_PC_Relative(c68k_struc *CPU, uint8_t (*Func)(uint32_t address))
+void C68k_Set_ReadB_PC_Relative(c68k_struc *CPU, uint32_t (*Func)(uint32_t address))
 {
 	CPU->Read_Byte_PC_Relative = Func;
 }
 
-void C68k_Set_ReadW_PC_Relative(c68k_struc *CPU, uint16_t (*Func)(uint32_t address))
+void C68k_Set_ReadW_PC_Relative(c68k_struc *CPU, uint32_t (*Func)(uint32_t address))
 {
 	CPU->Read_Word_PC_Relative = Func;
 }
 
-void C68k_Set_WriteB(c68k_struc *CPU, void (*Func)(uint32_t address, uint8_t data))
+void C68k_Set_WriteB(c68k_struc *CPU, void (*Func)(uint32_t address, uint32_t data))
 {
 	CPU->Write_Byte = Func;
 }
 
-void C68k_Set_WriteW(c68k_struc *CPU, void (*Func)(uint32_t address, uint16_t data))
+void C68k_Set_WriteW(c68k_struc *CPU, void (*Func)(uint32_t address, uint32_t data))
 {
 	CPU->Write_Word = Func;
 }
