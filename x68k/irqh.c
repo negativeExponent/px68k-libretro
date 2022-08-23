@@ -43,9 +43,8 @@ DWORD FASTCALL IRQH_DefaultVector(BYTE irq)
 // -----------------------------------------------------------------------
 void IRQH_IRQCallBack(BYTE irq)
 {
-<<<<<<< HEAD
-#if 0
 	int i;
+#if 0
 	IRQH_IRQ[irq] = 0;
 	C68k_Set_IRQ(&C68K, 0);
 	for (i=7; i>0; i--)
@@ -62,12 +61,6 @@ void IRQH_IRQCallBack(BYTE irq)
 		}
 	}
 #endif
-	IRQH_IRQ[irq&7] = 0;
-int i;
-=======
-	int i;
->>>>>>> 8b3341b (Add C68K cpu (originally used by px68x))
-
 	IRQH_IRQ[irq&7] = 0;
 #if defined (HAVE_CYCLONE)
 	m68k.irq =0;
