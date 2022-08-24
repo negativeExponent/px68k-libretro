@@ -60,7 +60,6 @@ SOURCES_C 		+= \
 				$(CORE_DIR)/x68k/sysport.c \
 				$(CORE_DIR)/x68k/tvram.c \
 				$(CORE_DIR)/libretro/joystick.c \
-				$(CORE_DIR)/libretro/juliet.c \
 				$(CORE_DIR)/libretro/keyboard.c \
 				$(CORE_DIR)/libretro/mouse.c \
 				$(CORE_DIR)/libretro/prop.c \

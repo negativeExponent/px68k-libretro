@@ -723,28 +723,6 @@ extern "C" int pmain(int argc, char *argv[])
 
 extern "C" void handle_retrok(){
 
-#if 0
-	int key_shift,key_control,key_alt;
-
-	/* SHIFT STATE */
-	if ((Core_Key_State[RETROK_LSHIFT]) || (Core_Key_State[RETROK_RSHIFT]))
-		key_shift = 1;
-	else
-		key_shift = 0;
-
-	/* CONTROL STATE */
-	if ((Core_Key_State[RETROK_LCTRL]) || (Core_Key_State[RETROK_RCTRL]))
-		key_control = 1;
-	else
-		key_control = 0;
-
-	/* ALT STATE */
-	if ((Core_Key_State[RETROK_LALT]) || (Core_Key_State[RETROK_RALT]))
-		key_alt = 1;
-	else
-		key_alt = 0;
-#endif
-
 	if(Core_Key_State[RETROK_F12] && Core_Key_State[RETROK_F12]!=Core_old_Key_State[RETROK_F12]  )
 	{
 		if (menu_mode == menu_out) {
