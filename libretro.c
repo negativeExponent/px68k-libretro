@@ -66,9 +66,9 @@ int CHANGEAV_TIMING = 0; /* Separate change of geometry from change of refresh r
 int VID_MODE = MODE_NORM; /* what framerate we start in */
 static float FRAMERATE;
 DWORD libretro_supports_input_bitmasks = 0;
-unsigned int total_usec = (unsigned int) -1;
+int64_t total_usec = -1;
 
-static signed short soundbuf[1024 * 2];
+static int16_t soundbuf[1024 * 2];
 static int soundbuf_size;
 
 uint16_t *videoBuffer;
@@ -1222,7 +1222,7 @@ static void frame_time_cb(retro_usec_t usec)
 {
    total_usec += usec;
    /* -1 is reserved as an error code for unavailable a la stdlib clock() */
-   if (total_usec == (unsigned int) -1)
+   if (total_usec == -1)
       total_usec = 0;
 }
 
@@ -1233,8 +1233,8 @@ static void setup_frame_time_cb(void)
    cb.callback = frame_time_cb;
    cb.reference = ceil(1000000 / FRAMERATE);
    if (!environ_cb(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &cb))
-      total_usec = (unsigned int) -1;
-   else if (total_usec == (unsigned int) -1)
+      total_usec = -1;
+   else if (total_usec == -1)
       total_usec = 0;
 }
 

@@ -31,7 +31,7 @@
 #include	"mercury.h"
 #include	"fmg_wrap.h"
 
-short	playing = FALSE;
+int	playing = FALSE;
 
 #define PCMBUF_SIZE 2*2*48000
 BYTE pcmbuffer[PCMBUF_SIZE];
@@ -104,10 +104,10 @@ static void sound_send(int length)
 {
    int rate = 0;
 
-   ADPCM_Update((short *)pbwp, length, rate, pbsp, pbep);
-   OPM_Update((short *)pbwp, length, rate, pbsp, pbep);
+   ADPCM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
+   OPM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
 #ifndef	NO_MERCURY
-   //Mcry_Update((short *)pcmbufp, length);
+   Mcry_Update((int16_t *)pcmbufp, length);
 #endif
 
    pbwp += length * sizeof(WORD) * 2;

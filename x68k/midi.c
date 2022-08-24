@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------------------
 //  MIDI.C - MIDI Board (CZ-6BM1) emulator
-//                           Powered by ぷにゅさん〜
+//                           Powered by ぷにゅさん~
 // ---------------------------------------------------------------------------------------
 
 // 4/18 未明: エクスクルーシヴがうまく通らないのを修正
@@ -9,7 +9,7 @@
 
 // ToDo: ・エクスクルーシヴ送信中(例えばドラキュラの音色設定中)に
 //         流石に1MHzまで落ち込むのは…
-//         MIDIの状態を返すポートを教えてもらうこと〜
+//         MIDIの状態を返すポートを教えてもらうこと~
 //       ・MT-32でのランニングステータスの仕様をチェック
 //       ・終了時の音源のリセット
 //       ・IPLリセット時は実機でもリセットされない筈だが、
@@ -241,7 +241,7 @@ void MIDI_Sendexclusive(BYTE *excv, int length)
 // -----------------------------------------------------------------------
 void MIDI_Waitlastexclusiveout(void) {
 
-	// エクスクルーシヴ送信完了まで待ちましょう〜
+	// エクスクルーシヴ送信完了まで待ちましょう~
 	if (MIDI_EXCVWAIT) {
 		while(midiOutUnprepareHeader(hOut, &hHdr, sizeof(MIDIHDR))
 						== MIDIERR_STILLPLAYING);
@@ -251,7 +251,7 @@ void MIDI_Waitlastexclusiveout(void) {
 
 
 // -----------------------------------------------------------------------
-//   りせっと〜
+//   りせっと~
 // -----------------------------------------------------------------------
 void MIDI_Reset(void) {
 
@@ -297,7 +297,7 @@ void MIDI_Reset(void) {
 
 
 // -----------------------------------------------------------------------
-//   しょきか〜
+//   しょきか~
 // -----------------------------------------------------------------------
 void MIDI_Init(void) {
 
@@ -328,7 +328,7 @@ void MIDI_Init(void) {
 
 
 // -----------------------------------------------------------------------
-//   撤収〜
+//   撤収~
 // -----------------------------------------------------------------------
 void MIDI_Cleanup(void) {
 
@@ -358,7 +358,7 @@ void MIDI_Message(BYTE mes) {
 		case MIDI_STOP:
 		case MIDI_ACTIVESENSE:
 			return;
-		case MIDI_SYSTEMRESET:					// 一応イリーガル〜
+		case MIDI_SYSTEMRESET:					// 一応イリーガル~
 			return;
 	}
 
@@ -659,9 +659,9 @@ static void AddDelayBuf(BYTE msg)
 }
 
 
-void MIDI_DelayOut(unsigned int delay)
+void MIDI_DelayOut(uint32_t delay)
 {
-	unsigned int t = timeGetTime();
+	uint32_t t = timeGetTime();
 	while ( DBufPtrW!=DBufPtrR ) {
 		if ( (t-DelayBuf[DBufPtrR].time)>=delay ) {
 			MIDI_Message(DelayBuf[DBufPtrR].msg);

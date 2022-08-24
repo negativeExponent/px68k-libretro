@@ -8,11 +8,11 @@
 
 #if defined (HAVE_CYCLONE)
 extern struct Cyclone m68k;
-typedef signed int  FASTCALL C68K_INT_CALLBACK(signed int level);
+typedef int32_t  FASTCALL C68K_INT_CALLBACK(int32_t level);
 #elif defined (HAVE_M68000)
-typedef signed int  FASTCALL C68K_INT_CALLBACK(signed int level);
+typedef int32_t  FASTCALL C68K_INT_CALLBACK(int32_t level);
 #elif defined (HAVE_MUSASHI)
-typedef signed int  FASTCALL C68K_INT_CALLBACK(signed int level);
+typedef int32_t  FASTCALL C68K_INT_CALLBACK(int32_t level);
 #endif
 
 	BYTE	IRQH_IRQ[8];
@@ -114,7 +114,7 @@ void IRQH_Int(BYTE irq, void* handler)
 	}
 }
 
-signed int  my_irqh_callback(signed int  level)
+int32_t  my_irqh_callback(int32_t  level)
 {
 	C68K_INT_CALLBACK *func = IRQH_CallBack[level&7];
 	int vect = (func)(level&7);
@@ -135,5 +135,5 @@ signed int  my_irqh_callback(signed int  level)
 		}
 	}
 
-	return (signed int )vect;
+	return (int32_t )vect;
 }

@@ -40,7 +40,7 @@
 #include "keyboard.h"
 
 #ifdef __LIBRETRO__
-extern unsigned short *videoBuffer;
+extern uint16_t *videoBuffer;
 #endif
 WORD menu_buffer[800*600];
 
@@ -243,7 +243,7 @@ WinDraw_Draw(void)
 		retroh=TextDotY;
 	}
 
-	videoBuffer=(unsigned short int *)ScrBuf;
+	videoBuffer=(uint16_t *)ScrBuf;
 
 	FrameCount++;
 	if (!Draw_DrawFlag/* && is_installed_idle_process()*/)
@@ -1261,7 +1261,7 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 		//draw_str(item_cap2[mkey_y]);
 	//}
 
-	videoBuffer=(unsigned short int *)menu_buffer;
+	videoBuffer=(uint16_t *)menu_buffer;
 
 }
 
@@ -1306,7 +1306,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 
 	set_mbcolor(0x0); // 透過モードに戻しておく
 
-	videoBuffer=(unsigned short int *)menu_buffer;
+	videoBuffer=(uint16_t *)menu_buffer;
 }
 
 void WinDraw_ClearMenuBuffer(void)
