@@ -11,7 +11,6 @@ extern "C" {
 #include "winx68k.h"
 #include "dswin.h"
 #include "prop.h"
-#include "juliet.h"
 #include "mfp.h"
 #include "adpcm.h"
 #include "mercury.h"
@@ -20,6 +19,14 @@ extern "C" {
 
 #include "opm.h"
 #include "opna.h"
+
+/* DUMMY CALLBACKS */
+#define	juliet_load()
+#define	juliet_unload()
+#define	juliet_prepare()
+#define	juliet_YM2151Reset()
+#define	juliet_YM2151IsEnable()	FALSE
+#define	juliet_YM2151W(r,d)
 
 
 #define RMBUFSIZE (256*1024)
@@ -202,7 +209,7 @@ void OPM_RomeoOut(unsigned int delay)
 }
 
 // ----------------------------------------------------------
-// ---------------------------- YMF288 (満開版ま〜きゅり〜)
+// ---------------------------- YMF288 (満開版ま~きゅり~)
 // ----------------------------------------------------------
 // TODO : ROMEOの288を叩くの
 

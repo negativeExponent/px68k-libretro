@@ -44,23 +44,7 @@ DWORD FASTCALL IRQH_DefaultVector(BYTE irq)
 void IRQH_IRQCallBack(BYTE irq)
 {
 	int i;
-#if 0
-	IRQH_IRQ[irq] = 0;
-	C68k_Set_IRQ(&C68K, 0);
-	for (i=7; i>0; i--)
-	{
-		if (IRQH_IRQ[i])
-		{
-			C68k_Set_IRQ_Callback(&C68K, IRQH_CallBack[i]);
-			C68k_Set_IRQ(&C68K, i); // xxx 
-			if ( C68K.ICount) {					// 多重割り込み時（CARAT）
-				m68000_ICountBk += C68K.ICount;		// 強制的に割り込みチェックをさせる
-				C68K.ICount = 0;				// 苦肉の策 ^^;
-			}
-			break;
-		}
-	}
-#endif
+
 	IRQH_IRQ[irq&7] = 0;
 #if defined (HAVE_CYCLONE)
 	m68k.irq =0;
@@ -74,13 +58,13 @@ void IRQH_IRQCallBack(BYTE irq)
 
 	for (i=7; i>0; i--)
 	{
-	    if (IRQH_IRQ[i])
-	    {
+		if (IRQH_IRQ[i])
+		{
 #if defined (HAVE_CYCLONE)
 			m68k.irq = i;
 #elif defined (HAVE_M68000)
 			C68k_Set_IRQ_Callback(&C68K, IRQH_CallBack[i]);
-			C68k_Set_IRQ(&C68K, i, HOLD_LINE); // xxx 
+			C68k_Set_IRQ(&C68K, i, HOLD_LINE); // xxx
 			if ( C68K.ICount) {					// 多重割り込み時（CARAT）
 				m68000_ICountBk += C68K.ICount;		// 強制的に割り込みチェックをさせる
 				C68K.ICount = 0;				// 苦肉の策 ^^;
@@ -90,8 +74,8 @@ void IRQH_IRQCallBack(BYTE irq)
 #elif defined (HAVE_MUSASHI)
 			m68k_set_irq(i);
 #endif
-		return;
-	    }
+			return;
+		}
 	}
 }
 
@@ -100,43 +84,22 @@ void IRQH_IRQCallBack(BYTE irq)
 // -----------------------------------------------------------------------
 void IRQH_Int(BYTE irq, void* handler)
 {
-#if 0
-    int i;
-	IRQH_IRQ[irq] = 1;
+	int i;
+
+	IRQH_IRQ[irq&7] = 1;
 	if (handler==NULL)
-		IRQH_CallBack[irq] = &IRQH_DefaultVector;
+		IRQH_CallBack[irq&7] = &IRQH_DefaultVector;
 	else
-		IRQH_CallBack[irq] = handler;
+		IRQH_CallBack[irq&7] = handler;
 	for (i=7; i>0; i--)
 	{
 		if (IRQH_IRQ[i])
 		{
-                        C68k_Set_IRQ_Callback(&C68K, IRQH_CallBack[i]);
-                        C68k_Set_IRQ(&C68K, i, HOLD_LINE); //xxx
-			if ( C68K.ICount ) {					// 多重割り込み時（CARAT）
-				m68000_ICountBk += C68K.ICount;		// 強制的に割り込みチェックをさせる
-				C68K.ICount = 0;				// 苦肉の策 ^^;
-			}
-			return;
-		}
-	}
-#endif
-#if 1
-	int i;
-	IRQH_IRQ[irq&7] = 1;
-	if (handler==NULL)
-	    IRQH_CallBack[irq&7] = &IRQH_DefaultVector;
-	else
-	    IRQH_CallBack[irq&7] = handler;
-	for (i=7; i>0; i--)
-	{
-	    if (IRQH_IRQ[i])
-	    {
 #if defined (HAVE_CYCLONE)
-	        m68k.irq = i;
+			m68k.irq = i;
 #elif defined (HAVE_M68000)
 			C68k_Set_IRQ_Callback(&C68K, IRQH_CallBack[i]);
-            C68k_Set_IRQ(&C68K, i, HOLD_LINE); //xxx
+			C68k_Set_IRQ(&C68K, i, HOLD_LINE); //xxx
 			if ( C68K.ICount ) {					// 多重割り込み時（CARAT）
 				m68000_ICountBk += C68K.ICount;		// 強制的に割り込みチェックをさせる
 				C68K.ICount = 0;				// 苦肉の策 ^^;
@@ -146,45 +109,19 @@ void IRQH_Int(BYTE irq, void* handler)
 #elif defined (HAVE_MUSASHI)
 		m68k_set_irq(i);
 #endif
-	        return;
-	    }
+			return;
+		}
 	}
-#endif
-#if 0
-	int i;
-	IRQH_IRQ[irq&7] = 1;
-	if (handler==NULL)
-	    IRQH_CallBack[irq&7] = &IRQH_DefaultVector;
-	else
-	    IRQH_CallBack[irq&7] = handler;
-	C68k_Set_IRQ(&C68K, irq&7);
-#endif
 }
 
 signed int  my_irqh_callback(signed int  level)
 {
-#if 0
-    int i;
-    int vect = -1;
-    for (i=7; i>0; i--)
-    {
-	if (IRQH_IRQ[i])
+	C68K_INT_CALLBACK *func = IRQH_CallBack[level&7];
+	int vect = (func)(level&7);
+   	int i;
+
+	for (i=7; i>0; i--)
 	{
-	    IRQH_IRQ[level&7] = 0;
-	    C68K_INT_CALLBACK *func = IRQH_CallBack[i];
-	    vect = (func)(level&7);
-	    break;
-	}
-    }
-#endif
-
-    int i;
-    C68K_INT_CALLBACK *func = IRQH_CallBack[level&7];
-    int vect = (func)(level&7);
-    //p6logd("irq vect = %x line = %d\n", vect, level);
-
-    for (i=7; i>0; i--)
-    {
 		if (IRQH_IRQ[i])
 		{
 #if defined (HAVE_CYCLONE)
@@ -192,11 +129,11 @@ signed int  my_irqh_callback(signed int  level)
 #elif defined (HAVE_C68K)
 			C68k_Set_IRQ(&C68K, i);
 #elif defined (HAVE_MUSASHI)
-		m68k_set_irq(i);
+			m68k_set_irq(i);
 #endif
 			break;
 		}
-    }
+	}
 
-    return (signed int )vect;
+	return (signed int )vect;
 }

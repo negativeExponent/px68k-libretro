@@ -199,12 +199,6 @@ cb_start:
       if (datalen < len)
          DSound_Send((len - datalen) / 4);
 
-#if 0
-      datalen = pbwp - pbrp;
-      if (datalen < len)
-         printf("xxxxx not enough sound data xxxxx\n");
-#endif
-
       // change to TYPEC or TYPED
       if (pbrp > pbwp)
          goto cb_start;
@@ -238,10 +232,6 @@ cb_start:
          if (pbwp - pbsp < lenb)
             DSound_Send((lenb - (pbwp - pbsp)) / 4);
 
-#if 0
-         if (pbwp - pbsp < lenb)
-            printf("xxxxx not enough sound data xxxxx\n");
-#endif
          memcpy(rsndbuf, pbrp, lena);
          memcpy(&rsndbuf[lena], pbsp, lenb);
          buf = rsndbuf;

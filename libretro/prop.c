@@ -66,35 +66,6 @@ extern BYTE joybtnnum[2];
 
 #define CFGLEN MAX_PATH
 
-#if 0
-static long solveHEX(char *str) {
-
-	long	ret;
-	int		i;
-	char	c;
-
-	ret = 0;
-	for (i=0; i<8; i++) {
-		c = *str++;
-		if ((c >= '0') && (c <= '9')) {
-			c -= '0';
-		}
-		else if ((c >= 'A') && (c <= 'F')) {
-			c -= '7';
-		}
-		else if ((c >= 'a') && (c <= 'f')) {
-			c -= 'W';
-		}
-		else {
-			break;
-		}
-		ret <<= 4;
-		ret += (long) c;
-	}
-	return(ret);
-}
-#endif
-
 static char *makeBOOL(BYTE value) {
 
 	if (value) {
@@ -380,27 +351,20 @@ void LoadConfig(void)
 		}
 	} */
 
-	if (Config.save_fdd_path)
+	if (Config.save_fdd_path) {
 		for (i = 0; i < 2; i++) {
 			sprintf(buf, "FDD%d", i);
 			GetPrivateProfileString(ini_title, buf, "", Config.FDDImage[i], MAX_PATH, winx68k_ini);
 		}
+	}
 
-	if (Config.save_hdd_path)
+	if (Config.save_hdd_path) {
 		for (i=0; i<16; i++)
 		{
 			sprintf(buf, "HDD%d", i);
 			GetPrivateProfileString(ini_title, buf, "", Config.HDImage[i], MAX_PATH, winx68k_ini);
 		}
-
-#if 0
-	fp = File_OpenCurDir(KEYCONFFILE);
-	if (fp)
-	{
-		File_Read(fp, KeyTable, 512);
-		File_Close(fp);
 	}
-#endif
 }
 
 

@@ -43,9 +43,6 @@
 extern unsigned short *videoBuffer;
 #endif
 WORD menu_buffer[800*600];
-#if 0
-#include "../icons/keropi.xpm"
-#endif
 
 extern BYTE Debug_Text, Debug_Grp, Debug_Sp;
 
@@ -396,17 +393,6 @@ INLINE void WinDraw_DrawBGLine(int opaq, int td)
 	DWORD adr = VLINE*FULLSCREEN_WIDTH;
 	WORD w;
 	int i;
-
-#if 0 // debug for segv
-	static int log_start = 0;
-
-	if (TextDotX == 128 && TextDotY == 128) {
-		log_start = 1;
-	}
-	if (log_start) {
-		printf("opaq/td: %d/%d VLINE: %d, TextDotX: %d\n", opaq, td, VLINE, TextDotX);
-	}
-#endif
 
 	if (opaq) {
 		WD_MEMCPY(&BG_LineBuf[16]);
@@ -992,12 +978,6 @@ static DWORD get_font_addr(WORD sjis, int fs)
 	jis = sjis2jis(sjis);
 	j_idx = (DWORD)jis2idx(jis);
 	jhi = (BYTE)(jis >> 8);
-
-#if 0
-	printf("sjis code = 0x%x\n", sjis);
-	printf("jis code = 0x%x\n", jis);
-	printf("jhi 0x%x j_idx 0x%x\n", jhi, j_idx);
-#endif
 
 	if (jhi >= 0x21 && jhi <= 0x28) {
 		// Èó´Á»ú
