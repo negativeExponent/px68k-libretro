@@ -304,7 +304,7 @@ Sprite_DrawLineMcr(int pri)
 				} else  if ((sctp->sprite_ctrl - 0x4000) & 0x8000) {
 					p = &BGCHR16[((sctp->sprite_ctrl * 256) & 0xffff) + (((y * 16) & 0xff) ^ 0xf0) + 15];
 					d = -1;
-				} else if ((signed short)(sctp->sprite_ctrl) >= 0x4000) {
+				} else if ((int16_t)(sctp->sprite_ctrl) >= 0x4000) {
 					p = &BGCHR16[((sctp->sprite_ctrl * 256) & 0xffff) + (y * 16) + 15];
 					d = -1;
 				}  else {

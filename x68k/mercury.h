@@ -3,7 +3,7 @@
 
 extern BYTE Mcry_LRTiming;
 
-void FASTCALL Mcry_Update(signed short *buffer, DWORD length);
+void FASTCALL Mcry_Update(int16_t *buffer, DWORD length);
 void FASTCALL Mcry_PreUpdate(DWORD clock);
 
 void FASTCALL Mcry_Write(DWORD adr, BYTE data);

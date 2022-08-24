@@ -5,6 +5,8 @@
 #include "crtc.h"
 #include "mfp.h"
 
+extern int64_t total_usec;		/* from libretro.c */
+
 DWORD	timercnt = 0;
 DWORD	tick = 0;
 
@@ -13,10 +15,9 @@ DWORD	tick = 0;
  * since it's only called once per frame, so can't replace
  * timeGetTime/FAKE_GetTickCount entirely
  */
-unsigned int timeGetUsec()
+static int64_t timeGetUsec()
 {
-	extern unsigned int total_usec;		/* from libretro.c */
-	if (total_usec == (unsigned int) -1)
+	if (total_usec == -1)
 		return timeGetTime() * 1000;
 	else
 		return total_usec;
@@ -34,9 +35,9 @@ void Timer_Reset(void)
 
 WORD Timer_GetCount(void)
 {
-	DWORD ticknow = timeGetUsec();
-	DWORD dif = ticknow-tick;
-	DWORD TIMEBASE = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM);
+	int64_t ticknow = timeGetUsec();
+	int64_t dif = ticknow-tick;
+	int64_t TIMEBASE = (int64_t)((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM);
 
 	/*timercnt += dif*10000;*/
 	timercnt += dif*10;  /* switch from msec to usec */

@@ -32,7 +32,7 @@ extern "C" {
 #define RMBUFSIZE (256*1024)
 
 typedef struct {
-	unsigned int time;
+	uint32_t time;
 	int reg;
 	BYTE data;
 } RMDATA;
@@ -174,7 +174,7 @@ void FASTCALL OPM_Write(DWORD adr, BYTE data)
 }
 
 
-void OPM_Update(short *buffer, int length, int rate, BYTE *pbsp, BYTE *pbep)
+void OPM_Update(int16_t *buffer, int length, int rate, BYTE *pbsp, BYTE *pbep)
 {
 	if ( (!juliet_YM2151IsEnable())||(!Config.SoundROMEO) )
 		if ( opm ) opm->Mix((FM::Sample*)buffer, length, rate, pbsp, pbep);
@@ -194,9 +194,9 @@ void OPM_SetVolume(BYTE vol)
 }
 
 
-void OPM_RomeoOut(unsigned int delay)
+void OPM_RomeoOut(uint32_t delay)
 {
-	unsigned int t = timeGetTime();
+	uint32_t t = timeGetTime();
 	if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
 		while ( RMPtrW!=RMPtrR ) {
 			if ( (t-RMData[RMPtrR].time)>=delay ) {
@@ -342,7 +342,7 @@ void FASTCALL M288_Write(DWORD adr, BYTE data)
 }
 
 
-void M288_Update(short *buffer, int length)
+void M288_Update(int16_t *buffer, int length)
 {
 	if ( ymf288a ) ymf288a->Mix((FM::Sample*)buffer, length);
 	if ( ymf288b ) ymf288b->Mix((FM::Sample*)buffer, length);

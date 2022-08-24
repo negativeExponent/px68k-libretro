@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------------------
-//  MERCURY.C - ま〜きゅり〜ゆにっと
+//  MERCURY.C - ま~きゅり~ゆにっと
 // ---------------------------------------------------------------------------------------
 
 #include "common.h"
@@ -21,13 +21,13 @@ long	Mcry_ClockRate = 44100;
 long	Mcry_Count = 0;
 BYTE	Mcry_Status = 0;
 BYTE	Mcry_LRTiming = 0;
-short	Mcry_OutDataL = 0;
-short	Mcry_OutDataR = 0;
-short	Mcry_BufL[Mcry_BufSize];
-short	Mcry_BufR[Mcry_BufSize];
+int16_t	Mcry_OutDataL = 0;
+int16_t	Mcry_OutDataR = 0;
+int16_t	Mcry_BufL[Mcry_BufSize];
+int16_t	Mcry_BufR[Mcry_BufSize];
 long	Mcry_PreCounter = 0;
 
-short	Mcry_OldR, Mcry_OldL;
+int16_t	Mcry_OldR, Mcry_OldL;
 int	Mcry_DMABytes = 0;
 static double Mcry_VolumeShift = 65536;
 static int Mcry_SampleCnt = 0;
@@ -82,7 +82,7 @@ void FASTCALL Mcry_PreUpdate(DWORD clock)
 // -----------------------------------------------------------------------
 //   DSoundからの要求分だけバッファを埋める
 // -----------------------------------------------------------------------
-void FASTCALL Mcry_Update(signed short *buffer, DWORD length)
+void FASTCALL Mcry_Update(int16_t *buffer, DWORD length)
 {
 	int data;
 
@@ -108,13 +108,13 @@ void FASTCALL Mcry_Update(signed short *buffer, DWORD length)
 		data += Mcry_OldL;
 		if (data>32767) data = 32767;
 		else if (data<(-32768)) data = -32768;
-		*(buffer++) = (short)data;
+		*(buffer++) = (int16_t)data;
 
 		data = *buffer;
 		data += Mcry_OldR;
 		if (data>32767) data = 32767;
 		else if (data<(-32768)) data = -32768;
-		*(buffer++) = (short)data;
+		*(buffer++) = (int16_t)data;
 
 		length--;
 	}
@@ -128,8 +128,8 @@ INLINE void Mcry_WriteOne(void)
 {
 	while (Mcry_Count<Mcry_SampleRate)
 	{
-		Mcry_BufL[Mcry_WrPtr] = (short)(Mcry_OutDataL/Mcry_VolumeShift);
-		Mcry_BufR[Mcry_WrPtr] = (short)(Mcry_OutDataR/Mcry_VolumeShift);
+		Mcry_BufL[Mcry_WrPtr] = (int16_t)(Mcry_OutDataL/Mcry_VolumeShift);
+		Mcry_BufR[Mcry_WrPtr] = (int16_t)(Mcry_OutDataR/Mcry_VolumeShift);
 		Mcry_Count += Mcry_ClockRate;
 		Mcry_WrPtr++;
 		if (Mcry_WrPtr>=Mcry_BufSize) Mcry_WrPtr=0;
@@ -293,7 +293,7 @@ void Mcry_SetVolume(BYTE vol)
 
 
 // -----------------------------------------------------------------------
-//   初期化〜
+//   初期化~
 // -----------------------------------------------------------------------
 void Mcry_Init(DWORD samplerate, const char* path)
 {

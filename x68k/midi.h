@@ -12,6 +12,6 @@ void MIDI_SetModule(void);
 void FASTCALL MIDI_Timer(DWORD clk);
 int MIDI_SetMimpiMap(char *filename);
 int MIDI_EnableMimpiDef(int enable);
-void MIDI_DelayOut(unsigned int delay);
+void MIDI_DelayOut(uint32_t delay);
 
 #endif

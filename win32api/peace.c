@@ -99,8 +99,7 @@ struct internal_file {
 #endif	/* DEBUG */
 
 
-DWORD WINAPI
-FAKE_GetTickCount(void)
+DWORD WINAPI FAKE_GetTickCount(void)
 {
 	struct timeval tv;
 
@@ -108,8 +107,7 @@ FAKE_GetTickCount(void)
 	return tv.tv_usec / 1000 + tv.tv_sec * 1000;
 }
 
-BOOL WINAPI
-ReadFile(HANDLE h, PVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
+BOOL WINAPI ReadFile(HANDLE h, PVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
 {
 	struct internal_file *fp;
 
@@ -126,8 +124,7 @@ ReadFile(HANDLE h, PVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
 	return TRUE;
 }
 
-BOOL WINAPI
-WriteFile(HANDLE h, PCVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
+BOOL WINAPI WriteFile(HANDLE h, PCVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
 {
 	struct internal_file *fp;
 
@@ -144,8 +141,7 @@ WriteFile(HANDLE h, PCVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
 	return TRUE;
 }
 
-HANDLE WINAPI
-CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
+HANDLE WINAPI CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
 	    LPSECURITY_ATTRIBUTES sap,
 	    DWORD crmode, DWORD flags, HANDLE template)
 {
@@ -191,8 +187,7 @@ CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
 	return h;
 }
 
-DWORD WINAPI
-SetFilePointer(HANDLE h, LONG pos, PLONG newposh, DWORD whence)
+DWORD WINAPI SetFilePointer(HANDLE h, LONG pos, PLONG newposh, DWORD whence)
 {
 	struct internal_file *fp;
 	off_t newpos;
@@ -207,8 +202,7 @@ SetFilePointer(HANDLE h, LONG pos, PLONG newposh, DWORD whence)
 	return newpos;
 }
 
-BOOL WINAPI
-FAKE_CloseHandle(HANDLE h)
+BOOL WINAPI FAKE_CloseHandle(HANDLE h)
 {
 	switch (handletype(h)) {
 	case HTYPE_FILE:
@@ -227,8 +221,7 @@ FAKE_CloseHandle(HANDLE h)
 	return TRUE;
 }
 
-DWORD WINAPI
-GetFileAttributes(LPCSTR path)
+DWORD WINAPI GetFileAttributes(LPCSTR path)
 {
 	struct stat sb;
 	DWORD attr = FILE_ATTRIBUTE_NORMAL;
@@ -244,36 +237,27 @@ GetFileAttributes(LPCSTR path)
 	return -1;
 }
 
-HLOCAL WINAPI
-LocalAlloc(UINT flags, UINT bytes)
+HLOCAL WINAPI LocalAlloc(UINT flags, UINT bytes)
 {
-
 	return GlobalAlloc(flags, bytes);
 }
 
-HLOCAL WINAPI
-LocalFree(HLOCAL h)
+HLOCAL WINAPI LocalFree(HLOCAL h)
 {
-
 	return GlobalFree(h);
 }
 
-PVOID WINAPI
-LocalLock(HLOCAL h)
+PVOID WINAPI LocalLock(HLOCAL h)
 {
-
 	return GlobalLock(h);
 }
 
-BOOL WINAPI
-LocalUnlock(HLOCAL h)
+BOOL WINAPI LocalUnlock(HLOCAL h)
 {
-
 	return GlobalUnlock(h);
 }
 
-HGLOBAL WINAPI
-GlobalAlloc(UINT flags, DWORD bytes)
+HGLOBAL WINAPI GlobalAlloc(UINT flags, DWORD bytes)
 {
 	struct internal_handle *p;
 
@@ -290,8 +274,7 @@ GlobalAlloc(UINT flags, DWORD bytes)
 	return 0;
 }
 
-HGLOBAL WINAPI
-GlobalFree(HGLOBAL h)
+HGLOBAL WINAPI GlobalFree(HGLOBAL h)
 {
 	struct internal_handle *ih = h;
 
@@ -310,15 +293,12 @@ GlobalFree(HGLOBAL h)
 	return h;
 }
 
-HGLOBAL WINAPI
-GlobalHandle(PCVOID p)
+HGLOBAL WINAPI GlobalHandle(PCVOID p)
 {
-
 	return (HGLOBAL)(p - sizeof(struct internal_handle));
 }
 
-LPVOID WINAPI
-GlobalLock(HGLOBAL h)
+LPVOID WINAPI GlobalLock(HGLOBAL h)
 {
 	struct internal_handle *ih = h;
 
@@ -329,8 +309,7 @@ GlobalLock(HGLOBAL h)
 	return ih->p;
 }
 
-BOOL WINAPI
-GlobalUnlock(HGLOBAL h)
+BOOL WINAPI GlobalUnlock(HGLOBAL h)
 {
 	struct internal_handle *ih = h;
 
@@ -346,8 +325,7 @@ GlobalUnlock(HGLOBAL h)
 	return FALSE;
 }
 
-DWORD WINAPI
-GetPrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR defvalue,
+DWORD WINAPI GetPrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR defvalue,
 			 LPSTR buf, DWORD len, LPCSTR inifile)
 {
 	char lbuf[256];
@@ -402,8 +380,7 @@ nofile:
 	return strlen(buf);
 }
 
-UINT WINAPI
-GetPrivateProfileInt(LPCSTR sect, LPCSTR key, INT defvalue, LPCSTR inifile)
+UINT WINAPI GetPrivateProfileInt(LPCSTR sect, LPCSTR key, INT defvalue, LPCSTR inifile)
 {
 	char lbuf[256];
 	FILE *fp;

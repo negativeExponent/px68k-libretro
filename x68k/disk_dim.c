@@ -56,7 +56,7 @@ int DIM_SetFD(int drv, char* filename)
 {
 	FILEH fp;
 	DIM_HEADER* dh;
-	unsigned int i, len;
+	uint32_t i, len;
 	unsigned char* p;
 
 	strncpy(DIMFile[drv], filename, MAX_PATH);
@@ -100,7 +100,7 @@ int DIM_Eject(int drv)
 {
 	FILEH fp;
 	DIM_HEADER* dh;
-	unsigned int i, len;
+	uint32_t i, len;
 	unsigned char* p;
 
 	if ( !DIMImg[drv] ) {

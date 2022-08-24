@@ -73,12 +73,11 @@ extern	BYTE		fdctrace;
 extern	BYTE		traceflag;
 extern	WORD		FrameCount;
 extern	DWORD		TimerICount;
-extern	unsigned int	hTimerID;
+extern	uint32_t	hTimerID;
 	DWORD		timertick=0;
 extern	int		FullScreenFlag;
 	int		UI_MouseFlag = 0;
 	int		UI_MouseX = -1, UI_MouseY = -1;
-extern	short		timertrace;
 
 	BYTE		MenuClearFlag = 0;
 
@@ -87,8 +86,6 @@ extern	short		timertrace;
 	char		filepath[MAX_PATH] = ".";
 	int		fddblink = 0;
 	int		fddblinkcount = 0;
-	int		hddtrace = 0;
-extern  int		dmatrace;
 
 	DWORD		LastClock[4] = {0, 0, 0, 0};
 
