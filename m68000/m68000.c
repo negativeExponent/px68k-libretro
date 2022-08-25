@@ -141,7 +141,6 @@ void m68000_init(void)
     C68k_Set_ReadW(&C68K, Memory_ReadW);
     C68k_Set_WriteB(&C68K, Memory_WriteB);
     C68k_Set_WriteW(&C68K, Memory_WriteW);
-#endif /* if 0 */
 	C68k_Set_Fetch(&C68K, 0x000000, 0xbfffff, (pointer)MEM);
     C68k_Set_Fetch(&C68K, 0xc00000, 0xc7ffff, (pointer)GVRAM);
     C68k_Set_Fetch(&C68K, 0xe00000, 0xe7ffff, (pointer)TVRAM);
@@ -312,8 +311,6 @@ uint32_t m68000_get_reg(int regnum)
 	case M68K_A5:  return C68k_Get_AReg(&C68K, 5);
 	case M68K_A6:  return C68k_Get_AReg(&C68K, 6);
 	case M68K_A7:  return C68k_Get_AReg(&C68K, 7);
-#endif
-
 	default: return 0;
 	}
 #elif defined (HAVE_MUSASHI)
@@ -429,7 +426,6 @@ void m68000_set_reg(int regnum, uint32_t val)
 	case M68K_A5:  C68k_Set_AReg(&C68K, 5, val); break;
 	case M68K_A6:  C68k_Set_AReg(&C68K, 6, val); break;
 	case M68K_A7:  C68k_Set_AReg(&C68K, 7, val); break;
-#endif
 	default: break;
 	}
 #elif defined (HAVE_MUSASHI)
