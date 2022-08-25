@@ -39,8 +39,8 @@ int  m68000_execute(int cycles);
 
 void m68000_set_irq_line(int irqline, int state);
 void m68000_set_irq_callback(int (*callback)(int irqline));
-UINT32  m68000_get_reg(int regnum);
-void m68000_set_reg(int regnum, UINT32 val);
+uint32_t  m68000_get_reg(int regnum);
+void m68000_set_reg(int regnum, uint32_t val);
 
 
 #ifdef SAVE_STATE
