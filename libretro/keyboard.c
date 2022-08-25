@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2003,2008 NONAKA Kimihiro
  * All rights reserved.
  *
@@ -42,10 +42,7 @@ struct keyboard_key kbd_key[] = {
 #include "keytbl.inc"
 };
 
-extern BYTE traceflag;
-
-void
-Keyboard_Init(void)
+void Keyboard_Init(void)
 {
 
 	KeyBufWP = 0;
@@ -461,10 +458,8 @@ static BYTE get_x68k_keycode(DWORD wp)
 // ----------------------------------
 //	WM_KEYDOWN〜
 // ----------------------------------
-void
-Keyboard_KeyDown(DWORD wp)
+void Keyboard_KeyDown(DWORD wp)
 {
-
 	BYTE code;
 	BYTE newwp;
 #if 0
@@ -552,8 +547,7 @@ Keyboard_KeyDown(DWORD wp)
 // ----------------------------------
 //	WM_KEYUP
 // ----------------------------------
-void
-Keyboard_KeyUp(DWORD wp)
+void Keyboard_KeyUp(DWORD wp)
 {
 	BYTE code;
 	BYTE newwp;
@@ -633,8 +627,7 @@ Keyboard_KeyUp(DWORD wp)
 //	1フレーム中に4回（2400bps/10bit/60fpsとすれば、だが）呼ばれて、MFPにデータを送る
 // ----------------------------------
 
-void
-Keyboard_Int(void)
+void Keyboard_Int(void)
 {
 	if (KeyBufRP != KeyBufWP) {
 #ifdef DEBUG
@@ -656,7 +649,6 @@ Keyboard_Int(void)
 
 int Keyboard_IsSwKeyboard(void)
 {
-
 	return FALSE;
 
 }

@@ -62,7 +62,6 @@ int winx = 0, winy = 0;
 DWORD winh = 0, winw = 0;
 DWORD root_width, root_height;
 WORD FrameCount = 0;
-int SplashFlag = 0;
 
 WORD WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 
@@ -249,9 +248,6 @@ WinDraw_Draw(void)
 	if (!Draw_DrawFlag/* && is_installed_idle_process()*/)
 		return;
 	Draw_DrawFlag = 0;
-
-	if (SplashFlag)
-		WinDraw_ShowSplash();
 }
 
 #define WD_MEMCPY(src) memcpy(&ScrBuf[adr], (src), TextDotX * 2)

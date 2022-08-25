@@ -141,19 +141,15 @@ DWORD MemByteAccess = 0;
 /*
  * write function
  */
-void 
-dma_writemem24(DWORD addr, BYTE val)
+void dma_writemem24(DWORD addr, BYTE val)
 {
-
 	MemByteAccess = 0;
 
 	wm_main(addr, val);
 }
 
-void 
-dma_writemem24_word(DWORD addr, WORD val)
+void dma_writemem24_word(DWORD addr, WORD val)
 {
-
 	MemByteAccess = 0;
 
 	if (addr & 1) {
@@ -165,10 +161,8 @@ dma_writemem24_word(DWORD addr, WORD val)
 	wm_main(addr + 1, val & 0xff);
 }
 
-void 
-dma_writemem24_dword(DWORD addr, DWORD val)
+void dma_writemem24_dword(DWORD addr, DWORD val)
 {
-
 	MemByteAccess = 0;
 
 	if (addr & 1) {
@@ -182,10 +176,8 @@ dma_writemem24_dword(DWORD addr, DWORD val)
 	wm_main(addr + 3, val & 0xff);
 }
 
-void 
-cpu_writemem24(DWORD addr, DWORD val)
+void cpu_writemem24(DWORD addr, DWORD val)
 {
-
 	MemByteAccess = 0;
 	BusErrFlag = 0;
 
@@ -196,10 +188,8 @@ cpu_writemem24(DWORD addr, DWORD val)
 	}
 }
 
-void 
-cpu_writemem24_word(DWORD addr, DWORD val)
+void cpu_writemem24_word(DWORD addr, DWORD val)
 {
-
 	MemByteAccess = 0;
 
 	if (addr & 1) {
@@ -218,10 +208,8 @@ cpu_writemem24_word(DWORD addr, DWORD val)
 	}
 }
 
-void 
-cpu_writemem24_dword(DWORD addr, DWORD val)
+void cpu_writemem24_dword(DWORD addr, DWORD val)
 {
-
 	MemByteAccess = 0;
 
 	if (addr & 1) {
@@ -242,18 +230,14 @@ cpu_writemem24_dword(DWORD addr, DWORD val)
 	}
 }
 
-static void 
-wm_main(DWORD addr, BYTE val)
+static void wm_main(DWORD addr, BYTE val)
 {
-
 	if ((BusErrFlag & 7) == 0)
 		wm_cnt(addr, val);
 }
 
-static void 
-wm_cnt(DWORD addr, BYTE val)
+static void wm_cnt(DWORD addr, BYTE val)
 {
-
 	addr &= 0x00ffffff;
 	if (addr < 0x00c00000) {	// Use RAM upto 12MB
 		MEM[addr ^ 1] = val;
@@ -264,17 +248,14 @@ wm_cnt(DWORD addr, BYTE val)
 	}
 }
 
-static void 
-wm_buserr(DWORD addr, BYTE val)
+static void wm_buserr(DWORD addr, BYTE val)
 {
-
 	BusErrFlag = 2;
 	BusErrAdr = addr;
 	(void)val;
 }
 
-static void 
-wm_opm(DWORD addr, BYTE val)
+static void wm_opm(DWORD addr, BYTE val)
 {
 	BYTE t;
 #ifdef RFMDRV
@@ -294,10 +275,8 @@ wm_opm(DWORD addr, BYTE val)
 #endif
 }
 
-static void 
-wm_e82(DWORD addr, BYTE val)
+static void wm_e82(DWORD addr, BYTE val)
 {
-
 	if (addr < 0x00e82400) {
 		Pal_Write(addr, val);
 	} else if (addr < 0x00e82700) {
@@ -305,10 +284,8 @@ wm_e82(DWORD addr, BYTE val)
 	}
 }
 
-static void 
-wm_nop(DWORD addr, BYTE val)
+static void wm_nop(DWORD addr, BYTE val)
 {
-
 	/* Nothing to do */
 	(void)addr;
 	(void)val;
@@ -317,15 +294,12 @@ wm_nop(DWORD addr, BYTE val)
 /*
  * read function
  */
-BYTE 
-dma_readmem24(DWORD addr)
+BYTE dma_readmem24(DWORD addr)
 {
-
 	return rm_main(addr);
 }
 
-WORD 
-dma_readmem24_word(DWORD addr)
+WORD dma_readmem24_word(DWORD addr)
 {
 	WORD v;
 
@@ -339,8 +313,7 @@ dma_readmem24_word(DWORD addr)
 	return v;
 }
 
-DWORD 
-dma_readmem24_dword(DWORD addr)
+DWORD dma_readmem24_dword(DWORD addr)
 {
 	DWORD v;
 
@@ -356,8 +329,7 @@ dma_readmem24_dword(DWORD addr)
 	return v;
 }
 
-DWORD 
-cpu_readmem24(DWORD addr)
+DWORD cpu_readmem24(DWORD addr)
 {
 	BYTE v;
 
@@ -370,8 +342,7 @@ cpu_readmem24(DWORD addr)
 	return (DWORD) v;
 }
 
-DWORD 
-cpu_readmem24_word(DWORD addr)
+DWORD cpu_readmem24_word(DWORD addr)
 {
 	WORD v;
 
@@ -392,8 +363,7 @@ cpu_readmem24_word(DWORD addr)
 	return (DWORD) v;
 }
 
-DWORD 
-cpu_readmem24_dword(DWORD addr)
+DWORD cpu_readmem24_dword(DWORD addr)
 {
 	DWORD v;
 
@@ -414,8 +384,7 @@ cpu_readmem24_dword(DWORD addr)
 	return v;
 }
 
-static BYTE 
-rm_main(DWORD addr)
+static BYTE rm_main(DWORD addr)
 {
 	BYTE v;
 
@@ -431,42 +400,32 @@ rm_main(DWORD addr)
 	return v;
 }
 
-static BYTE 
-rm_font(DWORD addr)
+static BYTE rm_font(DWORD addr)
 {
-
 	return FONT[addr & 0xfffff];
 }
 
-static BYTE 
-rm_ipl(DWORD addr)
+static BYTE rm_ipl(DWORD addr)
 {
-
 	return IPL[(addr & 0x3ffff) ^ 1];
 }
 
-static BYTE 
-rm_nop(DWORD addr)
+static BYTE rm_nop(DWORD addr)
 {
-
 	(void)addr;
 	return 0;
 }
 
-static BYTE 
-rm_opm(DWORD addr)
+static BYTE rm_opm(DWORD addr)
 {
-
 	if ((addr & 3) == 3) {
 		return OPM_Read(0);
 	}
 	return 0;
 }
 
-static BYTE 
-rm_e82(DWORD addr)
+static BYTE rm_e82(DWORD addr)
 {
-
 	if (addr < 0x00e82400) {
 		return Pal_Read(addr);
 	} else if (addr < 0x00e83000) {
@@ -475,8 +434,7 @@ rm_e82(DWORD addr)
 	return 0;
 }
 
-static BYTE 
-rm_buserr(DWORD addr)
+static BYTE rm_buserr(DWORD addr)
 {
     p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
 
@@ -502,10 +460,8 @@ void Memory_Init(void)
 #endif
 }
 
-void 
-cpu_setOPbase24(DWORD addr)
+void cpu_setOPbase24(DWORD addr)
 {
-
 	switch ((addr >> 20) & 0xf) {
 	case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
 	case 8: case 9: case 0xa: case 0xb:
@@ -517,7 +473,7 @@ cpu_setOPbase24(DWORD addr)
 		break;
 
 	case 0xe:
-		if (addr < 0x00e80000) 
+		if (addr < 0x00e80000)
 			OP_ROM = TVRAM - 0x00e00000;
 		else if ((addr >= 0x00ea0000) && (addr < 0x00ea2000))
 			OP_ROM = SCSIIPL - 0x00ea0000;
@@ -544,8 +500,7 @@ cpu_setOPbase24(DWORD addr)
 	}
 }
 
-void 
-Memory_SetSCSIMode(void)
+void Memory_SetSCSIMode(void)
 {
 	int i;
 
@@ -556,52 +511,24 @@ Memory_SetSCSIMode(void)
 
 void Memory_ErrTrace(void)
 {
-#ifdef WIN68DEBUG
-	FILE *fp;
-	fp=fopen("_buserr.txt", "a");
-	if (BusErrFlag==3)
-		fprintf(fp, "BusErr - SetOP to $%08X  @ $%08X\n", BusErrAdr, regs.pc);
-	else if (BusErrFlag==2)
-		fprintf(fp, "BusErr - Write to $%08X  @ $%08X\n", BusErrAdr, regs.pc);
-	else
-		fprintf(fp, "BusErr - Read from $%08X  @ $%08X\n", BusErrAdr, regs.pc);
-	fclose(fp);
-//	traceflag ++;
-//	m68000_ICount = 0;
-#endif
 }
 
-void 
-Memory_IntErr(int i)
+void Memory_IntErr(int i)
 {
-#ifdef WIN68DEBUG
-	FILE *fp;
-	fp=fopen("_interr.txt", "a");
-	fprintf(fp, "IntErr - Int.No%d  @ $%08X\n", i, regs.pc);
-	fclose(fp);
-#else
 	(void)i;
-#endif
 }
 
-void
-AdrError(DWORD adr, DWORD unknown)
+void AdrError(DWORD adr, DWORD unknown)
 {
-
 	(void)adr;
 	(void)unknown;
 	p6logd("AdrError: %x\n", adr);
-	//	assert(0);
 }
 
-void
-BusError(DWORD adr, DWORD unknown)
+void BusError(DWORD adr, DWORD unknown)
 {
-
 	(void)adr;
 	(void)unknown;
-
 	p6logd("BusError: %x\n", adr);
 	BusErrHandling = 1;
-	//assert(0);
 }
