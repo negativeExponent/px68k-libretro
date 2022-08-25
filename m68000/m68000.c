@@ -137,12 +137,6 @@ void m68000_init(void)
     C68k_Set_Fetch(&C68K, 0xfc0000, 0xffffff, (uintptr_t)IPL);
 #elif defined (HAVE_C68K)
     C68k_Init(&C68K, my_irqh_callback);
-#if 0
-    C68k_Set_ReadB(&C68K, Memory_ReadB);
-    C68k_Set_ReadW(&C68K, Memory_ReadW);
-    C68k_Set_WriteB(&C68K, Memory_WriteB);
-    C68k_Set_WriteW(&C68K, Memory_WriteW);
-#else
     C68k_Set_ReadB(&C68K, Memory_ReadB);
     C68k_Set_ReadW(&C68K, Memory_ReadW);
     C68k_Set_WriteB(&C68K, Memory_WriteB);
@@ -243,7 +237,7 @@ void m68000_set_irq_callback(int (*callback)(int line))
 	レジスタ取得
 --------------------------------------------------------*/
 
-UINT32 m68000_get_reg(int regnum)
+uint32_t m68000_get_reg(int regnum)
 {
 #if defined (HAVE_CYCLONE)
 	switch (regnum)
@@ -298,28 +292,6 @@ UINT32 m68000_get_reg(int regnum)
 #elif defined (HAVE_C68K)
 	switch (regnum)
 	{
-#if 0
-	case M68K_PC:  return C68k_Get_Reg(&C68K, C68K_PC);
-	case M68K_USP: return C68k_Get_Reg(&C68K, C68K_USP);
-	case M68K_MSP: return C68k_Get_Reg(&C68K, C68K_MSP);
-	case M68K_SR:  return C68k_Get_Reg(&C68K, C68K_SR);
-	case M68K_D0:  return C68k_Get_Reg(&C68K, C68K_D0);
-	case M68K_D1:  return C68k_Get_Reg(&C68K, C68K_D1);
-	case M68K_D2:  return C68k_Get_Reg(&C68K, C68K_D2);
-	case M68K_D3:  return C68k_Get_Reg(&C68K, C68K_D3);
-	case M68K_D4:  return C68k_Get_Reg(&C68K, C68K_D4);
-	case M68K_D5:  return C68k_Get_Reg(&C68K, C68K_D5);
-	case M68K_D6:  return C68k_Get_Reg(&C68K, C68K_D6);
-	case M68K_D7:  return C68k_Get_Reg(&C68K, C68K_D7);
-	case M68K_A0:  return C68k_Get_Reg(&C68K, C68K_A0);
-	case M68K_A1:  return C68k_Get_Reg(&C68K, C68K_A1);
-	case M68K_A2:  return C68k_Get_Reg(&C68K, C68K_A2);
-	case M68K_A3:  return C68k_Get_Reg(&C68K, C68K_A3);
-	case M68K_A4:  return C68k_Get_Reg(&C68K, C68K_A4);
-	case M68K_A5:  return C68k_Get_Reg(&C68K, C68K_A5);
-	case M68K_A6:  return C68k_Get_Reg(&C68K, C68K_A6);
-	case M68K_A7:  return C68k_Get_Reg(&C68K, C68K_A7);
-#else
 	case M68K_PC:  return C68k_Get_PC(&C68K);
 	case M68K_USP: return C68k_Get_USP(&C68K);
 	case M68K_MSP: return C68k_Get_MSP(&C68K);
@@ -378,7 +350,7 @@ UINT32 m68000_get_reg(int regnum)
 	レジスタ設定
 --------------------------------------------------------*/
 
-void m68000_set_reg(int regnum, UINT32 val)
+void m68000_set_reg(int regnum, uint32_t val)
 {
 #if defined (HAVE_CYCLONE)
 	switch (regnum)
@@ -437,28 +409,6 @@ void m68000_set_reg(int regnum, UINT32 val)
 #elif defined (HAVE_C68K)
 	switch (regnum)
 	{
-#if 0
-	case M68K_PC:  C68k_Set_Reg(&C68K, C68K_PC, val); break;
-	case M68K_USP: C68k_Set_Reg(&C68K, C68K_USP, val); break;
-	case M68K_MSP: C68k_Set_Reg(&C68K, C68K_MSP, val); break;
-	case M68K_SR:  C68k_Set_Reg(&C68K, C68K_SR, val); break;
-	case M68K_D0:  C68k_Set_Reg(&C68K, C68K_D0, val); break;
-	case M68K_D1:  C68k_Set_Reg(&C68K, C68K_D1, val); break;
-	case M68K_D2:  C68k_Set_Reg(&C68K, C68K_D2, val); break;
-	case M68K_D3:  C68k_Set_Reg(&C68K, C68K_D3, val); break;
-	case M68K_D4:  C68k_Set_Reg(&C68K, C68K_D4, val); break;
-	case M68K_D5:  C68k_Set_Reg(&C68K, C68K_D5, val); break;
-	case M68K_D6:  C68k_Set_Reg(&C68K, C68K_D6, val); break;
-	case M68K_D7:  C68k_Set_Reg(&C68K, C68K_D7, val); break;
-	case M68K_A0:  C68k_Set_Reg(&C68K, C68K_A0, val); break;
-	case M68K_A1:  C68k_Set_Reg(&C68K, C68K_A1, val); break;
-	case M68K_A2:  C68k_Set_Reg(&C68K, C68K_A2, val); break;
-	case M68K_A3:  C68k_Set_Reg(&C68K, C68K_A3, val); break;
-	case M68K_A4:  C68k_Set_Reg(&C68K, C68K_A4, val); break;
-	case M68K_A5:  C68k_Set_Reg(&C68K, C68K_A5, val); break;
-	case M68K_A6:  C68k_Set_Reg(&C68K, C68K_A6, val); break;
-	case M68K_A7:  C68k_Set_Reg(&C68K, C68K_A7, val); break;
-#else
 	case M68K_PC:  C68k_Set_PC(&C68K, val); break;
 	case M68K_USP: C68k_Set_USP(&C68K, val); break;
 	case M68K_MSP: C68k_Set_MSP(&C68K, val); break;
