@@ -286,18 +286,6 @@ static INLINE int StateCheckRetrieveHeader(FILE *fp, const char *name, int *vers
 #define UNUSED __attribute ((unused))
 #endif
 
-#ifdef DEBUG
-#define USED_IF_DEBUG
-#else
-#define USED_IF_DEBUG __attribute ((unused))
-#endif
-
-#ifdef SMPC_DEBUG
-#define USED_IF_SMPC_DEBUG
-#else
-#define USED_IF_SMPC_DEBUG __attribute ((unused))
-#endif
-
 /* LIKELY(x) indicates that x is likely to be true (nonzero);
  * UNLIKELY(x) indicates that x is likely to be false (zero).
  * Use like: "if (UNLIKELY(a < b)) {...}" */
@@ -307,17 +295,9 @@ static INLINE int StateCheckRetrieveHeader(FILE *fp, const char *name, int *vers
 #else
 
 #define UNUSED
-#define USED_IF_DEBUG
-#define USED_IF_SMPC_DEBUG
 #define LIKELY(x) (x)
 #define UNLIKELY(x) (x)
 
-#endif
-
-#ifdef USE_16BPP
-typedef u16 pixel_t;
-#else
-typedef u32 pixel_t;
 #endif
 
 #ifdef _MSC_VER

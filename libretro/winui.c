@@ -69,8 +69,6 @@
 
 #include "fmg_wrap.h"
 
-extern	BYTE		fdctrace;
-extern	BYTE		traceflag;
 extern	WORD		FrameCount;
 extern	DWORD		TimerICount;
 extern	uint32_t	hTimerID;
@@ -194,8 +192,7 @@ static void menu_hwjoy_print(int v)
 /******************************************************************************
  * init
  ******************************************************************************/
-void
-WinUI_Init(void)
+void WinUI_Init(void)
 {
 	int i;
 
