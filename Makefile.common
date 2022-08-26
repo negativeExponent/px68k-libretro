@@ -66,7 +66,6 @@ SOURCES_C 		+= \
 				$(CORE_DIR)/libretro/dswin.c \
 				$(CORE_DIR)/libretro/windraw.c \
 				$(CORE_DIR)/libretro/winui.c \
-				$(CORE_DIR)/libretro/about.c \
 				$(CORE_DIR)/libretro/common.c \
 				$(CORE_DIR)/win32api/dosio.c \
 				$(CORE_DIR)/win32api/fake.c \
