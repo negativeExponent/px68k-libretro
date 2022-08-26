@@ -83,8 +83,7 @@ static int old_clkdiv = 0;
 #endif
 
 
-void
-WinX68k_SCSICheck(void)
+void WinX68k_SCSICheck(void)
 {
 	static const BYTE SCSIIMG[] = {
 		0x00, 0xfc, 0x00, 0x14,				// $fc0000 SCSI boot entry address
@@ -141,8 +140,7 @@ WinX68k_SCSICheck(void)
 	}
 }
 
-int
-WinX68k_LoadROMs(void)
+int WinX68k_LoadROMs(void)
 {
 	static const char *BIOSFILE[] = {
 		"iplrom.dat", "iplrom30.dat", "iplromco.dat", "iplromxv.dat"
@@ -179,28 +177,9 @@ WinX68k_LoadROMs(void)
 		// cgrom.tmp present?
 		fp = File_OpenCurDir((char *)FONTFILETMP);
 		if (fp == 0) {
-#if 1
 			// font creation XXX
-			printf("Font ROM image can't be found.\n");
+			p6logd("Font ROM image can't be found.\n");
 			return FALSE;
-#else
-			MessageBox(hWndMain,
-				"Font ROM image can't be found.\nNew one will be generated from Windows font.",
-				"Message from Keropi.", MB_ICONWARNING | MB_OK);
-			SSTP_SendMes(SSTPMES_MAKEFONT);
-			make_cgromdat(FONT, FALSE, "MS GOTHIC", "MS MINCHO");
-			//WinX68k_MakeFont();
-			//DialogBox(hInst, MAKEINTRESOURCE(IDD_PROGBAR),
-			//		hWndMain, (DLGPROC)MakeFontProc);
-			fp = File_CreateCurDir(FONTFILETMP);
-			if (fp)
-			{
-				File_Write(fp, FONT, 0xc0000);
-				File_Close(fp);
-				return TRUE;
-			}
-			return TRUE;
-#endif
 		}
 	}
 	File_Read(fp, FONT, 0xc0000);
@@ -209,8 +188,7 @@ WinX68k_LoadROMs(void)
 	return TRUE;
 }
 
-int
-WinX68k_Reset(void)
+int WinX68k_Reset(void)
 {
 	OPM_Reset();
 
@@ -269,8 +247,7 @@ WinX68k_Reset(void)
 }
 
 
-int
-WinX68k_Init(void)
+int WinX68k_Init(void)
 {
 
 #define MEM_SIZE 0xc00000
@@ -289,10 +266,8 @@ WinX68k_Init(void)
 		return FALSE;
 }
 
-void
-WinX68k_Cleanup(void)
+void WinX68k_Cleanup(void)
 {
-
 	if (IPL) {
 		free(IPL);
 		IPL = 0;
@@ -527,6 +502,7 @@ int menu_mode = menu_out;
 #ifdef  __cplusplus
 };
 #endif
+
 extern "C" int pmain(int argc, char *argv[])
 {
 

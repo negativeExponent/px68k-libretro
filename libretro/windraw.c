@@ -58,8 +58,8 @@ BYTE Draw_ClrMenu = 0;
 BYTE Draw_BitMask[800];
 BYTE Draw_TextBitMask[800];
 
-int winx = 0, winy = 0;
-DWORD winh = 0, winw = 0;
+static int winx = 0, winy = 0;
+static DWORD winh = 0, winw = 0;
 DWORD root_width, root_height;
 WORD FrameCount = 0;
 

@@ -2,8 +2,6 @@
 #define _winx68k_windraw_h
 
 extern BYTE Draw_DrawFlag;
-extern int winx, winy;
-extern int winh, winw;
 extern int FullScreenFlag;
 extern BYTE Draw_ClrMenu;
 extern WORD FrameCount;
