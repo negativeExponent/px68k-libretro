@@ -47,10 +47,7 @@ int audio_fd = 1;
 
 void raudio_callback(void *userdata, unsigned char *stream, int len);
 
-#ifndef NOSOUND
-
-int
-DSound_Init(unsigned long rate, unsigned long buflen)
+int DSound_Init(unsigned long rate, unsigned long buflen)
 {
 	DWORD samples;
 
@@ -71,8 +68,7 @@ DSound_Init(unsigned long rate, unsigned long buflen)
 	return TRUE;
 }
 
-void
-DSound_Play(void)
+void DSound_Play(void)
 {
    	if (audio_fd >= 0) {
 		ADPCM_SetVolume((BYTE)Config.PCM_VOL);
@@ -80,8 +76,7 @@ DSound_Play(void)
 	}
 }
 
-void
-DSound_Stop(void)
+void DSound_Stop(void)
 {
    	if (audio_fd >= 0) {
 		ADPCM_SetVolume(0);
@@ -89,8 +84,7 @@ DSound_Stop(void)
 	}
 }
 
-int
-DSound_Cleanup(void)
+int DSound_Cleanup(void)
 {
 	playing = FALSE;
 
@@ -146,8 +140,7 @@ static void FASTCALL DSound_Send(int length)
 	sound_send(length);
 }
 
-int
-audio_samples_avail()
+int audio_samples_avail()
 {
    if (pbrp <= pbwp)
       return (pbwp - pbrp) / 4;
@@ -155,8 +148,7 @@ audio_samples_avail()
       return (pbep - pbrp) / 4 + (pbwp - pbsp) / 4;
 }
 
-void
-audio_samples_discard(int discard)
+void audio_samples_discard(int discard)
 {
    int avail = audio_samples_avail();
    if (discard > avail)
@@ -176,8 +168,7 @@ audio_samples_discard(int discard)
    pbrp += 4 * discard;
 }
 
-void
-raudio_callback(void *userdata, unsigned char *stream, int len)
+void raudio_callback(void *userdata, unsigned char *stream, int len)
 {
    int lena, lenb, datalen, rate;
    BYTE *buf;
@@ -241,32 +232,3 @@ cb_start:
    }
    memcpy(userdata, buf, len);
 }
-
-#else	/* NOSOUND */
-int
-DSound_Init(unsigned long rate, unsigned long buflen)
-{
-	return FALSE;
-}
-
-void
-DSound_Play(void)
-{
-}
-
-void
-DSound_Stop(void)
-{
-}
-
-int
-DSound_Cleanup(void)
-{
-	return TRUE;
-}
-
-void FASTCALL
-DSound_Send0(long clock)
-{
-}
-#endif	/* !NOSOUND */
