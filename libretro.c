@@ -240,10 +240,7 @@ static void midi_interface_init(void)
 {
    libretro_supports_midi_output = 0;
    if (environ_cb(RETRO_ENVIRONMENT_GET_MIDI_INTERFACE, &midi_cb))
-   {
-      p6logd("MIDI interface initialized.\n");
       libretro_supports_midi_output = 1;
-   }
 }
 
 /* END OF MIDI INTERFACE */
@@ -622,7 +619,6 @@ static int pre_main(void)
       xargv_cmd[i] = NULL;
 
    if (no_content) {
-      p6logd("PARAMCOUNT = %d\n", PARAMCOUNT);
       PARAMCOUNT = 0;
       goto run_pmain;
    }
@@ -665,6 +661,7 @@ static int pre_main(void)
       xargv_cmd[i] = (char*)(XARGV[i]);
    }
 
+#ifdef DEBUG
    /* Log successfully loaded paths when loading from m3u */
    if (isM3U)
    {
@@ -677,6 +674,7 @@ static int pre_main(void)
    p6logd("%s\n", "Parsing arguments ...");
    for (i = 0; i < PARAMCOUNT; i++)
       p6logd("%d : %s\n", i, xargv_cmd[i]);
+#endif
 
 run_pmain:
    pmain(PARAMCOUNT, (char **)xargv_cmd);
@@ -1288,8 +1286,6 @@ bool retro_load_game(const struct retro_game_info *info)
          return false;
    }
 
-   p6logd("LOAD EMU\n");
-
    return true;
 }
 
@@ -1409,7 +1405,6 @@ void retro_init(void)
 void retro_deinit(void)
 {
    end_loop_retro();
-   p6logd("Retro DeInit\n");
    libretro_supports_input_bitmasks = 0;
    libretro_supports_midi_output = 0;
 }
@@ -1456,7 +1451,6 @@ void retro_run(void)
    {
       pre_main();
       firstcall = 0;
-      p6logd("INIT done\n");
       update_variables();
       update_variable_midi_interface();
       return;
@@ -1480,8 +1474,6 @@ void retro_run(void)
          update_geometry();
          CHANGEAV = 0;
       }
-      p6logd("w:%d h:%d a:%.3f\n", retrow, retroh, (float)(4.0/3.0));
-      p6logd("fps:%.2f soundrate:%.1f\n", FRAMERATE, SOUNDRATE);
    }
 
    input_poll_cb();

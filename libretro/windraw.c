@@ -198,8 +198,6 @@ int WinDraw_Init(void)
 	WinDraw_Pal16G = 0x07e0;
 	WinDraw_Pal16B = 0x001f;
 
-	p6logd("R: %x, G: %x, B: %x\n", WinDraw_Pal16R, WinDraw_Pal16G, WinDraw_Pal16B);
-
 	ScrBuf = malloc(800 * 600 * 2);
 
 	return TRUE;
@@ -228,12 +226,10 @@ WinDraw_Draw(void)
 
 	if (oldtextx != TextDotX) {
 		oldtextx = TextDotX;
-		p6logd("TextDotX: %d\n", TextDotX);
 		CHANGEAV=1;
 	}
 	if (oldtexty != TextDotY) {
 		oldtexty = TextDotY;
-		p6logd("TextDotY: %d\n", TextDotY);
 		CHANGEAV=1;
 	}
 
@@ -466,10 +462,9 @@ void WinDraw_DrawLine(void)
 {
 	int opaq, ton=0, gon=0, bgon=0, tron=0, pron=0, tdrawed=0;
 
-if(VLINE==-1){
-	p6logd("%d %d\n",VLINE,VLINE);
-	return;
-}
+	if(VLINE==(DWORD)-1) {
+		return;
+	}
 	if (!TextDirtyLine[VLINE]) return;
 	TextDirtyLine[VLINE] = 0;
 	Draw_DrawFlag = 1;

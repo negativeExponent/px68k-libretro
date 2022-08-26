@@ -221,7 +221,9 @@ else	strcpy(cur_dir_str, CUR_DIR_STR);
 	strcat(cur_dir_str, "/");
 #endif
 	cur_dir_slen = strlen(cur_dir_str);
+#ifdef DEBUG
 	p6logd("cur_dir_str %s %d\n", cur_dir_str, cur_dir_slen);
+#endif
 
 	for (i = 0; i < 4; i++) {
 		strcpy(mfl.dir[i], cur_dir_str);
@@ -345,7 +347,9 @@ static void menu_create_flist(int v)
 		dp = opendir(mfl.dir[drv]);
 	}
 
+#ifdef DEBUG
 	p6logd("*** drv:%d ***** %s \n", drv, mfl.dir[drv]);
+#endif
 
 	// xxx You can get only MFL_MAX files.
 	for (i = 0 ; i < MFL_MAX; i++) {
@@ -708,17 +712,22 @@ int WinUI_Menu(int first)
 			menu_redraw = 1;
 
 			drv = WinUI_get_drv_num(mkey_y);
+#ifdef DEBUG
 			p6logd("**** drv:%d *****\n", drv);
+#endif
 			if (drv >= 0) {
 				if (mval_y[mkey_y] == 0) {
 					// go file_mode
+#ifdef DEBUG
 					p6logd("hoge:%d\n", mval_y[mkey_y]);
+#endif
 					menu_state = ms_file;
 					menu_redraw = 0; //reset
 					mfile_redraw = 1;
 				} else { // mval_y[mkey_y] == 1
 					// FDD_EjectFD() is done, so set 0.
 					mval_y[mkey_y] = 0;
+#ifdef DEBUG
 					// 11-19-17 added for libretro logging
 					switch (drv)
 					{
@@ -727,6 +736,7 @@ int WinUI_Menu(int first)
 						case 2: p6logd("hdd0 ejected...\n", drv); break;
 						case 3: p6logd("hdd1 ejected...\n", drv); break;
 					}
+#endif
 				}
 			} else if (!strcmp("SYSTEM", menu_item_key[mkey_y])) {
 				if (mval_y[mkey_y] == 2) {
@@ -737,7 +747,9 @@ int WinUI_Menu(int first)
 			break;
 		case ms_file:
 			drv = WinUI_get_drv_num(mkey_y);
+#ifdef DEBUG
 			p6logd("***** drv:%d *****\n", drv);
+#endif
 			if (drv < 0) {
 				break;
 			}
@@ -765,12 +777,16 @@ int WinUI_Menu(int first)
 					mfl.ptr = 0;
 					mfl.y = 0;
 				}
+#ifdef DEBUG
 				p6logd("directory selected: %s\n", mfl.name[y]);
+#endif
 				menu_func[mkey_y].func(0);
 				mfile_redraw = 1;
 			} else {
 				// file operation
+#ifdef DEBUG
 				p6logd("file selected: %s\n", mfl.name[y]);
+#endif
 				if (strlen(mfl.name[y]) != 0) {
 					char tmpstr[MAX_PATH];
 					strcpy(tmpstr, mfl.dir[drv]);
