@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2003 NONAKA Kimihiro
  * All rights reserved.
  *
@@ -23,17 +23,17 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include	"windows.h"
-#include	"common.h"
-#include	"dswin.h"
-#include	"prop.h"
-#include	"adpcm.h"
-#include	"mercury.h"
-#include	"fmg_wrap.h"
+#include "dswin.h"
+#include "adpcm.h"
+#include "common.h"
+#include "fmg_wrap.h"
+#include "mercury.h"
+#include "prop.h"
+#include "windows.h"
 
-int	playing = FALSE;
+int playing = FALSE;
 
-#define PCMBUF_SIZE 2*2*48000
+#define PCMBUF_SIZE 2 * 2 * 48000
 BYTE pcmbuffer[PCMBUF_SIZE];
 BYTE *pcmbufp = pcmbuffer;
 BYTE *pbsp = pcmbuffer;
@@ -55,7 +55,7 @@ int DSound_Init(unsigned long rate, unsigned long buflen)
 		return FALSE;
 
 	if (rate == 0)
-   {
+	{
 		audio_fd = -1;
 		return TRUE;
 	}
@@ -70,17 +70,19 @@ int DSound_Init(unsigned long rate, unsigned long buflen)
 
 void DSound_Play(void)
 {
-   	if (audio_fd >= 0) {
+	if (audio_fd >= 0)
+	{
 		ADPCM_SetVolume((BYTE)Config.PCM_VOL);
-		OPM_SetVolume((BYTE)Config.OPM_VOL);	
+		OPM_SetVolume((BYTE)Config.OPM_VOL);
 	}
 }
 
 void DSound_Stop(void)
 {
-   	if (audio_fd >= 0) {
+	if (audio_fd >= 0)
+	{
 		ADPCM_SetVolume(0);
-		OPM_SetVolume(0);	
+		OPM_SetVolume(0);
 	}
 }
 
@@ -96,17 +98,17 @@ int DSound_Cleanup(void)
 
 static void sound_send(int length)
 {
-   int rate = 0;
+	int rate = 0;
 
-   ADPCM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
-   OPM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
-#ifndef	NO_MERCURY
-   Mcry_Update((int16_t *)pcmbufp, length);
+	ADPCM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
+	OPM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
+#ifndef NO_MERCURY
+	Mcry_Update((int16_t *)pcmbufp, length);
 #endif
 
-   pbwp += length * sizeof(WORD) * 2;
-   if (pbwp >= pbep)
-      pbwp = pbsp + (pbwp - pbep);
+	pbwp += length * sizeof(WORD) * 2;
+	if (pbwp >= pbep)
+		pbwp = pbsp + (pbwp - pbep);
 }
 
 void FASTCALL DSound_Send0(long clock)
@@ -120,7 +122,7 @@ void FASTCALL DSound_Send0(long clock)
 	DSound_PreCounter += (ratebase * clock);
 
 	while (DSound_PreCounter >= 10000000L)
-   {
+	{
 		length++;
 		DSound_PreCounter -= 10000000L;
 	}
@@ -142,93 +144,95 @@ static void FASTCALL DSound_Send(int length)
 
 int audio_samples_avail()
 {
-   if (pbrp <= pbwp)
-      return (pbwp - pbrp) / 4;
-   else
-      return (pbep - pbrp) / 4 + (pbwp - pbsp) / 4;
+	if (pbrp <= pbwp)
+		return (pbwp - pbrp) / 4;
+	else
+		return (pbep - pbrp) / 4 + (pbwp - pbsp) / 4;
 }
 
 void audio_samples_discard(int discard)
 {
-   int avail = audio_samples_avail();
-   if (discard > avail)
-      discard = avail;
+	int avail = audio_samples_avail();
+	if (discard > avail)
+		discard = avail;
 
-   if (discard <= 0)
-      return;
+	if (discard <= 0)
+		return;
 
-   if (pbrp > pbwp) {
-      int availa = (pbep - pbrp) / 4;
-      if (discard >= availa) {
-         pbrp = pbsp;
-         discard -= availa;
-      }
-   }
-   
-   pbrp += 4 * discard;
+	if (pbrp > pbwp)
+	{
+		int availa = (pbep - pbrp) / 4;
+		if (discard >= availa)
+		{
+			pbrp = pbsp;
+			discard -= availa;
+		}
+	}
+
+	pbrp += 4 * discard;
 }
 
 void raudio_callback(void *userdata, unsigned char *stream, int len)
 {
-   int lena, lenb, datalen, rate;
-   BYTE *buf;
+	int lena, lenb, datalen, rate;
+	BYTE *buf;
 
 cb_start:
-   if (pbrp <= pbwp)
-   {
-      // pcmbuffer
-      // +---------+-------------+----------+
-      // |         |/////////////|          |
-      // +---------+-------------+----------+
-      // A         A<--datalen-->A          A
-      // |         |             |          |
-      // pbsp     pbrp          pbwp       pbep
+	if (pbrp <= pbwp)
+	{
+		// pcmbuffer
+		// +---------+-------------+----------+
+		// |         |/////////////|          |
+		// +---------+-------------+----------+
+		// A         A<--datalen-->A          A
+		// |         |             |          |
+		// pbsp     pbrp          pbwp       pbep
 
-      datalen = pbwp - pbrp;
+		datalen = pbwp - pbrp;
 
-      // needs more data
-      if (datalen < len)
-         DSound_Send((len - datalen) / 4);
+		// needs more data
+		if (datalen < len)
+			DSound_Send((len - datalen) / 4);
 
-      // change to TYPEC or TYPED
-      if (pbrp > pbwp)
-         goto cb_start;
+		// change to TYPEC or TYPED
+		if (pbrp > pbwp)
+			goto cb_start;
 
-      buf = pbrp;
-      pbrp += len;
-      //printf("TYPEA: ");
-   }
-   else
-   {
-      // pcmbuffer
-      // +---------+-------------+----------+
-      // |/////////|             |//////////|
-      // +------+--+-------------+----------+
-      // <-lenb->  A             <---lena--->
-      // A         |             A          A
-      // |         |             |          |
-      // pbsp     pbwp          pbrp       pbep
+		buf = pbrp;
+		pbrp += len;
+		// printf("TYPEA: ");
+	}
+	else
+	{
+		// pcmbuffer
+		// +---------+-------------+----------+
+		// |/////////|             |//////////|
+		// +------+--+-------------+----------+
+		// <-lenb->  A             <---lena--->
+		// A         |             A          A
+		// |         |             |          |
+		// pbsp     pbwp          pbrp       pbep
 
-      lena = pbep - pbrp;
-      if (lena >= len)
-      {
-         buf = pbrp;
-         pbrp += len;
-         //printf("TYPEC: ");
-      }
-      else
-      {
-         lenb = len - lena;
+		lena = pbep - pbrp;
+		if (lena >= len)
+		{
+			buf = pbrp;
+			pbrp += len;
+			// printf("TYPEC: ");
+		}
+		else
+		{
+			lenb = len - lena;
 
-         if (pbwp - pbsp < lenb)
-            DSound_Send((lenb - (pbwp - pbsp)) / 4);
+			if (pbwp - pbsp < lenb)
+				DSound_Send((lenb - (pbwp - pbsp)) / 4);
 
-         memcpy(rsndbuf, pbrp, lena);
-         memcpy(&rsndbuf[lena], pbsp, lenb);
-         buf = rsndbuf;
-         pbrp = pbsp + lenb;
-         //printf("TYPED: ");
-      }
-   }
-   memcpy(userdata, buf, len);
+			memcpy(rsndbuf, pbrp, lena);
+			memcpy(&rsndbuf[lena], pbsp, lenb);
+			buf = rsndbuf;
+			pbrp = pbsp + lenb;
+			// printf("TYPED: ");
+		}
+	}
+	memcpy(userdata, buf, len);
 }
