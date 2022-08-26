@@ -261,7 +261,6 @@ WinX68k_Reset(void)
 
 	DSound_Stop();
 	SRAM_VirusCheck();
-	//CDROM_Init();
 	DSound_Play();
 
 	// add retro log
