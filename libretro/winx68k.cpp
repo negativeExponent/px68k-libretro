@@ -13,7 +13,6 @@ extern "C" {
 #include "winx68k.h"
 #include "windraw.h"
 #include "winui.h"
-#include "../x68k/m68000.h" // xxx perhaps not needed
 #include "../m68000/m68000.h"
 #include "../x68k/x68kmemory.h"
 #include "mfp.h"

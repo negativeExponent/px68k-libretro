@@ -7,7 +7,7 @@
 #include	"common.h"
 #include	"fileio.h"
 #include	"winx68k.h"
-#include	"m68000.h"
+#include	"../m68000/m68000.h"
 #include	"scsi.h"
 
 	BYTE	SCSIIPL[0x2000];
@@ -51,7 +51,7 @@ void SCSI_Init(void)
 
 
 // -----------------------------------------------------------------------
-//   ≈±º˝°¡
+//   ≈±º˝è¢∑
 // -----------------------------------------------------------------------
 void SCSI_Cleanup(void)
 {

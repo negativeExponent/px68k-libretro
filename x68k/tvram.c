@@ -9,7 +9,7 @@
 #include	"bg.h"
 #include	"crtc.h"
 #include	"palette.h"
-#include	"m68000.h"
+#include	"../m68000/m68000.h"
 #include	"tvram.h"
 
 	BYTE	TVRAM[0x80000];
@@ -24,7 +24,7 @@
 INLINE void TVRAM_WriteByteMask(DWORD adr, BYTE data);
 
 // -----------------------------------------------------------------------
-//   全部書き換え〜
+//   全部書き換え~
 // -----------------------------------------------------------------------
 void TVRAM_SetAllDirty(void)
 {

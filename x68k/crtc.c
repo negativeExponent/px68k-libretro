@@ -8,7 +8,7 @@
 #include	"tvram.h"
 #include	"gvram.h"
 #include	"bg.h"
-#include	"m68000.h"
+#include	"../m68000/m68000.h"
 #include	"crtc.h"
 
 

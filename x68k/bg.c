@@ -11,7 +11,7 @@
 #include "crtc.h"
 #include "bg.h"
 
-#include "m68000.h"
+#include "../m68000/m68000.h"
 #include <string.h>
 
 	BYTE	BG[0x8000];

@@ -4,7 +4,7 @@
 
 #include "common.h"
 #include "scc.h"
-#include "m68000.h"
+#include "../m68000/m68000.h"
 #include "irqh.h"
 #include "mouse.h"
 

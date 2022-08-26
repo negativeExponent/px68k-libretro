@@ -24,7 +24,7 @@
 #include "x68kmemory.h"
 #include "irqh.h"
 #include "midi.h"
-#include "m68000.h"
+#include "../m68000/m68000.h"
 
 #define MIDIBUFFERS 1024			// 1024は流石に越えないでしょう^_^;
 #define MIDIBUFTIMER 3200			// 10MHz / (31.25K / 10bit) = 3200 が正解になります... 

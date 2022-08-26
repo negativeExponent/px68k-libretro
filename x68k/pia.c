@@ -6,7 +6,7 @@
 #include "joystick.h"
 #include "pia.h"
 #include "adpcm.h"
-#include "m68000.h"
+#include "../m68000/m68000.h"
 
 typedef struct {
 	BYTE PortA;

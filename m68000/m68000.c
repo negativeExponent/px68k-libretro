@@ -6,7 +6,7 @@
 
 ******************************************************************************/
 
-#include "m68000.h"
+#include "../m68000/m68000.h"
 
 #if defined (HAVE_CYCLONE)
 struct Cyclone m68k;
@@ -23,12 +23,8 @@ typedef signed int s32;
 
 #include "../x68k/x68kmemory.h"
 
-#if defined (HAVE_M68000)
-/* nothing */
-#else
 int m68000_ICountBk;
 int ICount;
-#endif
 
 #if defined (HAVE_CYCLONE)
 

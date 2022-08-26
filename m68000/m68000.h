@@ -48,4 +48,7 @@ STATE_SAVE( m68000 );
 STATE_LOAD( m68000 );
 #endif
 
+extern	int	m68000_ICountBk;
+extern	int	ICount;
+
 #endif /* M68000_H */

@@ -8,14 +8,14 @@
 #include	"bg.h"
 #include	"crtc.h"
 #include	"x68kmemory.h"
-#include	"m68000.h"
+#include	"../m68000/m68000.h"
 #include	"palette.h"
 
 	BYTE	Pal_Regs[1024];
 	WORD	TextPal[256];
 	WORD	GrphPal[256];
 	WORD	Pal16[65536];
-	WORD	Ibit;				// 半透明処理とかで使うかも〜
+	WORD	Ibit;				// 半透明処理とかで使うかも~
 
 	WORD	Pal_HalfMask, Pal_Ix2;
 	WORD	Pal_R, Pal_G, Pal_B;		// 画面輝度変更時用
@@ -85,7 +85,7 @@ void Pal_SetColor(void)
 	}
 */
 						// X68kのビット配置に合わせてテーブル作成
-						// すっげ〜手際が悪いね（汗
+						// すっげ~手際が悪いね（汗
 	for (i=0; i<65536; i++)
 	{
 		bit = 0;
