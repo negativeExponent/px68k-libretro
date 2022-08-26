@@ -5,7 +5,7 @@
 #include "mfp.h"
 #include "irqh.h"
 #include "crtc.h"
-#include "m68000.h"
+#include "../m68000/m68000.h"
 #include "winx68k.h"
 #include "keyboard.h"
 

@@ -6,7 +6,7 @@
 #include "dswin.h"
 #include "fmg_wrap.h"
 #include "dmac.h"
-#include "m68000.h"
+#include "../m68000/m68000.h"
 #include "irqh.h"
 #include "mercury.h"
 #include <math.h>
@@ -34,8 +34,6 @@ static int Mcry_SampleCnt = 0;
 static BYTE Mcry_Vector = 255;
 
 extern DWORD BusErrFlag;
-extern	m68k_regs regs;
-
 
 DWORD FASTCALL Mcry_IntCB(BYTE irq)
 {
