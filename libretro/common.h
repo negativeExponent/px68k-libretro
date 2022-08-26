@@ -27,13 +27,6 @@
 #define	LABEL
 #define	__stdcall
 
-#ifdef PSP
-#ifdef MAX_PATH
-#undef MAX_PATH
-#endif
-#define MAX_PATH 256
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

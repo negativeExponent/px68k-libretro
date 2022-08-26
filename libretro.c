@@ -41,8 +41,8 @@ const float framerates[][MODES] = {
    { MODE_NORM_COMPAT, MODE_HIGH_COMPAT }
 };
 
-#define SOUNDRATE 44100.0
-#define SNDSZ round(SOUNDRATE / FRAMERATE)
+#define SOUNDRATE Config.SampleRate
+#define SNDSZ round((float)SOUNDRATE / FRAMERATE)
 
 static char RPATH[512];
 static char RETRO_DIR[512];
@@ -69,7 +69,6 @@ DWORD libretro_supports_input_bitmasks = 0;
 int64_t total_usec = -1;
 
 static int16_t soundbuf[1024 * 2];
-static int soundbuf_size;
 
 uint16_t *videoBuffer;
 
@@ -1451,6 +1450,7 @@ static void rumbleFrames(void)
 void retro_run(void)
 {
    bool updated = false;
+   int soundbuf_size;
 
    if(firstcall)
    {
@@ -1459,7 +1459,6 @@ void retro_run(void)
       p6logd("INIT done\n");
       update_variables();
       update_variable_midi_interface();
-      soundbuf_size = SNDSZ;
       return;
    }
 
@@ -1481,9 +1480,8 @@ void retro_run(void)
          update_geometry();
          CHANGEAV = 0;
       }
-      soundbuf_size = SNDSZ;
       p6logd("w:%d h:%d a:%.3f\n", retrow, retroh, (float)(4.0/3.0));
-      p6logd("fps:%.2f soundrate:%d\n", FRAMERATE, (int)SOUNDRATE);
+      p6logd("fps:%.2f soundrate:%.1f\n", FRAMERATE, SOUNDRATE);
    }
 
    input_poll_cb();
@@ -1494,6 +1492,7 @@ void retro_run(void)
 
    exec_app_retro();
 
+   soundbuf_size = (int)SNDSZ;
    if (Config.AudioDesyncHack)
    {
       int nsamples = audio_samples_avail();
