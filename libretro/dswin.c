@@ -103,7 +103,7 @@ static void sound_send(int length)
 	ADPCM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
 	OPM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
 #ifndef NO_MERCURY
-	Mcry_Update((int16_t *)pcmbufp, length);
+	//Mcry_Update((int16_t *)pcmbufp, length);
 #endif
 
 	pbwp += length * sizeof(WORD) * 2;

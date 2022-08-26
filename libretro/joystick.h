@@ -17,10 +17,6 @@
 #define	JOY_TRG8	0x20
 #define	JOY_TRG6	0x40
 
-#ifndef PSP
-#define JOYAXISPLAY 2048
-#endif
-
 #define need_Vpad() (is_menu || Keyboard_IsSwKeyboard() || (!Config.JoyOrMouse && !r_joy))
 
 void Joystick_Init(void);
