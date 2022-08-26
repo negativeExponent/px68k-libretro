@@ -9,7 +9,6 @@ extern "C" {
 #include "prop.h"
 #include "status.h"
 #include "joystick.h"
-#include "mkcgrom.h"
 #include "winx68k.h"
 #include "windraw.h"
 #include "winui.h"
@@ -49,33 +48,33 @@ extern "C" {
 int rfd_sock;
 #endif
 
-extern	WORD	BG_CHREND;
-extern	WORD	BG_BGTOP;
-extern	WORD	BG_BGEND;
-extern	BYTE	BG_CHRSIZE;
+extern	uint16_t	BG_CHREND;
+extern	uint16_t	BG_BGTOP;
+extern	uint16_t	BG_BGEND;
+extern	uint8_t	BG_CHRSIZE;
 
 char	winx68k_dir[MAX_PATH];
 char	winx68k_ini[MAX_PATH];
 
-WORD	VLINE_TOTAL = 567;
-DWORD	VLINE = 0;
-DWORD	vline = 0;
+uint16_t	VLINE_TOTAL = 567;
+uint32_t	VLINE = 0;
+uint32_t	vline = 0;
 
-BYTE DispFrame = 0;
-DWORD SoundSampleRate;
+uint8_t DispFrame = 0;
+uint32_t SoundSampleRate;
 
-unsigned int hTimerID = 0;
-DWORD TimerICount = 0;
-extern DWORD timertick;
+uint32_t hTimerID = 0;
+uint32_t TimerICount = 0;
+extern uint32_t timertick;
 
-BYTE ForceDebugMode = 0;
-DWORD skippedframes = 0;
+uint8_t ForceDebugMode = 0;
+uint32_t skippedframes = 0;
 
 static int ClkUsed = 0;
 static int FrameSkipCount = 0;
 static int FrameSkipQueue = 0;
 
-static DWORD old_ram_size = 0;
+static uint32_t old_ram_size = 0;
 static int old_clkdiv = 0;
 
 #ifdef __cplusplus
@@ -85,7 +84,7 @@ static int old_clkdiv = 0;
 
 void WinX68k_SCSICheck(void)
 {
-	static const BYTE SCSIIMG[] = {
+	static const uint8_t SCSIIMG[] = {
 		0x00, 0xfc, 0x00, 0x14,				// $fc0000 SCSI boot entry address
 		0x00, 0xfc, 0x00, 0x16,				// $fc0004 IOCS vector setting entry address (always before "Human" 8 bytes)
 		0x00, 0x00, 0x00, 0x00,				// $fc0008 ?
@@ -104,28 +103,19 @@ void WinX68k_SCSICheck(void)
 		0x4e, 0x75,							// $fc002c "rts"
 	};
 
-#if 0
-	DWORD *p;
-#endif
-	WORD *p1, *p2;
+	uint16_t *p1, *p2;
 	int scsi;
 	int i;
 
 	scsi = 0;
 	for (i = 0x30600; i < 0x30c00; i += 2) {
-#if 0 // If not a multiple of 4, the even number address 4 bytes length access doesn't need MIPS
-		p = (DWORD *)(&IPL[i]);
-		if (*p == 0x0000fc00)
-			scsi = 1;
-#else
-		p1 = (WORD *)(&IPL[i]);
+		p1 = (uint16_t *)(&IPL[i]);
 		p2 = p1 + 1;
 		// xxx: works only for little endian guys
 		if (*p1 == 0xfc00 && *p2 == 0x0000) {
 			scsi = 1;
 			break;
 		}
-#endif
 	}
 
 	// SCSI model time
@@ -149,7 +139,7 @@ int WinX68k_LoadROMs(void)
 	static const char FONTFILETMP[] = "cgrom.tmp";
 	FILEH fp;
 	int i;
-	BYTE tmp;
+	uint8_t tmp;
 
 	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(BIOSFILE); ++i) {
 		fp = File_OpenCurDir((char *)BIOSFILE[i]);
@@ -248,9 +238,9 @@ int WinX68k_Init(void)
 
 #define MEM_SIZE 0xc00000
 
-	IPL = (BYTE*)malloc(0x40000);
-	MEM = (BYTE*)malloc(MEM_SIZE);
-	FONT = (BYTE*)malloc(0xc0000);
+	IPL = (uint8_t*)malloc(0x40000);
+	MEM = (uint8_t*)malloc(MEM_SIZE);
+	FONT = (uint8_t*)malloc(0xc0000);
 
 	if (MEM)
 		memset(MEM, 0, MEM_SIZE);
@@ -287,7 +277,7 @@ void WinX68k_Exec(void)
 	//char *test = NULL;
 	int clk_total, clkdiv, usedclk, hsync, clk_next, clk_count, clk_line=0;
 	int KeyIntCnt = 0, MouseIntCnt = 0;
-	DWORD t_start = timeGetTime(), t_end;
+	uint32_t t_start = timeGetTime(), t_end;
 
 	if(!(Memory_ReadD(0xed0008)==Config.ram_size)){
 		Memory_WriteB(0xe8e00d, 0x31);             // SRAM write permission
@@ -355,7 +345,7 @@ void WinX68k_Exec(void)
 			if ( (vline>=CRTC_VSTART)&&(vline<CRTC_VEND) )
 				VLINE = ((vline-CRTC_VSTART)*CRTC_VStep)/2;
 			else
-				VLINE = (DWORD)-1;
+				VLINE = (uint32_t)-1;
 			if ( (!(MFP[MFP_AER]&0x40))&&(vline==CRTC_IntLine) )
 				MFP_Int(1);
 			if ( MFP[MFP_AER]&0x10 ) {
@@ -592,10 +582,10 @@ extern "C" int pmain(int argc, char *argv[])
 			fprintf(stderr, "Can't init sound.\n");
 	}
 
-	ADPCM_SetVolume((BYTE)Config.PCM_VOL);
-	OPM_SetVolume((BYTE)Config.OPM_VOL);
+	ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
+	OPM_SetVolume((uint8_t)Config.OPM_VOL);
 #ifndef	NO_MERCURY
-	Mcry_SetVolume((BYTE)Config.MCR_VOL);
+	Mcry_SetVolume((uint8_t)Config.MCR_VOL);
 #endif
 	DSound_Play();
 

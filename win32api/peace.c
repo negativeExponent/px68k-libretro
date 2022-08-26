@@ -32,7 +32,11 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
 #include <unistd.h>
+#endif
 
 #include "windows.h"
 
@@ -58,14 +62,12 @@ enum {
 	HTYPE_CONSOLE,
 	HTYPE_KEY,
 };
-#ifdef _WIN32
-typedef unsigned int u_int;
-#endif
+
 struct internal_handle {
 	void	*p;
-	u_int	flags;
+	uint32_t	flags;
 	size_t	psize;
-	u_int	refcount;
+	uint32_t	refcount;
 	int	type;
 };
 
@@ -99,7 +101,7 @@ struct internal_file {
 #endif	/* DEBUG */
 
 
-DWORD WINAPI FAKE_GetTickCount(void)
+uint32_t WINAPI FAKE_GetTickCount(void)
 {
 	struct timeval tv;
 
@@ -107,7 +109,7 @@ DWORD WINAPI FAKE_GetTickCount(void)
 	return tv.tv_usec / 1000 + tv.tv_sec * 1000;
 }
 
-BOOL WINAPI ReadFile(HANDLE h, PVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
+BOOL WINAPI ReadFile(HANDLE h, void *buf, uint32_t len, uint32_t *lp, LPOVERLAPPED lpov)
 {
 	struct internal_file *fp;
 
@@ -124,7 +126,7 @@ BOOL WINAPI ReadFile(HANDLE h, PVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpo
 	return TRUE;
 }
 
-BOOL WINAPI WriteFile(HANDLE h, PCVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
+BOOL WINAPI WriteFile(HANDLE h, const void *buf, uint32_t len, uint32_t *lp, LPOVERLAPPED lpov)
 {
 	struct internal_file *fp;
 
@@ -141,9 +143,9 @@ BOOL WINAPI WriteFile(HANDLE h, PCVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED l
 	return TRUE;
 }
 
-HANDLE WINAPI CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
+HANDLE WINAPI CreateFile(const char *filename, uint32_t rdwr, uint32_t share,
 	    LPSECURITY_ATTRIBUTES sap,
-	    DWORD crmode, DWORD flags, HANDLE template)
+	    uint32_t crmode, uint32_t flags, HANDLE template)
 {
 	struct internal_file *fp;
 	HANDLE h;
@@ -171,7 +173,7 @@ HANDLE WINAPI CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
 	switch (crmode) {
 	case CREATE_ALWAYS:
 		fmode |= O_CREAT;
-		break;	
+		break;
 	case OPEN_EXISTING:
 		break;
 	}
@@ -187,7 +189,7 @@ HANDLE WINAPI CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
 	return h;
 }
 
-DWORD WINAPI SetFilePointer(HANDLE h, LONG pos, PLONG newposh, DWORD whence)
+uint32_t WINAPI SetFilePointer(HANDLE h, long pos, long *newposh, uint32_t whence)
 {
 	struct internal_file *fp;
 	off_t newpos;
@@ -221,10 +223,10 @@ BOOL WINAPI FAKE_CloseHandle(HANDLE h)
 	return TRUE;
 }
 
-DWORD WINAPI GetFileAttributes(LPCSTR path)
+uint32_t WINAPI GetFileAttributes(const char *path)
 {
 	struct stat sb;
-	DWORD attr = FILE_ATTRIBUTE_NORMAL;
+	uint32_t attr = FILE_ATTRIBUTE_NORMAL;
 
 	if (stat(path, &sb) == 0) {
 		if (S_ISDIR(sb.st_mode))
@@ -237,7 +239,7 @@ DWORD WINAPI GetFileAttributes(LPCSTR path)
 	return -1;
 }
 
-HLOCAL WINAPI LocalAlloc(UINT flags, UINT bytes)
+HLOCAL WINAPI LocalAlloc(uint32_t flags, uint32_t bytes)
 {
 	return GlobalAlloc(flags, bytes);
 }
@@ -247,7 +249,7 @@ HLOCAL WINAPI LocalFree(HLOCAL h)
 	return GlobalFree(h);
 }
 
-PVOID WINAPI LocalLock(HLOCAL h)
+void *WINAPI LocalLock(HLOCAL h)
 {
 	return GlobalLock(h);
 }
@@ -257,7 +259,7 @@ BOOL WINAPI LocalUnlock(HLOCAL h)
 	return GlobalUnlock(h);
 }
 
-HGLOBAL WINAPI GlobalAlloc(UINT flags, DWORD bytes)
+HGLOBAL WINAPI GlobalAlloc(uint32_t flags, uint32_t bytes)
 {
 	struct internal_handle *p;
 
@@ -293,12 +295,12 @@ HGLOBAL WINAPI GlobalFree(HGLOBAL h)
 	return h;
 }
 
-HGLOBAL WINAPI GlobalHandle(PCVOID p)
+HGLOBAL WINAPI GlobalHandle(const void *p)
 {
 	return (HGLOBAL)(p - sizeof(struct internal_handle));
 }
 
-LPVOID WINAPI GlobalLock(HGLOBAL h)
+void *WINAPI GlobalLock(HGLOBAL h)
 {
 	struct internal_handle *ih = h;
 
@@ -325,8 +327,8 @@ BOOL WINAPI GlobalUnlock(HGLOBAL h)
 	return FALSE;
 }
 
-DWORD WINAPI GetPrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR defvalue,
-			 LPSTR buf, DWORD len, LPCSTR inifile)
+uint32_t WINAPI GetPrivateProfileString(const char *sect, const char *key, const char *defvalue,
+			 char *buf, uint32_t len, const char *inifile)
 {
 	char lbuf[256];
 	FILE *fp;
@@ -380,7 +382,7 @@ nofile:
 	return strlen(buf);
 }
 
-UINT WINAPI GetPrivateProfileInt(LPCSTR sect, LPCSTR key, INT defvalue, LPCSTR inifile)
+uint32_t WINAPI GetPrivateProfileInt(const char *sect, const char *key, int defvalue, const char *inifile)
 {
 	char lbuf[256];
 	FILE *fp;

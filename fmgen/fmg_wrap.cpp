@@ -34,7 +34,7 @@ extern "C" {
 typedef struct {
 	uint32_t time;
 	int reg;
-	BYTE data;
+	uint8_t data;
 } RMDATA;
 
 };
@@ -48,12 +48,12 @@ class MyOPM : public FM::OPM
 public:
 	MyOPM();
 	virtual ~MyOPM() {}
-	void WriteIO(DWORD adr, BYTE data);
-	void Count2(DWORD clock);
+	void WriteIO(uint32_t adr, uint8_t data);
+	void Count2(uint32_t clock);
 private:
 	virtual void Intr(bool);
 	int CurReg;
-	DWORD CurCount;
+	uint32_t CurCount;
 };
 
 
@@ -62,7 +62,7 @@ MyOPM::MyOPM()
 	CurReg = 0;
 }
 
-void MyOPM::WriteIO(DWORD adr, BYTE data)
+void MyOPM::WriteIO(uint32_t adr, uint8_t data)
 {
 	if( adr&1 ) {
 		if ( CurReg==0x1b ) {
@@ -76,7 +76,7 @@ void MyOPM::WriteIO(DWORD adr, BYTE data)
 #if 0
 				RMData[RMPtrW].time = timeGetTime();
 				RMData[RMPtrW].reg  = CurReg;
-if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableはマスクする
+				if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableはマスクする
 				RMData[RMPtrW].data = data;
 				RMPtrW = newptr;
 			}
@@ -85,7 +85,7 @@ if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableはマスクする
 			}
 			RMData[RMPtrW].time = timeGetTime();
 			RMData[RMPtrW].reg  = CurReg;
-if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableはマスクする
+			if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableはマスクする
 			RMData[RMPtrW].data = data;
 			RMPtrW = newptr;
 #endif
@@ -101,7 +101,7 @@ void MyOPM::Intr(bool f)
 }
 
 
-void MyOPM::Count2(DWORD clock)
+void MyOPM::Count2(uint32_t clock)
 {
 	CurCount += clock;
 	Count(CurCount/10);
@@ -155,9 +155,9 @@ void OPM_Reset(void)
 }
 
 
-BYTE FASTCALL OPM_Read(WORD adr)
+uint8_t FASTCALL OPM_Read(uint16_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 	(void)adr;
 	if ( opm ) ret = opm->ReadStatus();
 	if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
@@ -168,26 +168,26 @@ BYTE FASTCALL OPM_Read(WORD adr)
 }
 
 
-void FASTCALL OPM_Write(DWORD adr, BYTE data)
+void FASTCALL OPM_Write(uint32_t adr, uint8_t data)
 {
 	if ( opm ) opm->WriteIO(adr, data);
 }
 
 
-void OPM_Update(int16_t *buffer, int length, int rate, BYTE *pbsp, BYTE *pbep)
+void OPM_Update(int16_t *buffer, int length, int rate, uint8_t *pbsp, uint8_t *pbep)
 {
 	if ( (!juliet_YM2151IsEnable())||(!Config.SoundROMEO) )
 		if ( opm ) opm->Mix((FM::Sample*)buffer, length, rate, pbsp, pbep);
 }
 
 
-void FASTCALL OPM_Timer(DWORD step)
+void FASTCALL OPM_Timer(uint32_t step)
 {
 	if ( opm ) opm->Count2(step);
 }
 
 
-void OPM_SetVolume(BYTE vol)
+void OPM_SetVolume(uint8_t vol)
 {
 	int v = (vol)?((16-vol)*4):192;		// このくらいかなぁ
 	if ( opm ) opm->SetVolume(-v);
@@ -218,14 +218,14 @@ class YMF288 : public FM::Y288
 public:
 	YMF288();
 	virtual ~YMF288() {}
-	void WriteIO(DWORD adr, BYTE data);
-	BYTE ReadIO(DWORD adr);
-	void Count2(DWORD clock);
+	void WriteIO(uint32_t adr, uint8_t data);
+	uint8_t ReadIO(uint32_t adr);
+	void Count2(uint32_t clock);
 	void SetInt(int f) { IntrFlag = f; };
 private:
 	virtual void Intr(bool);
 	int CurReg[2];
-	DWORD CurCount;
+	uint32_t CurCount;
 	int IntrFlag;
 };
 
@@ -236,7 +236,7 @@ YMF288::YMF288()
 	IntrFlag = 0;
 }
 
-void YMF288::WriteIO(DWORD adr, BYTE data)
+void YMF288::WriteIO(uint32_t adr, uint8_t data)
 {
 	if( adr&1 ) {
 		SetReg(((adr&2)?(CurReg[1]+0x100):CurReg[0]), (int)data);
@@ -246,9 +246,9 @@ void YMF288::WriteIO(DWORD adr, BYTE data)
 }
 
 
-BYTE YMF288::ReadIO(DWORD adr)
+uint8_t YMF288::ReadIO(uint32_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 	if ( adr&1 ) {
 		ret = GetReg(((adr&2)?(CurReg[1]+0x100):CurReg[0]));
 	} else {
@@ -264,7 +264,7 @@ void YMF288::Intr(bool f)
 }
 
 
-void YMF288::Count2(DWORD clock)
+void YMF288::Count2(uint32_t clock)
 {
 	CurCount += clock;
 	Count(CurCount/10);
@@ -316,7 +316,7 @@ void M288_Reset(void)
 }
 
 
-BYTE FASTCALL M288_Read(WORD adr)
+uint8_t FASTCALL M288_Read(uint16_t adr)
 {
 	if ( adr<=3 ) {
 		if ( ymf288a )
@@ -332,7 +332,7 @@ BYTE FASTCALL M288_Read(WORD adr)
 }
 
 
-void FASTCALL M288_Write(DWORD adr, BYTE data)
+void FASTCALL M288_Write(uint32_t adr, uint8_t data)
 {
 	if ( adr<=3 ) {
 		if ( ymf288a ) ymf288a->WriteIO(adr, data);
@@ -349,14 +349,14 @@ void M288_Update(int16_t *buffer, int length)
 }
 
 
-void FASTCALL M288_Timer(DWORD step)
+void FASTCALL M288_Timer(uint32_t step)
 {
 	if ( ymf288a ) ymf288a->Count2(step);
 	if ( ymf288b ) ymf288b->Count2(step);
 }
 
 
-void M288_SetVolume(BYTE vol)
+void M288_SetVolume(uint8_t vol)
 {
 	int v1 = (vol)?((16-vol)*4-24):192;		// このくらいかなぁ
 	int v2 = (vol)?((16-vol)*4):192;		// 少し小さめに

@@ -3,8 +3,8 @@
 
 #include "common.h"
 
-extern	BYTE	Debug_Text, Debug_Grp, Debug_Sp;
-extern	DWORD	LastClock[4];
+extern	uint8_t	Debug_Text, Debug_Grp, Debug_Sp;
+extern	uint32_t	LastClock[4];
 
 extern char cur_dir_str[];
 extern int cur_dir_slen;

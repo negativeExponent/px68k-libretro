@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2003 NONAKA Kimihiro
  * All rights reserved.
  *
@@ -42,33 +42,32 @@
 #ifdef __LIBRETRO__
 extern uint16_t *videoBuffer;
 #endif
-WORD menu_buffer[800*600];
+uint16_t menu_buffer[800*600];
 
-extern BYTE Debug_Text, Debug_Grp, Debug_Sp;
+extern uint8_t Debug_Text, Debug_Grp, Debug_Sp;
 
 
-WORD *ScrBuf = 0;
+uint16_t *ScrBuf = 0;
 
 int Draw_Opaque;
 int FullScreenFlag = 0;
-extern BYTE Draw_RedrawAllFlag;
-BYTE Draw_DrawFlag = 1;
-BYTE Draw_ClrMenu = 0;
+uint8_t Draw_DrawFlag = 1;
+uint8_t Draw_ClrMenu = 0;
 
-BYTE Draw_BitMask[800];
-BYTE Draw_TextBitMask[800];
+uint8_t Draw_BitMask[800];
+uint8_t Draw_TextBitMask[800];
 
 static int winx = 0, winy = 0;
-static DWORD winh = 0, winw = 0;
-DWORD root_width, root_height;
-WORD FrameCount = 0;
+static uint32_t winh = 0, winw = 0;
+uint32_t root_width, root_height;
+uint16_t FrameCount = 0;
 
-WORD WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
+uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 
-DWORD WindowX = 0;
-DWORD WindowY = 0;
+uint32_t WindowX = 0;
+uint32_t WindowY = 0;
 
-void WinDraw_InitWindowSize(WORD width, WORD height)
+void WinDraw_InitWindowSize(uint16_t width, uint16_t height)
 {
 	static BOOL inited = FALSE;
 
@@ -95,7 +94,7 @@ void WinDraw_InitWindowSize(WORD width, WORD height)
 
 void WinDraw_ChangeSize(void)
 {
-	DWORD oldx = WindowX, oldy = WindowY;
+	uint32_t oldx = WindowX, oldy = WindowY;
 	int dif;
 
 	Mouse_ChangePos();
@@ -155,7 +154,7 @@ void WinDraw_ChangeSize(void)
 	if ((oldx == WindowX) && (oldy == WindowY))
 		return;
 
-	WinDraw_InitWindowSize((WORD)WindowX, (WORD)WindowY);
+	WinDraw_InitWindowSize((uint16_t)WindowX, (uint16_t)WindowY);
 	StatBar_Show(Config.WindowFDDStat);
 	Mouse_ChangePos();
 }
@@ -267,8 +266,8 @@ INLINE void WinDraw_DrawGrpLine(int opaq)
 {
 #define _DGL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf[i])
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	WORD w;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint16_t w;
 	int i;
 
 	if (opaq) {
@@ -282,8 +281,8 @@ INLINE void WinDraw_DrawGrpLineNonSP(int opaq)
 {
 #define _DGL_NSP_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBufSP2[i])
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	WORD w;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint16_t w;
 	int i;
 
 	if (opaq) {
@@ -301,10 +300,10 @@ INLINE void WinDraw_DrawTextLine(int opaq, int td)
 	if (Text_TrFlag[i] & 1) {	\
 		_DTL_SUB2(SUFFIX);	\
 	}				\
-}	
+}
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	WORD w;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint16_t w;
 	int i;
 
 	if (opaq) {
@@ -337,7 +336,7 @@ INLINE void WinDraw_DrawTextLineTR(int opaq)
 		else				   \
 			v = 0;			   \
 	}					   \
-	ScrBuf##SUFFIX[adr] = (WORD)v;		   \
+	ScrBuf##SUFFIX[adr] = (uint16_t)v;		   \
 }
 
 #define _DTL_TR_SUB2(SUFFIX)			   \
@@ -355,14 +354,14 @@ INLINE void WinDraw_DrawTextLineTR(int opaq)
 				v += w;			\
 				v >>= 1;		\
 			}				\
-			ScrBuf##SUFFIX[adr] = (WORD)v;	\
+			ScrBuf##SUFFIX[adr] = (uint16_t)v;	\
 		}					\
 	}						\
 }
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	DWORD v;
-	WORD w;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint32_t v;
+	uint16_t w;
 	int i;
 
 	if (opaq) {
@@ -382,8 +381,8 @@ INLINE void WinDraw_DrawBGLine(int opaq, int td)
 	} \
 }
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	WORD w;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint16_t w;
 	int i;
 
 	if (opaq) {
@@ -418,7 +417,7 @@ INLINE void WinDraw_DrawBGLineTR(int opaq)
 	v = BG_LineBuf[i];		\
 					\
 	_DBL_TR_SUB3()			\
-	ScrBuf##SUFFIX[adr] = (WORD)v;	\
+	ScrBuf##SUFFIX[adr] = (uint16_t)v;	\
 }
 
 #define _DBL_TR_SUB2(SUFFIX) \
@@ -429,14 +428,14 @@ INLINE void WinDraw_DrawBGLineTR(int opaq)
 							\
 		if (v != 0) {				\
 			_DBL_TR_SUB3()			\
-			ScrBuf##SUFFIX[adr] = (WORD)v;	\
+			ScrBuf##SUFFIX[adr] = (uint16_t)v;	\
 		}					\
 	}						\
 }
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	DWORD v;
-	WORD w;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint32_t v;
+	uint16_t w;
 	int i;
 
 	if (opaq) {
@@ -451,8 +450,8 @@ INLINE void WinDraw_DrawPriLine(void)
 {
 #define _DPL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBufSP[i])
 
-	DWORD adr = VLINE*FULLSCREEN_WIDTH;
-	WORD w;
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint16_t w;
 	int i;
 
 	WD_LOOP(0, TextDotX, _DPL_SUB);
@@ -462,7 +461,7 @@ void WinDraw_DrawLine(void)
 {
 	int opaq, ton=0, gon=0, bgon=0, tron=0, pron=0, tdrawed=0;
 
-	if(VLINE==(DWORD)-1) {
+	if(VLINE==(uint32_t)-1) {
 		return;
 	}
 	if (!TextDirtyLine[VLINE]) return;
@@ -536,8 +535,8 @@ void WinDraw_DrawLine(void)
 			}
 		}
 		break;
-	case 1:	
-	case 2:	
+	case 1:
+	case 2:
 		opaq = 1;		// 256 colors
 		if ( (VCReg1[1]&3) <= ((VCReg1[1]>>4)&3) )	// 同じ値の時は、GRP0が優先（ドラスピ）
 		{
@@ -856,8 +855,8 @@ void WinDraw_DrawLine(void)
 		ScrBuf##SUFFIX[adr] = (w & Pal_HalfMask) >> 1;	\
 }
 
-			DWORD adr = VLINE*FULLSCREEN_WIDTH;
-			WORD w;
+			uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+			uint16_t w;
 			int i;
 
 			WD_LOOP(0, TextDotX, _DL_SUB);
@@ -866,7 +865,7 @@ void WinDraw_DrawLine(void)
 
 	if (opaq)
 	{
-		DWORD adr = VLINE*FULLSCREEN_WIDTH;
+		uint32_t adr = VLINE*FULLSCREEN_WIDTH;
 		memset(&ScrBuf[adr], 0, TextDotX * 2);
 	}
 }
@@ -874,10 +873,10 @@ void WinDraw_DrawLine(void)
 /********** menu 関連ルーチン **********/
 
 struct _px68k_menu {
-	WORD *sbp;  // surface buffer ptr
-	WORD *mlp; // menu locate ptr
-	WORD mcolor; // color of chars to write
-	WORD mbcolor; // back ground color of chars to write
+	uint16_t *sbp;  // surface buffer ptr
+	uint16_t *mlp; // menu locate ptr
+	uint16_t mcolor; // color of chars to write
+	uint16_t mbcolor; // back ground color of chars to write
 	int ml_x;
 	int ml_y;
 	int mfs; // menu font size;
@@ -888,9 +887,9 @@ enum ScrType {x68k, pc98};
 int scr_type = x68k;
 
 /* sjis→jisコード変換 */
-static WORD sjis2jis(WORD w)
+static uint16_t sjis2jis(uint16_t w)
 {
-	BYTE wh, wl;
+	uint8_t wh, wl;
 
 	wh = w / 256, wl = w % 256;
 
@@ -908,7 +907,7 @@ static WORD sjis2jis(WORD w)
 
 /* JISコードから0 originのindexに変換する */
 /* ただし0x2921-0x2f7eはX68KのROM上にないので飛ばす */
-static WORD jis2idx(WORD jc)
+static uint16_t jis2idx(uint16_t jc)
 {
 	if (jc >= 0x3000) {
 		jc -= 0x3021;
@@ -927,10 +926,10 @@ static WORD jis2idx(WORD jc)
 // fs : font size : 16 or 24
 // 半角文字の場合は16bitの上位8bitにデータを入れておくこと
 // (半角or全角の判断ができるように)
-static DWORD get_font_addr(WORD sjis, int fs)
+static uint32_t get_font_addr(uint16_t sjis, int fs)
 {
-	WORD jis, j_idx;
-	BYTE jhi;
+	uint16_t jis, j_idx;
+	uint8_t jhi;
 	int fsb; // file size in bytes
 
 	// 半角文字
@@ -957,8 +956,8 @@ static DWORD get_font_addr(WORD sjis, int fs)
 	}
 
 	jis = sjis2jis(sjis);
-	j_idx = (DWORD)jis2idx(jis);
-	jhi = (BYTE)(jis >> 8);
+	j_idx = (uint32_t)jis2idx(jis);
+	jhi = (uint8_t)(jis >> 8);
 
 	if (jhi >= 0x21 && jhi <= 0x28) {
 		// 非漢字
@@ -973,13 +972,13 @@ static DWORD get_font_addr(WORD sjis, int fs)
 }
 
 // RGB565
-static void set_mcolor(WORD c)
+static void set_mcolor(uint16_t c)
 {
 	p6m.mcolor = c;
 }
 
 // mbcolor = 0 なら透明色とする
-static void set_mbcolor(WORD c)
+static void set_mbcolor(uint16_t c)
 {
 	p6m.mbcolor = c;
 }
@@ -996,7 +995,7 @@ static void set_mlocateC(int x, int y)
 	p6m.ml_x = x * p6m.mfs / 2, p6m.ml_y = y * p6m.mfs;
 }
 
-static void set_sbp(WORD *p)
+static void set_sbp(uint16_t *p)
 {
 	p6m.sbp = p;
 }
@@ -1007,7 +1006,7 @@ static void set_mfs(int fs)
 	p6m.mfs = fs;
 }
 
-static WORD *get_ml_ptr()
+static uint16_t *get_ml_ptr()
 {
 	p6m.mlp = p6m.sbp + MENU_WIDTH * p6m.ml_y + p6m.ml_x;
 	return p6m.mlp;
@@ -1016,13 +1015,13 @@ static WORD *get_ml_ptr()
 // ・半角文字の場合は16bitの上位8bitにデータを入れておくこと
 //   (半角or全角の判断ができるように)
 // ・表示した分cursorは先に移動する
-static void draw_char(WORD sjis)
+static void draw_char(uint16_t sjis)
 {
-	DWORD f;
-	WORD *p;
+	uint32_t f;
+	uint16_t *p;
 	int i, j, k, wc, w;
-	BYTE c;
-	WORD bc;
+	uint8_t c;
+	uint16_t bc;
 
 	int h = p6m.mfs;
 
@@ -1059,20 +1058,20 @@ static void draw_char(WORD sjis)
 static void draw_str(char *cp)
 {
 	int i, len;
-	BYTE *s;
-	WORD wc;
+	uint8_t *s;
+	uint16_t wc;
 
 	len = strlen(cp);
-	s = (BYTE *)cp;
+	s = (uint8_t *)cp;
 
 	for (i = 0; i < len; i++) {
 		if (isHankaku(*s)) {
 			// 最初の8bitで半全角を判断するので半角の場合は
 			// あらかじめ8bit左シフトしておく
-			draw_char((WORD)*s << 8);
+			draw_char((uint16_t)*s << 8);
 			s++;
 		} else {
-			wc = (WORD)(*s << 8) + *(s + 1);
+			wc = (uint16_t)(*s << 8) + *(s + 1);
 			draw_char(wc);
 			s += 2;
 			i++;

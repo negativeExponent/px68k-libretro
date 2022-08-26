@@ -35,8 +35,8 @@
 #include "prop.h"
 #include "winx68k.h"
 
-static BYTE ini_title[] = "WinX68k";
-static BYTE initialized = 0;
+static char ini_title[] = "WinX68k";
+static int initialized = 0;
 Win68Conf Config;
 
 extern char filepath[MAX_PATH];
@@ -47,7 +47,7 @@ extern char slash;
 
 #define CFGLEN MAX_PATH
 
-static char *makeBOOL(BYTE value)
+static char *makeBOOL(uint8_t value)
 {
 	if (value)
 	{
@@ -56,7 +56,7 @@ static char *makeBOOL(BYTE value)
 	return ("false");
 }
 
-static BYTE Aacmp(char *cmp, char *str)
+static uint8_t Aacmp(char *cmp, char *str)
 {
 	char p;
 
@@ -79,7 +79,7 @@ static BYTE Aacmp(char *cmp, char *str)
 	return (0);
 }
 
-static BYTE solveBOOL(char *str)
+static uint8_t solveBOOL(char *str)
 {
 	if ((!Aacmp(str, "TRUE")) || (!Aacmp(str, "ON")) || (!Aacmp(str, "+")) || (!Aacmp(str, "1")) ||
 	    (!Aacmp(str, "ENABLE")))

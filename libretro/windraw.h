@@ -1,20 +1,20 @@
 #ifndef _winx68k_windraw_h
 #define _winx68k_windraw_h
 
-extern BYTE Draw_DrawFlag;
+extern uint8_t Draw_DrawFlag;
 extern int FullScreenFlag;
-extern BYTE Draw_ClrMenu;
-extern WORD FrameCount;
-extern WORD WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
+extern uint8_t Draw_ClrMenu;
+extern uint16_t FrameCount;
+extern uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 
-extern	BYTE	Draw_BitMask[800];
-extern	BYTE	Draw_TextBitMask[800];
+extern	uint8_t	Draw_BitMask[800];
+extern	uint8_t	Draw_TextBitMask[800];
 
 extern	int	WindowX;
 extern	int	WindowY;
 extern	int	kbd_x, kbd_y, kbd_w, kbd_h;
 
-void WinDraw_InitWindowSize(WORD width, WORD height);
+void WinDraw_InitWindowSize(uint16_t width, uint16_t height);
 void WinDraw_ChangeMode(int flag);
 int WinDraw_Init(void);
 void WinDraw_Cleanup(void);

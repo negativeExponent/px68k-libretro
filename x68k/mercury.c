@@ -19,8 +19,8 @@ long	Mcry_RdPtr = 0;
 long	Mcry_SampleRate = 44100;
 long	Mcry_ClockRate = 44100;
 long	Mcry_Count = 0;
-BYTE	Mcry_Status = 0;
-BYTE	Mcry_LRTiming = 0;
+uint8_t	Mcry_Status = 0;
+uint8_t	Mcry_LRTiming = 0;
 int16_t	Mcry_OutDataL = 0;
 int16_t	Mcry_OutDataR = 0;
 int16_t	Mcry_BufL[Mcry_BufSize];
@@ -31,16 +31,16 @@ int16_t	Mcry_OldR, Mcry_OldL;
 int	Mcry_DMABytes = 0;
 static double Mcry_VolumeShift = 65536;
 static int Mcry_SampleCnt = 0;
-static BYTE Mcry_Vector = 255;
+static uint8_t Mcry_Vector = 255;
 
-extern DWORD BusErrFlag;
+extern uint32_t BusErrFlag;
 
-DWORD FASTCALL Mcry_IntCB(BYTE irq)
+uint32_t FASTCALL Mcry_IntCB(uint8_t irq)
 {
-	DWORD ret = 0xffffffff;
+	uint32_t ret = 0xffffffff;
 	IRQH_IRQCallBack(irq);
 	if ( irq==MCRY_IRQ ) {
-		ret = (DWORD)Mcry_Vector;
+		ret = (uint32_t)Mcry_Vector;
 	}
 	return ret;
 }
@@ -65,7 +65,7 @@ int Mcry_IsReady(void)
 // -----------------------------------------------------------------------
 //   MPU経過クロック時間分だけデータをバッファに溜める
 // -----------------------------------------------------------------------
-void FASTCALL Mcry_PreUpdate(DWORD clock)
+void FASTCALL Mcry_PreUpdate(uint32_t clock)
 {
 	Mcry_PreCounter += (Mcry_ClockRate*clock);
 	while(Mcry_PreCounter>=10000000L)
@@ -80,7 +80,7 @@ void FASTCALL Mcry_PreUpdate(DWORD clock)
 // -----------------------------------------------------------------------
 //   DSoundからの要求分だけバッファを埋める
 // -----------------------------------------------------------------------
-void FASTCALL Mcry_Update(int16_t *buffer, DWORD length)
+void FASTCALL Mcry_Update(int16_t *buffer, uint32_t length)
 {
 	int data;
 
@@ -140,7 +140,7 @@ INLINE void Mcry_WriteOne(void)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL Mcry_Write(DWORD adr, BYTE data)
+void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 {
 	if ((adr == 0xecc080)||(adr == 0xecc081)||(adr == 0xecc000)||(adr == 0xecc001))	// Data Port
 	{
@@ -157,7 +157,7 @@ void FASTCALL Mcry_Write(DWORD adr, BYTE data)
 				}
 				else				// High Byte
 				{
-					Mcry_OutDataR = (Mcry_OutDataR&0x00ff)|((WORD)data<<8);
+					Mcry_OutDataR = (Mcry_OutDataR&0x00ff)|((uint16_t)data<<8);
 				}
 			}
 			else				// 左
@@ -170,7 +170,7 @@ void FASTCALL Mcry_Write(DWORD adr, BYTE data)
 				}
 				else				// High Byte
 				{
-					Mcry_OutDataL = (Mcry_OutDataL&0x00ff)|((WORD)data<<8);
+					Mcry_OutDataL = (Mcry_OutDataL&0x00ff)|((uint16_t)data<<8);
 				}
 			}
 		} else {			// Mono
@@ -183,8 +183,8 @@ void FASTCALL Mcry_Write(DWORD adr, BYTE data)
 			}
 			else				// High Byte
 			{
-				Mcry_OutDataR = ((Mcry_Status&8)?((Mcry_OutDataR&0x00ff)|((WORD)data<<8)):0);
-				Mcry_OutDataL = ((Mcry_Status&4)?((Mcry_OutDataL&0x00ff)|((WORD)data<<8)):0);
+				Mcry_OutDataR = ((Mcry_Status&8)?((Mcry_OutDataR&0x00ff)|((uint16_t)data<<8)):0);
+				Mcry_OutDataL = ((Mcry_Status&4)?((Mcry_OutDataL&0x00ff)|((uint16_t)data<<8)):0);
 			}
 		}
 	}
@@ -202,7 +202,7 @@ void FASTCALL Mcry_Write(DWORD adr, BYTE data)
 	}
 	else if ( (adr>=0xecc0c0)&&(adr<=0xecc0c7)&&(adr&1) )	// 満開版まーきゅりー OPN
 	{
-		M288_Write((BYTE)((adr>>1)&3), data);
+		M288_Write((uint8_t)((adr>>1)&3), data);
 	}
 }
 
@@ -210,9 +210,9 @@ void FASTCALL Mcry_Write(DWORD adr, BYTE data)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL Mcry_Read(DWORD adr)
+uint8_t FASTCALL Mcry_Read(uint32_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 	if ((adr == 0xecc080)||(adr == 0xecc081)||(adr == 0xecc000)||(adr == 0xecc001))
 	{
 	}
@@ -234,7 +234,7 @@ BYTE FASTCALL Mcry_Read(DWORD adr)
 	}
 	else if ( (adr>=0xecc0c0)&&(adr<=0xecc0c7)&&(adr&1) )	// 満開版まーきゅりー OPN
 	{
-		ret = M288_Read((BYTE)((adr>>1)&3));
+		ret = M288_Read((uint8_t)((adr>>1)&3));
 	}
 	else if ( adr>=0xecc100 )
 	{				// Bus Error?
@@ -262,7 +262,7 @@ void Mcry_SetClock(void)
 // -----------------------------------------------------------------------
 //   ぼりゅーむ設定
 // -----------------------------------------------------------------------
-void Mcry_SetVolume(BYTE vol)
+void Mcry_SetVolume(uint8_t vol)
 {
 	if (vol>16) vol=16;
 //	if (vol<0) vol=0;
@@ -278,7 +278,7 @@ void Mcry_SetVolume(BYTE vol)
 // -----------------------------------------------------------------------
 //   初期化~
 // -----------------------------------------------------------------------
-void Mcry_Init(DWORD samplerate, const char* path)
+void Mcry_Init(uint32_t samplerate, const char* path)
 {
 	memset(Mcry_BufL, 0, Mcry_BufSize*2);
 	memset(Mcry_BufR, 0, Mcry_BufSize*2);

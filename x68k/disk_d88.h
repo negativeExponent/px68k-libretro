@@ -2,12 +2,12 @@
 #define _winx68k_d88
 
 typedef struct {			// Header Part (size:2B0h)
-	BYTE	fd_name[17];		// Disk Name
-	BYTE	reserved1[9]; 		// Reserved
-	BYTE	protect;		// Write Protect bit:4
-	BYTE	fd_type;		// Disk Format
-	DWORD	fd_size;		// Disk Size
-	DWORD	trackp[164];		// Track_pointer
+	uint8_t	fd_name[17];		// Disk Name
+	uint8_t	reserved1[9]; 		// Reserved
+	uint8_t	protect;		// Write Protect bit:4
+	uint8_t	fd_type;		// Disk Format
+	uint32_t	fd_size;		// Disk Size
+	uint32_t	trackp[164];		// Track_pointer
 } D88_HEADER;
 
 void D88_Init(void);

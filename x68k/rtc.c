@@ -7,8 +7,8 @@
 
 #include <time.h>
 
-BYTE	RTC_Regs[2][16];
-BYTE	RTC_Bank = 0;
+uint8_t	RTC_Regs[2][16];
+uint8_t	RTC_Bank = 0;
 static int RTC_Timer1 = 0;
 static int RTC_Timer16 = 0;
 
@@ -28,9 +28,9 @@ void RTC_Init(void)
 // -----------------------------------------------------------------------
 //   とけいのりーど
 // -----------------------------------------------------------------------
-BYTE FASTCALL RTC_Read(DWORD adr)
+uint8_t FASTCALL RTC_Read(uint32_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 	struct tm *tm;
 	time_t t;
 	t = time(NULL);
@@ -48,7 +48,7 @@ BYTE FASTCALL RTC_Read(DWORD adr)
 		case 0x07: ret=(tm->tm_min)/10; break;
 		case 0x09: ret=(tm->tm_hour)%10; break;
 		case 0x0b: ret=(tm->tm_hour)/10; break;
-		case 0x0d: ret=(BYTE)(tm->tm_wday); break;
+		case 0x0d: ret=(uint8_t)(tm->tm_wday); break;
 		case 0x0f: ret=(tm->tm_mday)%10; break;
 		case 0x11: ret=(tm->tm_mday)/10; break;
 		case 0x13: ret=(tm->tm_mon+1)%10; break;
@@ -76,7 +76,7 @@ BYTE FASTCALL RTC_Read(DWORD adr)
 // -----------------------------------------------------------------------
 //   らいと
 // -----------------------------------------------------------------------
-void FASTCALL RTC_Write(DWORD adr, BYTE data)
+void FASTCALL RTC_Write(uint32_t adr, uint8_t data)
 {
 	if ( adr==0xe8a001 ) {
 //		RTC_Timer1  = 0;

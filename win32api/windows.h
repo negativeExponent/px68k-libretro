@@ -1,51 +1,22 @@
 #ifndef	__NP2_WIN32EMUL_H__
 #define	__NP2_WIN32EMUL_H__
 
-#include <sys/param.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <assert.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <limits.h>
-#include <errno.h>
-#include <assert.h>
-
-typedef	signed char	CHAR;
-typedef signed short	SHORT;
-typedef	signed int	INT;
-typedef	signed long	LONG;
-
-typedef	unsigned char	UCHAR;
-typedef	unsigned short	USHORT;
-typedef	unsigned int	UINT;
-typedef	unsigned long	ULONG;
-
-typedef	unsigned char	BYTE;
-typedef	unsigned short	WORD;
-typedef	unsigned int	DWORD;
+#include <sys/param.h>
 
 typedef	int		BOOL;
-typedef	WORD		WPARAM;
-typedef	DWORD		LPARAM;
-typedef	LONG		LRESULT;
-
-typedef	void		VOID;
-typedef	void		*PVOID;
-typedef	void		*LPVOID;
-typedef	const void	*PCVOID;
-typedef	long		*PLONG;
-typedef	BYTE		*LPBYTE;
-typedef	WORD		*LPWORD;
-typedef	DWORD		*PDWORD;
-typedef	DWORD		*LPDWORD;
-typedef char		*LPSTR;
-typedef const char	*LPCSTR;
 
 typedef	void *		LPSECURITY_ATTRIBUTES;
 typedef	void *		LPOVERLAPPED;
 
-typedef	int		HWND;
 typedef void *		HANDLE;
 typedef	HANDLE		HLOCAL;
 typedef	HANDLE		HGLOBAL;
@@ -90,7 +61,7 @@ typedef	void *		DRAWITEMSTRUCT;
 #define	INLINE	static inline
 #endif
 
-#define	RGB(r,g,b)	((DWORD)((BYTE)(r))|((WORD)((BYTE)(g)))|((DWORD)((BYTE)(b))))
+#define	RGB(r,g,b)	((uint32_t)((uint8_t)(r))|((uint16_t)((uint8_t)(g)))|((uint32_t)((uint8_t)(b))))
 
 #define	MB_APPLMODAL		0
 
@@ -115,9 +86,9 @@ typedef	void *		DRAWITEMSTRUCT;
 #define	CREATE_ALWAYS			2
 #define	CREATE_NEW			3
 
-#define	FILE_SHARE_READ			0x00000001  
-#define	FILE_SHARE_WRITE		0x00000002  
-#define	FILE_SHARE_DELETE		0x00000004  
+#define	FILE_SHARE_READ			0x00000001
+#define	FILE_SHARE_WRITE		0x00000002
+#define	FILE_SHARE_DELETE		0x00000004
 
 #define	FILE_ATTRIBUTE_READONLY		0x01
 #define	FILE_ATTRIBUTE_HIDDEN		0x02
@@ -147,32 +118,32 @@ typedef	void *		DRAWITEMSTRUCT;
  * WIN32 structure
  */
 typedef struct {
-	WORD	bfType;
-	DWORD	bfSize;
-	WORD	bfReserved1;
-	WORD	bfReserved2;
-	DWORD	bfOffBits;
+	uint16_t	bfType;
+	uint32_t	bfSize;
+	uint16_t	bfReserved1;
+	uint16_t	bfReserved2;
+	uint32_t	bfOffBits;
 } __attribute__ ((packed)) BITMAPFILEHEADER;
 
 typedef struct {
-	DWORD	biSize;
-	LONG	biWidth;
-	LONG	biHeight;
-	WORD	biPlanes;
-	WORD	biBitCount;
-	DWORD	biCompression;
-	DWORD	biSizeImage;
-	LONG	biXPelsPerMeter;
-	LONG	biYPelsPerMeter;
-	DWORD	biClrUsed;
-	DWORD	biClrImportant;
+	uint32_t	biSize;
+	long	biWidth;
+	long	biHeight;
+	uint16_t	biPlanes;
+	uint16_t	biBitCount;
+	uint32_t	biCompression;
+	uint32_t	biSizeImage;
+	long	biXPelsPerMeter;
+	long	biYPelsPerMeter;
+	uint32_t	biClrUsed;
+	uint32_t	biClrImportant;
 } __attribute__ ((packed)) BITMAPINFOHEADER;
 
 typedef struct {
-	BYTE	rgbBlue;
-	BYTE	rgbGreen;
-	BYTE	rgbRed;
-	BYTE	rgbReserved;
+	uint8_t	rgbBlue;
+	uint8_t	rgbGreen;
+	uint8_t	rgbRed;
+	uint8_t	rgbReserved;
 } __attribute__ ((packed)) RGBQUAD;
 
 typedef struct {
@@ -181,15 +152,15 @@ typedef struct {
 } __attribute__ ((packed)) BITMAPINFO;
 
 typedef struct {
-	DWORD	top;
-	DWORD	left;
-	DWORD	bottom;
-	DWORD	right;
+	uint32_t	top;
+	uint32_t	left;
+	uint32_t	bottom;
+	uint32_t	right;
 } RECT;
 
 typedef struct {
-	WORD	x;
-	WORD	y;
+	uint16_t	x;
+	uint16_t	y;
 } POINT;
 
 /*
@@ -198,11 +169,10 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int	WINAPI MessageBox(HWND, LPCSTR, LPCSTR, UINT);
-void	WINAPI PostQuitMessage(int);
-BOOL	WINAPI WritePrivateProfileString(LPCSTR, LPCSTR, LPCSTR, LPCSTR);
 
-DWORD	WINAPI FAKE_GetLastError(void);
+BOOL	WINAPI WritePrivateProfileString(const char *, const char *, const char *, const char *);
+
+uint32_t	WINAPI FAKE_GetLastError(void);
 BOOL	WINAPI SetEndOfFile(HANDLE hFile);
 #ifdef __cplusplus
 };

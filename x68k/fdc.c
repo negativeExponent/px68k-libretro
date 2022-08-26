@@ -13,51 +13,51 @@
 #include "fileio.h"
 #include "winx68k.h"
 
-static const BYTE CMD_TABLE[32] = {0, 0, 8, 2, 1, 8, 8, 1, 0, 8, 1, 0, 8, 5, 0, 2,
+static const uint8_t CMD_TABLE[32] = {0, 0, 8, 2, 1, 8, 8, 1, 0, 8, 1, 0, 8, 5, 0, 2,
                                    0, 8, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 8, 0, 0};
-static const BYTE DAT_TABLE[32] = {0, 0, 7, 0, 1, 7, 7, 0, 2, 7, 7, 0, 7, 7, 0, 0,
+static const uint8_t DAT_TABLE[32] = {0, 0, 7, 0, 1, 7, 7, 0, 2, 7, 7, 0, 7, 7, 0, 0,
                                    0, 7, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 7, 0, 0};
 
 /*  Params for Read / ReadDel / ReadDiag / Write / WriteDel / ScanEq / ScanLEq / ScanHEq  */
 typedef struct {
-	BYTE cmd;
-	BYTE us;
-	BYTE c;
-	BYTE h;
-	BYTE r;
-	BYTE n;
-	BYTE eot;
-	BYTE gsl;
-	BYTE dtl;
+	uint8_t cmd;
+	uint8_t us;
+	uint8_t c;
+	uint8_t h;
+	uint8_t r;
+	uint8_t n;
+	uint8_t eot;
+	uint8_t gsl;
+	uint8_t dtl;
 } FDCPRM0;
 
 /*  Params for ReadID / Seek / SenseDevStat */
 typedef struct {
-	BYTE cmd;
-	BYTE us;
-	BYTE n;
+	uint8_t cmd;
+	uint8_t us;
+	uint8_t n;
 } FDCPRM1;
 
 /*  Params for WriteID  */
 typedef struct {
-	BYTE cmd;
-	BYTE us;
-	BYTE n;
-	BYTE sc;
-	BYTE gap;
-	BYTE d;
+	uint8_t cmd;
+	uint8_t us;
+	uint8_t n;
+	uint8_t sc;
+	uint8_t gap;
+	uint8_t d;
 } FDCPRM2;
 
 
 /*  Response for many commands  */
 typedef struct {
-	BYTE st0;
-	BYTE st1;
-	BYTE st2;
-	BYTE c;
-	BYTE h;
-	BYTE r;
-	BYTE n;
+	uint8_t st0;
+	uint8_t st1;
+	uint8_t st2;
+	uint8_t c;
+	uint8_t h;
+	uint8_t r;
+	uint8_t n;
 } FDCRSP;
 
 
@@ -78,10 +78,10 @@ typedef struct {
 	int st0;
 	int st1;
 	int st2;
-	BYTE RspBuf[10];
-	BYTE PrmBuf[10];
-	BYTE DataBuf[0x8000];
-	BYTE ScanBuf[0x8000];
+	uint8_t RspBuf[10];
+	uint8_t PrmBuf[10];
+	uint8_t DataBuf[0x8000];
+	uint8_t ScanBuf[0x8000];
 } FDC;
 
 static FDC fdc;
@@ -96,11 +96,11 @@ static FDC fdc;
 // -----------------------------------------------------------------------
 //   割り込みベクタ
 // -----------------------------------------------------------------------
-DWORD FASTCALL FDC_Int(BYTE irq)
+uint32_t FASTCALL FDC_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 	if (irq==1)
-		return ((DWORD)IOC_IntVect);
+		return ((uint32_t)IOC_IntVect);
 	else
 		return -1;
 }
@@ -435,9 +435,9 @@ static void FDC_WriteBuffer(void)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL FDC_Read(DWORD adr)
+uint8_t FASTCALL FDC_Read(uint32_t adr)
 {
-	BYTE ret = 0x00;
+	uint8_t ret = 0x00;
 	if ( adr==0xe94001 ) {					/* FDC Status */
 		ret  = 0x80;
 		ret |= ((fdc.rdnum)&&(!fdc.wexec))?0x40:0;
@@ -465,7 +465,7 @@ BYTE FASTCALL FDC_Read(DWORD adr)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL FDC_Write(DWORD adr, BYTE data)
+void FASTCALL FDC_Write(uint32_t adr, uint8_t data)
 {
 	if ( adr==0xe94003 ) {
 		if ( fdc.bufnum ) {                 // WriteData

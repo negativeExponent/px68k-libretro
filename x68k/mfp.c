@@ -9,25 +9,25 @@
 #include "winx68k.h"
 #include "keyboard.h"
 
-BYTE testflag=0;
-BYTE LastKey = 0;
+uint8_t testflag=0;
+uint8_t LastKey = 0;
 
-BYTE MFP[24];
-BYTE Timer_TBO = 0;
-static BYTE Timer_Reload[4] = {0, 0, 0, 0};
+uint8_t MFP[24];
+uint8_t Timer_TBO = 0;
+static uint8_t Timer_Reload[4] = {0, 0, 0, 0};
 static int Timer_Tick[4] = {0, 0, 0, 0};
 static const int Timer_Prescaler[8] = {1, 10, 25, 40, 125, 160, 250, 500};
 
 // -----------------------------------------------------------------------
 //   優先割り込みのチェックをし、該当ベクタを返す
 // -----------------------------------------------------------------------
-DWORD FASTCALL MFP_IntCallback(BYTE irq)
+uint32_t FASTCALL MFP_IntCallback(uint8_t irq)
 {
-	BYTE flag;
-	DWORD vect;
+	uint8_t flag;
+	uint32_t vect;
 	int offset = 0;
 	IRQH_IRQCallBack(irq);
-	if (irq!=6) return (DWORD)-1;
+	if (irq!=6) return (uint32_t)-1;
 	for (flag=0x80, vect=15; flag; flag>>=1, vect--)
 	{
 		if ((MFP[MFP_IPRA]&flag)&&(MFP[MFP_IMRA]&flag)&&(!(MFP[MFP_ISRA]&flag)))
@@ -45,7 +45,7 @@ DWORD FASTCALL MFP_IntCallback(BYTE irq)
 	if (!flag)
 	{
 		Error("MFP Int w/o Request. Default Vector(-1) has been returned.");
-		return (DWORD)-1;
+		return (uint32_t)-1;
 	}
 
 	MFP[MFP_IPRA+offset] &= (~flag);
@@ -74,7 +74,7 @@ DWORD FASTCALL MFP_IntCallback(BYTE irq)
 // -----------------------------------------------------------------------
 void MFP_RecheckInt(void)
 {
-	BYTE flag;
+	uint8_t flag;
 	IRQH_IRQCallBack(6);
 	for (flag=0x80; flag; flag>>=1)
 	{
@@ -97,7 +97,7 @@ void MFP_RecheckInt(void)
 // -----------------------------------------------------------------------
 void MFP_Int(int irq)		// 'irq' は 0が最優先（HSYNC/GPIP7）、15が最下位（ALARM）
 {				// ベクタとは番号の振り方が逆になるので注意~
-	BYTE flag = 0x80;
+	uint8_t flag = 0x80;
 	if (irq<8)
 	{
 		flag >>= irq;
@@ -132,7 +132,7 @@ void MFP_Int(int irq)		// 'irq' は 0が最優先（HSYNC/GPIP7）、15が最下位（ALARM）
 void MFP_Init(void)
 {
 	int i;
-	static const BYTE initregs[24] = {
+	static const uint8_t initregs[24] = {
 		0x7b, 0x06, 0x00, 0x18, 0x3e, 0x00, 0x00, 0x00,
 		0x00, 0x18, 0x3e, 0x40, 0x08, 0x01, 0x77, 0x01,
 		0x0d, 0xc8, 0x14, 0x00, 0x88, 0x01, 0x81, 0x00
@@ -145,17 +145,17 @@ void MFP_Init(void)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL MFP_Read(DWORD adr)
+uint8_t FASTCALL MFP_Read(uint32_t adr)
 {
-	BYTE reg;
-	BYTE ret = 0;
+	uint8_t reg;
+	uint8_t ret = 0;
 	int hpos;
 
 	if (adr>0xe8802f) return ret;		// ばすえらー？
 
 	if (adr&1)
 	{
-		reg=(BYTE)((adr&0x3f)>>1);
+		reg=(uint8_t)((adr&0x3f)>>1);
 		switch(reg)
 		{
 		case MFP_GPIP:
@@ -194,13 +194,13 @@ BYTE FASTCALL MFP_Read(DWORD adr)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL MFP_Write(DWORD adr, BYTE data)
+void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 {
-	BYTE reg;
+	uint8_t reg;
 	if (adr>0xe8802f) return;
 	if (adr&1)
 	{
-		reg=(BYTE)((adr&0x3f)>>1);
+		reg=(uint8_t)((adr&0x3f)>>1);
 
 		switch(reg)
 		{

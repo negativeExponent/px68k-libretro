@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2003 NONAKA Kimihiro
  * All rights reserved.
  *
@@ -35,12 +35,16 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
 #include <unistd.h>
+#endif
 
 #include "windows.h"
 #include "mmsystem.h"
 
-DWORD WINAPI FAKE_GetLastError(VOID)
+uint32_t WINAPI FAKE_GetLastError(void)
 {
 	return NO_ERROR;
 }
@@ -52,9 +56,9 @@ BOOL SetEndOfFile(void *hFile)
 }
 
 static int _WritePrivateProfileString_subr(
-			FILE **, long, long, LPCSTR, LPCSTR);
+			FILE **, long, long, const char *, const char *);
 
-BOOL WINAPI WritePrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR str, LPCSTR inifile)
+BOOL WINAPI WritePrivateProfileString(const char *sect, const char *key, const char *str, const char *inifile)
 {
 	char lbuf[256];
 	char newbuf[256];
@@ -91,7 +95,7 @@ BOOL WINAPI WritePrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR str, LPCST
 		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
 			goto writefail;
 		snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
-		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1) 
+		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
 			goto writefail;
 		fclose(fp);
 		return TRUE;
@@ -159,7 +163,7 @@ writefail:
  * XXX: REWRITE ME!!!
  */
 static int _WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
-		LPCSTR buf, LPCSTR file)
+		const char *buf, const char *file)
 {
 	struct stat sb;
 	char *p;

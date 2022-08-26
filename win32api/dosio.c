@@ -1,6 +1,6 @@
 /*	$Id: dosio.c,v 1.2 2003/12/05 18:07:15 nonaka Exp $	*/
 
-/* 
+/*
  * Copyright (c) 2003 NONAKA Kimihiro
  * All rights reserved.
  *
@@ -40,7 +40,7 @@ extern char slash;
 #endif
 
 static char	curpath[MAX_PATH+32] = "";
-static LPSTR	curfilep = curpath;
+static char *curfilep = curpath;
 
 void dosio_init(void)
 {
@@ -55,7 +55,7 @@ void dosio_term(void)
 }
 
 /* ファイル操作 */
-FILEH file_open(LPSTR filename)
+FILEH file_open(char *filename)
 {
 	FILEH	ret;
 
@@ -70,7 +70,7 @@ FILEH file_open(LPSTR filename)
 	return ret;
 }
 
-FILEH file_create(LPSTR filename, int ftype)
+FILEH file_create(char *filename, int ftype)
 {
 	FILEH	ret;
 
@@ -83,52 +83,51 @@ FILEH file_create(LPSTR filename, int ftype)
 	return ret;
 }
 
-DWORD file_seek(FILEH handle, long pointer, int16_t mode)
+uint32_t file_seek(FILEH handle, long pointer, int16_t mode)
 {
-
 	return SetFilePointer(handle, pointer, 0, mode);
 }
 
-DWORD file_lread(FILEH handle, void *data, DWORD length)
+uint32_t file_lread(FILEH handle, void *data, uint32_t length)
 {
-	DWORD	readsize;
+	uint32_t	readsize;
 
 	if (ReadFile(handle, data, length, &readsize, NULL) == 0)
 		return 0;
 	return readsize;
 }
 
-DWORD file_lwrite(FILEH handle, void *data, DWORD length)
+uint32_t file_lwrite(FILEH handle, void *data, uint32_t length)
 {
-	DWORD	writesize;
+	uint32_t	writesize;
 
 	if (WriteFile(handle, data, length, &writesize, NULL) == 0)
 		return 0;
 	return writesize;
 }
 
-WORD file_read(FILEH handle, void *data, WORD length)
+uint16_t file_read(FILEH handle, void *data, uint16_t length)
 {
-	DWORD	readsize;
+	uint32_t	readsize;
 
 	if (ReadFile(handle, data, length, &readsize, NULL) == 0)
 		return 0;
-	return (WORD)readsize;
+	return (uint16_t)readsize;
 }
 
-DWORD file_zeroclr(FILEH handle, DWORD length)
+uint32_t file_zeroclr(FILEH handle, uint32_t length)
 {
 	char	buf[256];
-	DWORD	size;
-	DWORD	wsize;
-	DWORD	ret = 0;
+	uint32_t	size;
+	uint32_t	wsize;
+	uint32_t	ret = 0;
 
 	memset(buf, 0, sizeof(buf));
 	while (length > 0) {
 		wsize = (length >= sizeof(buf)) ? sizeof(buf) : length;
 
 		size = file_lwrite(handle, buf, wsize);
-		if (size == (DWORD)-1)
+		if (size == (uint32_t)-1)
 			return -1;
 
 		ret += size;
@@ -139,23 +138,23 @@ DWORD file_zeroclr(FILEH handle, DWORD length)
 	return ret;
 }
 
-WORD file_write(FILEH handle, void *data, WORD length)
+uint16_t file_write(FILEH handle, void *data, uint16_t length)
 {
-	DWORD	writesize;
+	uint32_t	writesize;
 
 	if (WriteFile(handle, data, length, &writesize, NULL) == 0)
 		return 0;
-	return (WORD)writesize;
+	return (uint16_t)writesize;
 }
 
-WORD file_lineread(FILEH handle, void *data, WORD length)
+uint16_t file_lineread(FILEH handle, void *data, uint16_t length)
 {
-	LPSTR	p = (LPSTR)data;
-	DWORD	readsize;
-	DWORD	pos;
-	WORD	ret = 0;
+	char *p = (char *)data;
+	uint32_t	readsize;
+	uint32_t	pos;
+	uint16_t	ret = 0;
 
-	if ((length == 0) || ((pos = file_seek(handle, 0, 1)) == (DWORD)-1))
+	if ((length == 0) || ((pos = file_seek(handle, 0, 1)) == (uint32_t)-1))
 		return 0;
 
 	memset(data, 0, length);
@@ -183,13 +182,13 @@ int16_t file_close(FILEH handle)
 	return 0;
 }
 
-int16_t file_attr(LPSTR filename)
+int16_t file_attr(char *filename)
 {
 	return (int16_t)GetFileAttributes(filename);
 }
 
 							// カレントファイル操作
-void file_setcd(LPSTR exename)
+void file_setcd(char *exename)
 {
 
 	strncpy(curpath, exename, sizeof(curpath));
@@ -198,39 +197,39 @@ void file_setcd(LPSTR exename)
 	*curfilep = '\0';
 }
 
-LPSTR file_getcd(LPSTR filename)
+char *file_getcd(char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return curpath;
 }
 
-FILEH file_open_c(LPSTR filename)
+FILEH file_open_c(char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_open(curpath);
 }
 
-FILEH file_create_c(LPSTR filename, int ftype)
+FILEH file_create_c(char *filename, int ftype)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_create(curpath, ftype);
 }
 
-int16_t file_attr_c(LPSTR filename)
+int16_t file_attr_c(char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_attr(curpath);
 }
 
-int file_getftype(LPSTR filename)
+int file_getftype(char *filename)
 {
 	(void)filename;
 	return FTYPE_NONE;
 }
 
-LPSTR getFileName(LPSTR filename)
+char *getFileName(char *filename)
 {
-	LPSTR p, q;
+	char *p, *q;
 
 	for (p = q = filename; *p != '\0'; p++)
 		if (*p == slash/*'/'*/)
@@ -238,10 +237,9 @@ LPSTR getFileName(LPSTR filename)
 	return q;
 }
 
-void
-cutFileName(LPSTR filename)
+void cutFileName(char *filename)
 {
-	LPSTR p, q;
+	char *p, *q;
 
 	for (p = filename, q = NULL; *p != '\0'; p++)
 		if (*p == slash/*'/'*/)
@@ -250,10 +248,10 @@ cutFileName(LPSTR filename)
 		*q = '\0';
 }
 
-LPSTR getExtName(LPSTR filename)
+char *getExtName(char *filename)
 {
-	LPSTR	p;
-	LPSTR	q;
+	char *p;
+	char *q;
 
 	p = getFileName(filename);
 	q = NULL;
@@ -268,10 +266,10 @@ LPSTR getExtName(LPSTR filename)
 	return q;
 }
 
-void cutExtName(LPSTR filename)
+void cutExtName(char *filename)
 {
-	LPSTR	p;
-	LPSTR	q;
+	char *p;
+	char *q;
 
 	p = getFileName(filename);
 	q = NULL;
@@ -285,13 +283,13 @@ void cutExtName(LPSTR filename)
 		*q = '\0';
 }
 
-int kanji1st(LPSTR str, int pos)
+int kanji1st(char *str, int pos)
 {
 	int	ret = 0;
-	BYTE	c;
+	uint8_t	c;
 
 	for (; pos > 0; pos--) {
-		c = (BYTE)str[pos];
+		c = (uint8_t)str[pos];
 		if (!((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xfc)))
 			break;
 		ret ^= 1;
@@ -299,13 +297,13 @@ int kanji1st(LPSTR str, int pos)
 	return ret;
 }
 
-int kanji2nd(LPSTR str, int pos)
+int kanji2nd(char *str, int pos)
 {
 	int	ret = 0;
-	BYTE	c;
+	uint8_t	c;
 
 	while (pos-- > 0) {
-		c = (BYTE)str[pos];
+		c = (uint8_t)str[pos];
 		if (!((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xfc)))
 			break;
 		ret ^= 1;
@@ -314,7 +312,7 @@ int kanji2nd(LPSTR str, int pos)
 }
 
 
-int ex_a2i(LPSTR str, int min, int max)
+int ex_a2i(char *str, int min, int max)
 {
 	int	ret = 0;
 	char	c;
@@ -338,7 +336,7 @@ int ex_a2i(LPSTR str, int min, int max)
 	return ret;
 }
 
-void cutyen(LPSTR str)
+void cutyen(char *str)
 {
 	int pos = strlen(str) - 1;
 
@@ -346,7 +344,7 @@ void cutyen(LPSTR str)
 		str[pos] = '\0';
 }
 
-void plusyen(LPSTR str, int len)
+void plusyen(char *str, int len)
 {
 	int	pos = strlen(str);
 
@@ -361,9 +359,9 @@ void plusyen(LPSTR str, int len)
 }
 
 
-void fname_mix(LPSTR str, LPSTR mix, int size)
+void fname_mix(char *str, char *mix, int size)
 {
-	LPSTR p;
+	char *p;
 	int len;
 	char c;
 	char check;

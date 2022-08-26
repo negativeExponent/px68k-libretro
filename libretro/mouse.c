@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2003,2008 NONAKA Kimihiro
  * All rights reserved.
  *
@@ -32,8 +32,8 @@
 
 float	MouseDX = 0;
 float	MouseDY = 0;
-BYTE	MouseStat = 0;
-BYTE	MouseSW = 0;
+uint8_t	MouseStat = 0;
+uint8_t	MouseSW = 0;
 
 POINT	CursorPos;
 int	mousex = 0, mousey = 0;

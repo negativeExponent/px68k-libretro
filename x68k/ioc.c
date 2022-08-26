@@ -5,12 +5,12 @@
 #include "common.h"
 #include "ioc.h"
 
-	BYTE	IOC_IntStat = 0;
-	BYTE	IOC_IntVect = 0;
+	uint8_t	IOC_IntStat = 0;
+	uint8_t	IOC_IntVect = 0;
 
 
 // -----------------------------------------------------------------------
-//   初期化〜
+//   初期化~
 // -----------------------------------------------------------------------
 void IOC_Init(void)
 {
@@ -22,7 +22,7 @@ void IOC_Init(void)
 // -----------------------------------------------------------------------
 //   りーど
 // -----------------------------------------------------------------------
-BYTE FASTCALL IOC_Read(DWORD adr)
+uint8_t FASTCALL IOC_Read(uint32_t adr)
 {
 	if (adr==0xe9c001)
 		return IOC_IntStat;
@@ -34,7 +34,7 @@ BYTE FASTCALL IOC_Read(DWORD adr)
 // -----------------------------------------------------------------------
 //   らいと
 // -----------------------------------------------------------------------
-void FASTCALL IOC_Write(DWORD adr, BYTE data)
+void FASTCALL IOC_Write(uint32_t adr, uint8_t data)
 {
 	if (adr==0xe9c001)
 	{

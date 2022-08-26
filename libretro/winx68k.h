@@ -25,16 +25,16 @@ extern int rfd_sock;
 #define _TOSTR(s) TOSTR(s)
 #define PX68KVERSTR _TOSTR(PX68K_VERSION)
 
-extern	BYTE*	FONT;
+extern	uint8_t*	FONT;
 
-extern	WORD	VLINE_TOTAL;
-extern	DWORD	VLINE;
-extern	DWORD	vline;
+extern	uint16_t	VLINE_TOTAL;
+extern	uint32_t	VLINE;
+extern	uint32_t	vline;
 
 extern	char	winx68k_dir[MAX_PATH];
 extern	char	winx68k_ini[MAX_PATH];
 extern	int	BIOS030Flag;
-extern	BYTE	FrameChanged;
+extern	uint8_t	FrameChanged;
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 extern int realdisp_w, realdisp_h;

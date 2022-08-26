@@ -27,7 +27,7 @@
 #include "../m68000/m68000.h"
 
 #define MIDIBUFFERS 1024			// 1024は流石に越えないでしょう^_^;
-#define MIDIBUFTIMER 3200			// 10MHz / (31.25K / 10bit) = 3200 が正解になります... 
+#define MIDIBUFTIMER 3200			// 10MHz / (31.25K / 10bit) = 3200 が正解になります...
 #define MIDIFIFOSIZE 256
 #define MIDIDELAYBUF 4096			// 31250/10 = 3125 byts (1s分) あればおっけ？
 
@@ -52,34 +52,34 @@ MIDIHDR		hHdr;
 int		MIDI_CTRL;
 int		MIDI_POS;
 int		MIDI_SYSCOUNT;
-BYTE		MIDI_LAST;
-BYTE		MIDI_BUF[MIDIBUFFERS];
-BYTE		MIDI_EXCVBUF[MIDIBUFFERS];
-BYTE		MIDI_EXCVWAIT;
+uint8_t		MIDI_LAST;
+uint8_t		MIDI_BUF[MIDIBUFFERS];
+uint8_t		MIDI_EXCVBUF[MIDIBUFFERS];
+uint8_t		MIDI_EXCVWAIT;
 
-BYTE		MIDI_RegHigh = 0;				// X68K用
-BYTE		MIDI_Playing = 0;				// マスタスイッチ
-BYTE		MIDI_Vector = 0;
-BYTE		MIDI_IntEnable = 0;
-BYTE		MIDI_IntVect = 0;
-BYTE		MIDI_IntFlag = 0;
-DWORD		MIDI_Buffered = 0;
+uint8_t		MIDI_RegHigh = 0;				// X68K用
+uint8_t		MIDI_Playing = 0;				// マスタスイッチ
+uint8_t		MIDI_Vector = 0;
+uint8_t		MIDI_IntEnable = 0;
+uint8_t		MIDI_IntVect = 0;
+uint8_t		MIDI_IntFlag = 0;
+uint32_t	MIDI_Buffered = 0;
 long		MIDI_BufTimer = 3333;
-BYTE		MIDI_R05 = 0;
-DWORD		MIDI_GTimerMax = 0;
-DWORD		MIDI_MTimerMax = 0;
+uint8_t		MIDI_R05 = 0;
+uint32_t	MIDI_GTimerMax = 0;
+uint32_t	MIDI_MTimerMax = 0;
 long		MIDI_GTimerVal = 0;
 long		MIDI_MTimerVal = 0;
-BYTE		MIDI_TxFull = 0;
-BYTE		MIDI_MODULE = MIDI_NOTUSED;
+uint8_t		MIDI_TxFull = 0;
+uint8_t		MIDI_MODULE = MIDI_NOTUSED;
 
-static BYTE MIDI_ResetType[5] = {		// Config.MIDI_Type に合わせて…
+static uint8_t MIDI_ResetType[5] = {		// Config.MIDI_Type に合わせて…
 	MIDI_LA, MIDI_GM, MIDI_GS, MIDI_XG
 };
 
 typedef struct {
-	DWORD time;
-	BYTE msg;
+	uint32_t time;
+	uint8_t msg;
 } DELAYBUFITEM;
 
 static DELAYBUFITEM DelayBuf[MIDIDELAYBUF];
@@ -97,19 +97,19 @@ enum {
 	MIMPI_RHYTHM,
 };
 
-static	BYTE		LOADED_TONEMAP = 0;
-static	BYTE		ENABLE_TONEMAP = 0;
-static	BYTE		TONE_CH[16];
-static	BYTE		TONEBANK[3][128];
-static	BYTE		TONEMAP[3][128];
+static	uint8_t		LOADED_TONEMAP = 0;
+static	uint8_t		ENABLE_TONEMAP = 0;
+static	uint8_t		TONE_CH[16];
+static	uint8_t		TONEBANK[3][128];
+static	uint8_t		TONEMAP[3][128];
 
 // ------------------------------------------------------------------
 
 
-static BYTE EXCV_MTRESET[] = { 0xfe, 0xfe, 0xfe};
-static BYTE EXCV_GMRESET[] = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
-static BYTE EXCV_GSRESET[] = { 0xf0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7f, 0x00, 0x41, 0xf7};
-static BYTE EXCV_XGRESET[] = { 0xf0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xf7};
+static uint8_t EXCV_MTRESET[] = { 0xfe, 0xfe, 0xfe};
+static uint8_t EXCV_GMRESET[] = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
+static uint8_t EXCV_GSRESET[] = { 0xf0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7f, 0x00, 0x41, 0xf7};
+static uint8_t EXCV_XGRESET[] = { 0xf0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xf7};
 
 #define	MIDICTRL_READY		0
 #define	MIDICTRL_2BYTES		1
@@ -131,22 +131,22 @@ static BYTE EXCV_XGRESET[] = { 0xf0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0
 #define	MIDI_ACTIVESENSE	0xfe
 #define	MIDI_SYSTEMRESET	0xff
 
-#define MIDIOUTS(a,b,c) (((DWORD)c << 16) | ((DWORD)b << 8) | (DWORD)a)
+#define MIDIOUTS(a,b,c) (((uint32_t)c << 16) | ((uint32_t)b << 8) | (uint32_t)a)
 
 // -----------------------------------------------------------------------
 //   割り込み
 // -----------------------------------------------------------------------
-DWORD FASTCALL MIDI_Int(BYTE irq)
+uint32_t FASTCALL MIDI_Int(uint8_t irq)
 {
-	DWORD ret;
+	uint32_t ret;
 	IRQH_IRQCallBack(irq);
 	if ( irq==4 )
 	{
-		ret = (DWORD)(MIDI_Vector|MIDI_IntVect);
+		ret = (uint32_t)(MIDI_Vector|MIDI_IntVect);
 	}
 	else
 	{
-		ret = (DWORD)(-1);
+		ret = (uint32_t)(-1);
 	}
 
 	return ret;
@@ -156,7 +156,7 @@ DWORD FASTCALL MIDI_Int(BYTE irq)
 // -----------------------------------------------------------------------
 //   たいまを進める
 // -----------------------------------------------------------------------
-void FASTCALL MIDI_Timer(DWORD clk)
+void FASTCALL MIDI_Timer(uint32_t clk)
 {
 	if ( !Config.MIDI_SW ) return;	// MIDI OFF時は帰る
 
@@ -223,7 +223,7 @@ void MIDI_SetModule(void)
 // -----------------------------------------------------------------------
 //   えくすくるーしぶ ごー
 // -----------------------------------------------------------------------
-void MIDI_Sendexclusive(BYTE *excv, int length)
+void MIDI_Sendexclusive(uint8_t *excv, int length)
 {
 	// エクスクルーシヴを送ります
 	memcpy(MIDI_EXCVBUF, excv, length);
@@ -255,7 +255,7 @@ void MIDI_Waitlastexclusiveout(void) {
 // -----------------------------------------------------------------------
 void MIDI_Reset(void) {
 
-	DWORD msg;
+	uint32_t msg;
 
 	memset(DelayBuf, 0, sizeof(DelayBuf));
 	DBufPtrW = DBufPtrR = 0;
@@ -345,7 +345,7 @@ void MIDI_Cleanup(void) {
 // -----------------------------------------------------------------------
 //   メッセージ判別
 // -----------------------------------------------------------------------
-void MIDI_Message(BYTE mes) {
+void MIDI_Message(uint8_t mes) {
 
 	if (!hOut) {
 		return;
@@ -475,7 +475,7 @@ void MIDI_Message(BYTE mes) {
 		case MIDICTRL_3BYTES:
 			if (MIDI_POS >= 3) {
 				MIDI_Waitlastexclusiveout();
-				midiOutShortMsg(hOut, 
+				midiOutShortMsg(hOut,
 							MIDIOUTS(MIDI_BUF[0], MIDI_BUF[1], MIDI_BUF[2]));
 				MIDI_CTRL = MIDICTRL_READY;
 			}
@@ -513,9 +513,9 @@ void MIDI_Message(BYTE mes) {
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL MIDI_Read(DWORD adr)
+uint8_t FASTCALL MIDI_Read(uint32_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 
 	if ( (adr<0xeafa01)||(adr>=0xeafa10)||(!Config.MIDI_SW) )	// 変なアドレスか、
 	{								// MIDI OFF時にはバスエラーにする
@@ -648,7 +648,7 @@ BYTE FASTCALL MIDI_Read(DWORD adr)
 }
 
 
-static void AddDelayBuf(BYTE msg)
+static void AddDelayBuf(uint8_t msg)
 {
 	int newptr = (DBufPtrW+1)%MIDIDELAYBUF;
 	if ( newptr!=DBufPtrR ) {
@@ -675,7 +675,7 @@ void MIDI_DelayOut(uint32_t delay)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL MIDI_Write(DWORD adr, BYTE data)
+void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 {
 	if ( (adr<0xeafa01)||(adr>=0xeafa10)||(!Config.MIDI_SW) )	// 変なアドレスか、
 	{								// MIDI OFF時にはバスエラーにする
@@ -716,7 +716,7 @@ void FASTCALL MIDI_Write(DWORD adr, BYTE data)
 		case 7:
 			break;
 		case 8:
-			MIDI_GTimerMax = (MIDI_GTimerMax&0xff00)|(DWORD)data;
+			MIDI_GTimerMax = (MIDI_GTimerMax&0xff00)|(uint32_t)data;
 			break;
 		case 9:
 			break;
@@ -743,7 +743,7 @@ void FASTCALL MIDI_Write(DWORD adr, BYTE data)
 		case 7:
 			break;
 		case 8:
-			MIDI_GTimerMax = (MIDI_GTimerMax&0xff)|(((DWORD)(data&0x3f))*256);
+			MIDI_GTimerMax = (MIDI_GTimerMax&0xff)|(((uint32_t)(data&0x3f))*256);
 			if (data&0x80)
 				MIDI_GTimerVal = MIDI_GTimerMax*80;
 			break;
@@ -776,7 +776,7 @@ void FASTCALL MIDI_Write(DWORD adr, BYTE data)
 		case 7:
 			break;
 		case 8:
-			MIDI_MTimerMax = (MIDI_MTimerMax&0xff00)|(DWORD)data;
+			MIDI_MTimerMax = (MIDI_MTimerMax&0xff00)|(uint32_t)data;
 			break;
 		case 9:
 			break;
@@ -802,7 +802,7 @@ void FASTCALL MIDI_Write(DWORD adr, BYTE data)
 		case 7:
 			break;
 		case 8:
-			MIDI_MTimerMax = (MIDI_MTimerMax&0xff)|(((DWORD)(data&0x3f))*256);
+			MIDI_MTimerMax = (MIDI_MTimerMax&0xff)|(((uint32_t)(data&0x3f))*256);
 			if (data&0x80)
 				MIDI_MTimerVal = MIDI_MTimerMax*80;
 			break;
@@ -820,7 +820,7 @@ void FASTCALL MIDI_Write(DWORD adr, BYTE data)
 
 static int exstrcmp(char *str, char *cmp) {
 
-	BYTE	c;
+	uint8_t	c;
 
 	while(*cmp) {
 		c = *str++;
@@ -836,7 +836,7 @@ static int exstrcmp(char *str, char *cmp) {
 
 static void cutdelimita(char **buf) {
 
-	BYTE	c;
+	uint8_t	c;
 
 	for(;;) {
 		c = **buf;
@@ -854,7 +854,7 @@ static int getvalue(char **buf, int cutspace) {
 
 	int		ret = 0;
 	int	valhit = 0;
-	BYTE	c;
+	uint8_t	c;
 
 	if (cutspace) {
 		cutdelimita(buf);
@@ -880,19 +880,19 @@ static int getvalue(char **buf, int cutspace) {
 
 static int file_readline(FILEH fh, char *buf, int len) {
 
-	DWORD	pos;
-	DWORD	readsize;
-	DWORD	i;
+	uint32_t	pos;
+	uint32_t	readsize;
+	uint32_t	i;
 
 	if (len < 2) {
 		return(-1);
 	}
 	pos = File_Seek(fh, 0, FSEEK_CUR);
-	if (pos == (DWORD)-1) {
+	if (pos == (uint32_t)-1) {
 		return(-1);
 	}
 	readsize = File_Read(fh, buf, len-1);
-	if (readsize == (DWORD)-1) {
+	if (readsize == (uint32_t)-1) {
 		return(-1);
 	}
 	if (!readsize) {
@@ -966,7 +966,7 @@ static void mimpidefline_analaize(char *buf) {
 
 int MIDI_SetMimpiMap(char *filename) {
 
-	BYTE		b;
+	uint8_t		b;
 	FILEH		fh;
 	char		buf[128];
 
