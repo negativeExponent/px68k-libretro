@@ -65,7 +65,7 @@ int CHANGEAV = 0;
 int CHANGEAV_TIMING = 0; /* Separate change of geometry from change of refresh rate */
 int VID_MODE = MODE_NORM; /* what framerate we start in */
 static float FRAMERATE;
-DWORD libretro_supports_input_bitmasks = 0;
+uint32_t libretro_supports_input_bitmasks = 0;
 int64_t total_usec = -1;
 
 static int16_t soundbuf[1024 * 2];
@@ -169,10 +169,10 @@ static struct retro_midi_interface midi_cb = { 0 };
 
 WINMMAPI MMRESULT WINAPI midiOutClose(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
 WINMMAPI MMRESULT WINAPI midiOutReset(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
-WINMMAPI MMRESULT WINAPI midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh) { return !MIDIERR_STILLPLAYING; }
-WINMMAPI MMRESULT WINAPI midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh) { return MMSYSERR_NOERROR; }
+WINMMAPI MMRESULT WINAPI midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh) { return !MIDIERR_STILLPLAYING; }
+WINMMAPI MMRESULT WINAPI midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh) { return MMSYSERR_NOERROR; }
 
-WINMMAPI MMRESULT WINAPI midiOutShortMsg(HMIDIOUT hmo, DWORD dwMsg)
+WINMMAPI MMRESULT WINAPI midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg)
 {
    if (libretro_supports_midi_output && midi_cb.output_enabled()) {
       midi_cb.write(dwMsg         & 0xFF, 0); /* status byte */
@@ -183,7 +183,7 @@ WINMMAPI MMRESULT WINAPI midiOutShortMsg(HMIDIOUT hmo, DWORD dwMsg)
    return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
+WINMMAPI MMRESULT WINAPI midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 {
    int i;
    if (libretro_supports_midi_output && midi_cb.output_enabled()) {
@@ -194,8 +194,8 @@ WINMMAPI MMRESULT WINAPI midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
    return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI midiOutOpen(LPHMIDIOUT phmo, UINT uDeviceID, DWORD dwCallback,
-    DWORD dwInstance, DWORD fdwOpen)
+WINMMAPI MMRESULT WINAPI midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
+    uint32_t dwInstance, uint32_t fdwOpen)
 {
    if (libretro_supports_midi_output && midi_cb.output_enabled()) {
       *phmo = &midi_cb;
@@ -721,7 +721,7 @@ static void parse_cmdline(const char *argv)
                /* ... do something with the word ... */
                for (c2 = 0, p2 = start_of_word; p2 < p; p2++, c2++)
                   ARGUV[ARGUC][c2] = (unsigned char) *p2;
-               
+
                ARGUC++;
 
                state = DULL; /* back to "not in word, not in string" state */
@@ -978,7 +978,7 @@ static void update_variables(void)
       if (snd_opt != Config.PCM_VOL)
       {
          Config.PCM_VOL = snd_opt;
-         ADPCM_SetVolume((BYTE)Config.PCM_VOL);
+         ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
       }
    }
 
@@ -991,7 +991,7 @@ static void update_variables(void)
       if (snd_opt != Config.OPM_VOL)
       {
          Config.OPM_VOL = snd_opt;
-         OPM_SetVolume((BYTE)Config.OPM_VOL);
+         OPM_SetVolume((uint8_t)Config.OPM_VOL);
       }
    }
 
@@ -1005,7 +1005,7 @@ static void update_variables(void)
       if (snd_opt != Config.MCR_VOL)
       {
          Config.MCR_VOL = snd_opt;
-         Mcry_SetVolume((BYTE)Config.MCR_VOL);
+         Mcry_SetVolume((uint8_t)Config.MCR_VOL);
       }
    }
 #endif
@@ -1495,7 +1495,7 @@ void retro_run(void)
 
    if (libretro_supports_midi_output && midi_cb.output_enabled())
       midi_cb.flush();
-   
+
    audio_batch_cb((const int16_t*)soundbuf, soundbuf_size);
    video_cb(videoBuffer, retrow, retroh, /*retrow*/ 800 << 1/*2*/);
 }

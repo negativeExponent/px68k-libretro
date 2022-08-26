@@ -12,16 +12,16 @@
 #include	"../m68000/m68000.h"
 #include	"tvram.h"
 
-	BYTE	TVRAM[0x80000];
-	BYTE	TextDrawWork[1024*1024];
-	BYTE	TextDirtyLine[1024];
+	uint8_t	TVRAM[0x80000];
+	uint8_t	TextDrawWork[1024*1024];
+	uint8_t	TextDirtyLine[1024];
 
-	BYTE	TextDrawPattern[2048*4];
+	uint8_t	TextDrawPattern[2048*4];
 
-//	WORD	Text_LineBuf[1024];	// →BGのを使うように変更
-	BYTE	Text_TrFlag[1024];
+//	uint16_t	Text_LineBuf[1024];	// →BGのを使うように変更
+	uint8_t	Text_TrFlag[1024];
 
-INLINE void TVRAM_WriteByteMask(DWORD adr, BYTE data);
+INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data);
 
 // -----------------------------------------------------------------------
 //   全部書き換え~
@@ -69,7 +69,7 @@ void TVRAM_Cleanup(void)
 // -----------------------------------------------------------------------
 //   読むなり
 // -----------------------------------------------------------------------
-BYTE FASTCALL TVRAM_Read(DWORD adr)
+uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 {
 	adr &= 0x7ffff;
 	adr ^= 1;
@@ -80,7 +80,7 @@ BYTE FASTCALL TVRAM_Read(DWORD adr)
 // -----------------------------------------------------------------------
 //   1ばいと書くなり
 // -----------------------------------------------------------------------
-INLINE void TVRAM_WriteByte(DWORD adr, BYTE data)
+INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 {
 	if (TVRAM[adr]!=data)
 	{
@@ -93,7 +93,7 @@ INLINE void TVRAM_WriteByte(DWORD adr, BYTE data)
 // -----------------------------------------------------------------------
 //   ますく付きで書くなり
 // -----------------------------------------------------------------------
-INLINE void TVRAM_WriteByteMask(DWORD adr, BYTE data)
+INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data)
 {
 	data = (TVRAM[adr] & CRTC_Regs[0x2e + ((adr^1) & 1)]) | (data & (~CRTC_Regs[0x2e + ((adr ^ 1) & 1)]));
 	if (TVRAM[adr] != data)
@@ -107,7 +107,7 @@ INLINE void TVRAM_WriteByteMask(DWORD adr, BYTE data)
 // -----------------------------------------------------------------------
 //   書くなり
 // -----------------------------------------------------------------------
-void FASTCALL TVRAM_Write(DWORD adr, BYTE data)
+void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 {
 	adr &= 0x7ffff;
 	adr ^= 1;
@@ -141,11 +141,11 @@ void FASTCALL TVRAM_Write(DWORD adr, BYTE data)
 		}
 	}
 	{
-		DWORD *ptr = (DWORD *)TextDrawPattern;
-		DWORD tvram_addr = adr & 0x1ffff;
-		DWORD workadr = ((adr & 0x1ff80) + ((adr ^ 1) & 0x7f)) << 3;
-		DWORD t0, t1;
-		BYTE pat;
+		uint32_t *ptr = (uint32_t *)TextDrawPattern;
+		uint32_t tvram_addr = adr & 0x1ffff;
+		uint32_t workadr = ((adr & 0x1ff80) + ((adr ^ 1) & 0x7f)) << 3;
+		uint32_t t0, t1;
+		uint8_t pat;
 
 		pat = TVRAM[tvram_addr + 0x60000];
 		t0 = ptr[(pat * 2) + 1536];
@@ -163,8 +163,8 @@ void FASTCALL TVRAM_Write(DWORD adr, BYTE data)
 		t0 |= ptr[(pat * 2)];
 		t1 |= ptr[(pat * 2 + 1)];
 
-		*((DWORD *)&TextDrawWork[workadr]) = t0;
-		*(((DWORD *)(&TextDrawWork[workadr])) + 1) = t1;
+		*((uint32_t *)&TextDrawWork[workadr]) = t0;
+		*(((uint32_t *)(&TextDrawWork[workadr])) + 1) = t1;
 	}
 }
 
@@ -174,14 +174,14 @@ void FASTCALL TVRAM_Write(DWORD adr, BYTE data)
 // -----------------------------------------------------------------------
 void FASTCALL TVRAM_RCUpdate(void)
 {
-	DWORD adr = ((DWORD)CRTC_Regs[0x2d]<<9);
+	uint32_t adr = ((uint32_t)CRTC_Regs[0x2d]<<9);
 
 	/* XXX: BUG */
-	DWORD *ptr = (DWORD *)TextDrawPattern;
-	DWORD *wptr = (DWORD *)(TextDrawWork + (adr << 3));
-	DWORD t0, t1;
-	DWORD tadr;
-	BYTE pat;
+	uint32_t *ptr = (uint32_t *)TextDrawPattern;
+	uint32_t *wptr = (uint32_t *)(TextDrawWork + (adr << 3));
+	uint32_t t0, t1;
+	uint32_t tadr;
+	uint8_t pat;
 	int i;
 
 	for (i = 0; i < 512; i++, adr++) {
@@ -213,11 +213,11 @@ void FASTCALL TVRAM_RCUpdate(void)
 // -----------------------------------------------------------------------
 void FASTCALL Text_DrawLine(int opaq)
 {
-	DWORD addr;
-	DWORD x, y;
-	DWORD off = 16;
-	DWORD i;
-	BYTE t;
+	uint32_t addr;
+	uint32_t x, y;
+	uint32_t off = 16;
+	uint32_t i;
+	uint8_t t;
 
 	y = TextScrollY + VLINE;
 	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)

@@ -10,37 +10,37 @@
 
 signed char MouseX = 0;
 signed char MouseY = 0;
-BYTE MouseSt = 0;
+uint8_t MouseSt = 0;
 
-BYTE SCC_RegsA[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-BYTE SCC_RegNumA = 0;
-BYTE SCC_RegSetA = 0;
-BYTE SCC_RegsB[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-BYTE SCC_RegNumB = 0;
-BYTE SCC_RegSetB = 0;
-BYTE SCC_Vector = 0;
-BYTE SCC_Dat[3] = {0, 0, 0};
-BYTE SCC_DatNum = 0;
+uint8_t SCC_RegsA[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+uint8_t SCC_RegNumA = 0;
+uint8_t SCC_RegSetA = 0;
+uint8_t SCC_RegsB[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+uint8_t SCC_RegNumB = 0;
+uint8_t SCC_RegSetB = 0;
+uint8_t SCC_Vector = 0;
+uint8_t SCC_Dat[3] = {0, 0, 0};
+uint8_t SCC_DatNum = 0;
 
 
 // -----------------------------------------------------------------------
 //   わりこみ
 // -----------------------------------------------------------------------
-DWORD FASTCALL SCC_Int(BYTE irq)
+uint32_t FASTCALL SCC_Int(uint8_t irq)
 {
-	DWORD ret = (DWORD)(-1);
+	uint32_t ret = (uint32_t)(-1);
 	IRQH_IRQCallBack(irq);
 	if ( (irq==5)&&(!(SCC_RegsB[9]&2)) )
 	{
 		if (SCC_RegsB[9]&1)
 		{
 			if (SCC_RegsB[9]&0x10)
-				ret = ((DWORD)(SCC_Vector&0x8f)+0x20);
+				ret = ((uint32_t)(SCC_Vector&0x8f)+0x20);
 			else
-				ret = ((DWORD)(SCC_Vector&0xf1)+4);
+				ret = ((uint32_t)(SCC_Vector&0xf1)+4);
 		}
 		else
-			ret = ((DWORD)SCC_Vector);
+			ret = ((uint32_t)SCC_Vector);
 	}
 
 	return ret;
@@ -83,7 +83,7 @@ void SCC_Init(void)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL SCC_Write(DWORD adr, BYTE data)
+void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 {
 	if (adr>=0xe98008) return;
 
@@ -165,9 +165,9 @@ void FASTCALL SCC_Write(DWORD adr, BYTE data)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL SCC_Read(DWORD adr)
+uint8_t FASTCALL SCC_Read(uint32_t adr)
 {
-	BYTE ret=0;
+	uint8_t ret=0;
 
 	if (adr>=0xe98008) return ret;
 

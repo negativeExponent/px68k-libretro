@@ -6,13 +6,13 @@
 
 // DIM Image Header
 typedef struct {
-	BYTE	type;
-	BYTE	trkflag[170];
-	BYTE	headerinfo[15];
-	BYTE	date[4];
-	BYTE	time[4];
-	BYTE	comment[61];
-	BYTE	overtrack;
+	uint8_t	type;
+	uint8_t	trkflag[170];
+	uint8_t	headerinfo[15];
+	uint8_t	date[4];
+	uint8_t	time[4];
+	uint8_t	comment[61];
+	uint8_t	overtrack;
 } DIM_HEADER;
 
 // DIM Disk Type

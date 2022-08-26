@@ -11,21 +11,21 @@
 #include "sasi.h"
 #include "irqh.h"
 
-BYTE SASI_Buf[256];
-BYTE SASI_Phase = 0;
-DWORD SASI_Sector = 0;
-DWORD SASI_Blocks = 0;
-BYTE SASI_Cmd[6];
-BYTE SASI_CmdPtr = 0;
-WORD SASI_Device = 0;
-BYTE SASI_Unit = 0;
+uint8_t SASI_Buf[256];
+uint8_t SASI_Phase = 0;
+uint32_t SASI_Sector = 0;
+uint32_t SASI_Blocks = 0;
+uint8_t SASI_Cmd[6];
+uint8_t SASI_CmdPtr = 0;
+uint16_t SASI_Device = 0;
+uint8_t SASI_Unit = 0;
 int16_t SASI_BufPtr = 0;
-BYTE SASI_RW = 0;
-BYTE SASI_Stat = 0;
-BYTE SASI_Mes = 0;
-BYTE SASI_Error = 0;
-BYTE SASI_SenseStatBuf[4];
-BYTE SASI_SenseStatPtr = 0;
+uint8_t SASI_RW = 0;
+uint8_t SASI_Stat = 0;
+uint8_t SASI_Mes = 0;
+uint8_t SASI_Error = 0;
+uint8_t SASI_SenseStatBuf[4];
+uint8_t SASI_SenseStatPtr = 0;
 
 int SASI_IsReady(void)
 {
@@ -39,14 +39,14 @@ int SASI_IsReady(void)
 // -----------------------------------------------------------------------
 //   わりこみ~
 // -----------------------------------------------------------------------
-DWORD FASTCALL SASI_Int(BYTE irq)
+uint32_t FASTCALL SASI_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 
 	if (irq==1)
-		return ((DWORD)IOC_IntVect+2);
+		return ((uint32_t)IOC_IntVect+2);
 	else
-		return -1;
+		return (uint32_t)-1;
 }
 
 
@@ -83,7 +83,7 @@ int16_t SASI_Seek(void)
 		memset(SASI_Buf, 0, 256);
 		return -1;
 	}
-	if (File_Seek(fp, SASI_Sector<<8, FSEEK_SET)!=(SASI_Sector<<8)) 
+	if (File_Seek(fp, SASI_Sector<<8, FSEEK_SET)!=(SASI_Sector<<8))
 	{
 		File_Close(fp);
 		return 0;
@@ -126,9 +126,9 @@ int16_t SASI_Flush(void)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL SASI_Read(DWORD adr)
+uint8_t FASTCALL SASI_Read(uint32_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 	int16_t result;
 
 	if (adr==0xe96003)
@@ -241,9 +241,9 @@ void SASI_CheckCmd(void)
 		break;
 	case 0x03:					// Request Sense Status
 		SASI_SenseStatBuf[0] = SASI_Error;
-		SASI_SenseStatBuf[1] = (BYTE)((SASI_Unit<<5)|((SASI_Sector>>16)&0x1f));
-		SASI_SenseStatBuf[2] = (BYTE)(SASI_Sector>>8);
-		SASI_SenseStatBuf[3] = (BYTE)SASI_Sector;
+		SASI_SenseStatBuf[1] = (uint8_t)((SASI_Unit<<5)|((SASI_Sector>>16)&0x1f));
+		SASI_SenseStatBuf[2] = (uint8_t)(SASI_Sector>>8);
+		SASI_SenseStatBuf[3] = (uint8_t)SASI_Sector;
 		SASI_Error = 0;
 		SASI_Phase=9;
 		SASI_Stat = 0;
@@ -254,8 +254,8 @@ void SASI_CheckCmd(void)
 		SASI_Stat = 0;
 		break;
 	case 0x08:					// Read Data
-		SASI_Sector = (((DWORD)SASI_Cmd[1]&0x1f)<<16)|(((DWORD)SASI_Cmd[2])<<8)|((DWORD)SASI_Cmd[3]);
-		SASI_Blocks = (DWORD)SASI_Cmd[4];
+		SASI_Sector = (((uint32_t)SASI_Cmd[1]&0x1f)<<16)|(((uint32_t)SASI_Cmd[2])<<8)|((uint32_t)SASI_Cmd[3]);
+		SASI_Blocks = (uint32_t)SASI_Cmd[4];
 		SASI_Phase++;
 		SASI_RW = 1;
 		SASI_BufPtr = 0;
@@ -268,8 +268,8 @@ void SASI_CheckCmd(void)
 		}
 		break;
 	case 0x0a:					// Write Data
-		SASI_Sector = (((DWORD)SASI_Cmd[1]&0x1f)<<16)|(((DWORD)SASI_Cmd[2])<<8)|((DWORD)SASI_Cmd[3]);
-		SASI_Blocks = (DWORD)SASI_Cmd[4];
+		SASI_Sector = (((uint32_t)SASI_Cmd[1]&0x1f)<<16)|(((uint32_t)SASI_Cmd[2])<<8)|((uint32_t)SASI_Cmd[3]);
+		SASI_Blocks = (uint32_t)SASI_Cmd[4];
 		SASI_Phase++;
 		SASI_RW = 0;
 		SASI_BufPtr = 0;
@@ -315,11 +315,11 @@ void SASI_CheckCmd(void)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL SASI_Write(DWORD adr, BYTE data)
+void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 {
 	int16_t result;
 	int i;
-	BYTE bit;
+	uint8_t bit;
 
 	if ( (adr==0xe96007)&&(SASI_Phase==0) )
 	{

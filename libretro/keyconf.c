@@ -7,13 +7,13 @@
 #include	"winx68k.h"
 
 HWND	hWndKeyConf = NULL;
-WORD	KeyConf_CodeW = 0;
-DWORD	KeyConf_CodeL = 0;
+uint16_t	KeyConf_CodeW = 0;
+uint32_t	KeyConf_CodeL = 0;
 char	KeyConfMessage[255];
 int	KeyConfFlag = 0;
 
 
-LRESULT CALLBACK KeyConfProc(HWND hdlg, UINT msg, WPARAM wp, LPARAM lp)
+LRESULT CALLBACK KeyConfProc(HWND hdlg, uint32_t msg, WPARAM wp, LPARAM lp)
 {
 	switch (msg)
 	{

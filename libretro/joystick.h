@@ -21,20 +21,20 @@
 
 void Joystick_Init(void);
 void Joystick_Cleanup(void);
-BYTE FASTCALL Joystick_Read(BYTE num);
-void FASTCALL Joystick_Write(BYTE num, BYTE data);
+uint8_t FASTCALL Joystick_Read(uint8_t num);
+void FASTCALL Joystick_Write(uint8_t num, uint8_t data);
 
 typedef signed int R_Keycode;
 void FASTCALL Joystick_Update(int is_menu, R_Keycode key, int port);
 
 
-BYTE get_joy_downstate(void);
+uint8_t get_joy_downstate(void);
 void reset_joy_downstate(void);
-BYTE get_joy_upstate(void);
+uint8_t get_joy_upstate(void);
 void reset_joy_upstate(void);
 
-extern BYTE JoyKeyState;
-extern BYTE keyb_in, joy_in;
+extern uint8_t JoyKeyState;
+extern uint8_t keyb_in, joy_in;
 
 extern int  *r_joy;
 

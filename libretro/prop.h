@@ -5,8 +5,8 @@
 
 typedef struct
 {
-	DWORD SampleRate;
-	DWORD BufferSize;
+	int SampleRate;
+	int BufferSize;
 	int WinPosX;
 	int WinPosY;
 	int OPM_VOL;

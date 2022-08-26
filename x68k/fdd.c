@@ -71,11 +71,11 @@ static int GetDiskType(char* file)
 // -----------------------------------------------------------------------
 //   ÁÞÈ´³ä¤ê¹þ¤ß
 // -----------------------------------------------------------------------
-DWORD FASTCALL FDD_Int(BYTE irq)
+uint32_t FASTCALL FDD_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 	if ( irq==1 )
-		return ((DWORD)IOC_IntVect+1);
+		return ((uint32_t)IOC_IntVect+1);
 	else
 		return -1;
 }

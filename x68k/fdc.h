@@ -4,8 +4,8 @@
 #include "common.h"
 
 void FDC_Init(void);
-BYTE FASTCALL FDC_Read(DWORD adr);
-void FASTCALL FDC_Write(DWORD adr, BYTE data);
+uint8_t FASTCALL FDC_Read(uint32_t adr);
+void FASTCALL FDC_Write(uint32_t adr, uint8_t data);
 int16_t FDC_Flush(void);
 void FDC_EPhaseEnd(void);
 void FDC_SetForceReady(int n);

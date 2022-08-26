@@ -35,12 +35,12 @@ bool FileIO::Open(const char* filename, uint flg)
 
 	strncpy(path, filename, MAX_PATH);
 
-	DWORD access = (flg & readonly ? 0 : GENERIC_WRITE) | GENERIC_READ;
-	DWORD share = (flg & readonly) ? FILE_SHARE_READ : 0;
-	DWORD creation = flg & create ? CREATE_ALWAYS : OPEN_EXISTING;
+	uint32_t access = (flg & readonly ? 0 : GENERIC_WRITE) | GENERIC_READ;
+	uint32_t share = (flg & readonly) ? FILE_SHARE_READ : 0;
+	uint32_t creation = flg & create ? CREATE_ALWAYS : OPEN_EXISTING;
 
 	hfile = CreateFile(filename, access, share, 0, creation, 0, 0);
-	
+
 	flags = (flg & readonly) | (hfile == INVALID_HANDLE_VALUE ? 0 : open);
 	if (!(flags & open))
 	{
@@ -66,12 +66,12 @@ bool FileIO::CreateNew(const char* filename)
 
 	strncpy(path, filename, MAX_PATH);
 
-	DWORD access = GENERIC_WRITE | GENERIC_READ;
-	DWORD share = 0;
-	DWORD creation = CREATE_NEW;
+	uint32_t access = GENERIC_WRITE | GENERIC_READ;
+	uint32_t share = 0;
+	uint32_t creation = CREATE_NEW;
 
 	hfile = CreateFile(filename, access, share, 0, creation, 0, 0);
-	
+
 	flags = (hfile == INVALID_HANDLE_VALUE ? 0 : open);
 	SetLogicalOrigin(0);
 
@@ -91,12 +91,12 @@ bool FileIO::Reopen(uint flg)
 
 	Close();
 
-	DWORD access = (flg & readonly ? 0 : GENERIC_WRITE) | GENERIC_READ;
-	DWORD share = flg & readonly ? FILE_SHARE_READ : 0;
-	DWORD creation = flg & create ? CREATE_ALWAYS : OPEN_EXISTING;
+	uint32_t access = (flg & readonly ? 0 : GENERIC_WRITE) | GENERIC_READ;
+	uint32_t share = flg & readonly ? FILE_SHARE_READ : 0;
+	uint32_t creation = flg & create ? CREATE_ALWAYS : OPEN_EXISTING;
 
 	hfile = CreateFile(path, access, share, 0, creation, 0, 0);
-	
+
 	flags = (flg & readonly) | (hfile == INVALID_HANDLE_VALUE ? 0 : open);
 	SetLogicalOrigin(0);
 
@@ -124,8 +124,8 @@ int32 FileIO::Read(void* dest, int32 size)
 {
 	if (!(GetFlags() & open))
 		return -1;
-	
-	DWORD readsize;
+
+	uint32_t readsize;
 	if (!ReadFile(hfile, dest, size, &readsize, 0))
 		return -1;
 	return readsize;
@@ -139,8 +139,8 @@ int32 FileIO::Write(const void* dest, int32 size)
 {
 	if (!(GetFlags() & open) || (GetFlags() & readonly))
 		return -1;
-	
-	DWORD writtensize;
+
+	uint32_t writtensize;
 	if (!WriteFile(hfile, dest, size, &writtensize, 0))
 		return -1;
 	return writtensize;
@@ -154,18 +154,18 @@ bool FileIO::Seek(int32 pos, SeekMethod method)
 {
 	if (!(GetFlags() & open))
 		return false;
-	
-	DWORD wmethod;
+
+	uint32_t wmethod;
 	switch (method)
 	{
-	case begin:	
-		wmethod = FILE_BEGIN; pos += lorigin; 
+	case begin:
+		wmethod = FILE_BEGIN; pos += lorigin;
 		break;
-	case current:	
-		wmethod = FILE_CURRENT; 
+	case current:
+		wmethod = FILE_CURRENT;
 		break;
-	case end:		
-		wmethod = FILE_END; 
+	case end:
+		wmethod = FILE_END;
 		break;
 	default:
 		return false;

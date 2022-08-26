@@ -17,8 +17,6 @@ extern "C" {
 
 #include <stdint.h>
 
-typedef uint32_t DWORD;
-
 /* setting */
 
 /* #define C68K_BIG_ENDIAN */

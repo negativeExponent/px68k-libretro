@@ -102,8 +102,8 @@ void C68k_Reset(c68k_struc *CPU)
 	CPU¼Â¹Ô
 --------------------------------------------------------*/
 
-extern DWORD BusErrHandling;
-extern DWORD BusErrAdr;
+extern uint32_t BusErrHandling;
+extern uint32_t BusErrAdr;
 
 int32_t C68k_Exec(c68k_struc *CPU, int32_t cycles)
 {

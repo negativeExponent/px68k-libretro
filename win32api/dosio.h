@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2003 NONAKA Kimihiro
  * All rights reserved.
  *
@@ -28,68 +28,62 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef	__NP2_DOSIO_H__
-#define	__NP2_DOSIO_H__
+#ifndef __NP2_DOSIO_H__
+#define __NP2_DOSIO_H__
 
-#include "common.h"
 #include "appftype.h"
+#include "common.h"
 
-#define		FILEH		HANDLE
+#define FILEH HANDLE
 
-#define		FSEEK_SET	0
-#define		FSEEK_CUR	1
-#define		FSEEK_END	2
+#define FSEEK_SET 0
+#define FSEEK_CUR 1
+#define FSEEK_END 2
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
-							// DOSIO:関数の準備
-void dosio_init(void);
-void dosio_term(void);
-							// ファイル操作
-FILEH file_open(LPSTR filename);
-FILEH file_create(LPSTR filename, int ftype);
-DWORD file_seek(FILEH handle, long pointer, int16_t mode);
-DWORD file_lread(FILEH handle, void *data, DWORD length);
-DWORD file_lwrite(FILEH handle, void *data, DWORD length);
-WORD file_read(FILEH handle, void *data, WORD length);
-WORD file_write(FILEH handle, void *data, WORD length);
-DWORD file_zeroclr(FILEH handle, DWORD length);
-WORD file_lineread(FILEH handle, void *data, WORD length);
-int16_t file_close(FILEH handle);
-int16_t file_attr(LPSTR filename);
-							// カレントファイル操作
-void file_setcd(LPSTR exename);
-LPSTR file_getcd(LPSTR filename);
-FILEH file_open_c(LPSTR filename);
-FILEH file_create_c(LPSTR filename, int ftype);
-int16_t file_attr_c(LPSTR filename);
+	void dosio_init(void);
+	void dosio_term(void);
 
-int file_getftype(LPSTR filename);
+	FILEH file_open(char *filename);
+	FILEH file_create(char *filename, int ftype);
+	uint32_t file_seek(FILEH handle, long pointer, int16_t mode);
+	uint32_t file_lread(FILEH handle, void *data, uint32_t length);
+	uint32_t file_lwrite(FILEH handle, void *data, uint32_t length);
+	uint16_t file_read(FILEH handle, void *data, uint16_t length);
+	uint16_t file_write(FILEH handle, void *data, uint16_t length);
+	uint32_t file_zeroclr(FILEH handle, uint32_t length);
+	uint16_t file_lineread(FILEH handle, void *data, uint16_t length);
+	int16_t file_close(FILEH handle);
+	int16_t file_attr(char *filename);
 
-							// 日時の取得
-void dosdateset(BYTE *dat);
-void dostimeset(BYTE *dat);
+	void file_setcd(char *exename);
+	char *file_getcd(char *filename);
+	FILEH file_open_c(char *filename);
+	FILEH file_create_c(char *filename, int ftype);
+	int16_t file_attr_c(char *filename);
 
+	int file_getftype(char *filename);
 
-LPSTR getFileName(LPSTR filename);
-void cutFileName(LPSTR filename);
-LPSTR getExtName(LPSTR filename);
-void cutExtName(LPSTR filename);
-void plusyen(LPSTR str, int len);
-void cutyen(LPSTR str);
+	void dosdateset(uint8_t *dat);
+	void dostimeset(uint8_t *dat);
 
-int kanji1st(LPSTR str, int pos);
-int ex_a2i(LPSTR str, int min, int max);
+	char *getFileName(char *filename);
+	void cutFileName(char *filename);
+	char *getExtName(char *filename);
+	void cutExtName(char *filename);
+	void plusyen(char *str, int len);
+	void cutyen(char *str);
 
-void fname_mix(LPSTR str, LPSTR mix, int size);
+	int kanji1st(char *str, int pos);
+	int ex_a2i(char *str, int min, int max);
 
-#ifdef _WIN32
-typedef unsigned int u_int;
-#endif
+	void fname_mix(char *str, char *mix, int size);
 
 #ifdef __cplusplus
 };
 #endif
 
-#endif	/* __NP2_DOSIO_H__ */
+#endif /* __NP2_DOSIO_H__ */

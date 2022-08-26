@@ -208,7 +208,7 @@ else ifeq ($(platform), classic_armv7_a7)
 #######################################
 
 # (armv8 a35, hard point, neon based) ###
-# PlayStation Classic 
+# PlayStation Classic
 else ifeq ($(platform), classic_armv8_a35)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
@@ -420,7 +420,7 @@ endif
 LDFLAGS +=  $(fpic) $(SHARED) $(EXTRA_LDF)
 FLAGS   += $(INCFLAGS)
 
-WARNINGS :=
+WARNINGS := -Wall
 
 FLAGS    += -D__LIBRETRO__ $(ENDIANNESS_DEFINES) $(WARNINGS) $(fpic)
 

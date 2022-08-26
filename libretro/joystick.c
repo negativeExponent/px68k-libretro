@@ -8,7 +8,7 @@
 
 #include "libretro.h"
 extern retro_input_state_t input_state_cb;
-extern DWORD libretro_supports_input_bitmasks;
+extern uint32_t libretro_supports_input_bitmasks;
 
 #ifndef MAX_BUTTON
 #define MAX_BUTTON 32
@@ -16,24 +16,24 @@ extern DWORD libretro_supports_input_bitmasks;
 
 char joyname[2][MAX_PATH];
 char joybtnname[2][MAX_BUTTON][MAX_PATH];
-BYTE joybtnnum[2] = {0, 0};
+uint8_t joybtnnum[2] = {0, 0};
 
-BYTE joy[2];
-BYTE JoyKeyState;
-BYTE JoyKeyState0;
-BYTE JoyKeyState1;
-BYTE JoyState0[2];
-BYTE JoyState1[2];
+uint8_t joy[2];
+uint8_t JoyKeyState;
+uint8_t JoyKeyState0;
+uint8_t JoyKeyState1;
+uint8_t JoyState0[2];
+uint8_t JoyState1[2];
 
 // This stores whether the buttons were down. This avoids key repeats.
-BYTE JoyDownState0;
-BYTE MouseDownState0;
+uint8_t JoyDownState0;
+uint8_t MouseDownState0;
 
 // This stores whether the buttons were up. This avoids key repeats.
-BYTE JoyUpState0;
-BYTE MouseUpState0;
+uint8_t JoyUpState0;
+uint8_t MouseUpState0;
 
-BYTE JoyPortData[2];
+uint8_t JoyPortData[2];
 
 int *r_joy;
 
@@ -57,10 +57,10 @@ void Joystick_Cleanup(void)
 
 }
 
-BYTE FASTCALL Joystick_Read(BYTE num)
+uint8_t FASTCALL Joystick_Read(uint8_t num)
 {
-	BYTE joynum = num;
-	BYTE ret0 = 0xff, ret1 = 0xff, ret;
+	uint8_t joynum = num;
+	uint8_t ret0 = 0xff, ret1 = 0xff, ret;
 
 	if (Config.JoySwap) joynum ^= 1;
 	if (joy[num]) {
@@ -82,7 +82,7 @@ BYTE FASTCALL Joystick_Read(BYTE num)
 }
 
 
-void FASTCALL Joystick_Write(BYTE num, BYTE data)
+void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 {
 	if ( (num==0)||(num==1) ) JoyPortData[num] = data;
 }
@@ -90,17 +90,17 @@ void FASTCALL Joystick_Write(BYTE num, BYTE data)
 // Menu navigation related vars
 #define RATE   3      // repeat rate
 #define DELAY 30      // delay before 1st repeat
-BYTE keyb_in, joy_in;
+uint8_t keyb_in, joy_in;
 
-static DWORD get_px68k_input_bitmasks(int port)
+static uint32_t get_px68k_input_bitmasks(int port)
 {
    return input_state_cb(port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
 }
 
-static WORD get_px68k_input(int port)
+static uint16_t get_px68k_input(int port)
 {
-   DWORD i = 0;
-   DWORD res = 0;
+   uint32_t i = 0;
+   uint32_t res = 0;
    for (i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R + 1); i++)
       res |= input_state_cb(port, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
    return res;
@@ -112,11 +112,11 @@ static WORD get_px68k_input(int port)
 
 void FASTCALL Joystick_Update(int is_menu, int key, int port)
 {
-	BYTE ret0 = 0xff, ret1 = 0xff;
-	BYTE mret0 = 0xff, mret1 = 0xff;
-	BYTE temp = 0;
-	static BYTE pre_ret0 = 0xff, pre_mret0 = 0xff;
-	DWORD res = 0;
+	uint8_t ret0 = 0xff, ret1 = 0xff;
+	uint8_t mret0 = 0xff, mret1 = 0xff;
+	uint8_t temp = 0;
+	static uint8_t pre_ret0 = 0xff, pre_mret0 = 0xff;
+	uint32_t res = 0;
 
 	if (libretro_supports_input_bitmasks)
 		res = get_px68k_input_bitmasks(port);
@@ -195,8 +195,8 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 	if (is_menu) {
 		int i;
 		static int repeat_rate, repeat_delay;
-		static BYTE last_in;
-		BYTE inbuf;
+		static uint8_t last_in;
+		uint8_t inbuf;
 
 		for (i = 0; i < 4; i++)
 			speedup_joy[1 << i] = 0;
@@ -223,7 +223,7 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 				if (repeat_rate == 0) {
 					repeat_rate = RATE;
 					for (i = 0; i < 4; i++) {
-						BYTE tmp = (1 << i); // which direction? UP/DOWN/LEFT/RIGHT
+						uint8_t tmp = (1 << i); // which direction? UP/DOWN/LEFT/RIGHT
 						if ((inbuf & tmp) == tmp)
 							speedup_joy[tmp] = 1;
 					}
@@ -233,18 +233,21 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 	}
 }
 
-BYTE get_joy_downstate(void)
+uint8_t get_joy_downstate(void)
 {
 	return JoyDownState0;
 }
+
 void reset_joy_downstate(void)
 {
 	JoyDownState0 = 0xff;
 }
-BYTE get_joy_upstate(void)
+
+uint8_t get_joy_upstate(void)
 {
 	return JoyUpState0;
 }
+
 void reset_joy_upstate(void)
 {
 	JoyUpState0 = 0x00;

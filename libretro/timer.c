@@ -7,8 +7,8 @@
 
 extern int64_t total_usec;		/* from libretro.c */
 
-DWORD	timercnt = 0;
-DWORD	tick = 0;
+uint32_t	timercnt = 0;
+uint32_t	tick = 0;
 
 /* Get elapsed time from libretro frontend by way of its frame time callback,
  * if available. Only provides per frame granularity, enough for this case
@@ -33,7 +33,7 @@ void Timer_Reset(void)
 	tick = timeGetUsec();
 }
 
-WORD Timer_GetCount(void)
+uint16_t Timer_GetCount(void)
 {
 	int64_t ticknow = timeGetUsec();
 	int64_t dif = ticknow-tick;
