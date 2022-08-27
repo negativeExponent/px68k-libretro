@@ -168,9 +168,8 @@ static void LoadDefaults(void)
 
 void LoadConfig(void)
 {
-	int i, j;
+	int i;
 	char buf[CFGLEN];
-	FILEH fp;
 
 	/* Because we are not loading defauts for most items from a config file,
 	 * irectly set default config at first call
@@ -205,9 +204,8 @@ void LoadConfig(void)
 
 void SaveConfig(void)
 {
-	int i, j;
-	char buf[CFGLEN], buf2[CFGLEN];
-	FILEH fp;
+	int i;
+	char buf[CFGLEN];
 
 	WritePrivateProfileString(ini_title, "StartDir", filepath, winx68k_ini);
 

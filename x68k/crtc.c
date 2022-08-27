@@ -108,7 +108,6 @@ uint8_t FASTCALL VCtrl_Read(uint32_t adr)
 
 void FASTCALL VCtrl_Write(uint32_t adr, uint8_t data)
 {
-	uint8_t old;
 	switch(adr&0x701)
 	{
 	case 0x401:
@@ -130,7 +129,6 @@ void FASTCALL VCtrl_Write(uint32_t adr, uint8_t data)
 	case 0x601:
 		if (VCReg2[adr&1] != data)
 		{
-			old = VCReg2[adr&1];
 			VCReg2[adr&1] = data;
 			TVRAM_SetAllDirty();
 		}
@@ -179,14 +177,12 @@ uint8_t FASTCALL CRTC_Read(uint32_t adr)
 
 void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 {
-	uint8_t old;
 	uint8_t reg = (uint8_t)(adr&0x3f);
 	int old_vidmode = VID_MODE;
 	if (adr<0xe80400)
 	{
 		if ( reg>=0x30 ) return;
 		if (CRTC_Regs[reg]==data) return;
-		old = CRTC_Regs[reg];
 		CRTC_Regs[reg] = data;
 		TVRAM_SetAllDirty();
 		switch(reg)

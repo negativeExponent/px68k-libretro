@@ -49,8 +49,6 @@ void raudio_callback(void *userdata, unsigned char *stream, int len);
 
 int DSound_Init(uint32_t rate, uint32_t buflen)
 {
-	uint32_t samples;
-
 	if (playing)
 		return FALSE;
 
@@ -61,8 +59,6 @@ int DSound_Init(uint32_t rate, uint32_t buflen)
 	}
 
 	ratebase = rate;
-
-	samples = 2048;
 
 	playing = TRUE;
 	return TRUE;
@@ -103,7 +99,7 @@ static void sound_send(int length)
 	ADPCM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
 	OPM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
 #ifndef NO_MERCURY
-	//Mcry_Update((int16_t *)pcmbufp, length);
+	// Mcry_Update((int16_t *)pcmbufp, length);
 #endif
 
 	pbwp += length * sizeof(uint16_t) * 2;
@@ -114,7 +110,6 @@ static void sound_send(int length)
 void FASTCALL DSound_Send0(long clock)
 {
 	int length = 0;
-	int rate;
 
 	if (audio_fd < 0)
 		return;
@@ -135,8 +130,6 @@ void FASTCALL DSound_Send0(long clock)
 
 static void FASTCALL DSound_Send(int length)
 {
-	int rate;
-
 	if (audio_fd < 0)
 		return;
 	sound_send(length);
@@ -174,7 +167,7 @@ void audio_samples_discard(int discard)
 
 void raudio_callback(void *userdata, unsigned char *stream, int len)
 {
-	int lena, lenb, datalen, rate;
+	int lena, lenb, datalen;
 	uint8_t *buf;
 
 cb_start:
