@@ -767,7 +767,6 @@ LABEL void FASTCALL Grp_DrawLine8TR_GT(int page, int opaq)
 {
 	if (opaq) {
 		uint32_t x, y;
-		uint32_t v, v0;
 		uint32_t i;
 
 		page &= 1;

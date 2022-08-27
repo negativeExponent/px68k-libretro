@@ -296,7 +296,6 @@ Sprite_DrawLineMcr(int pri)
 				uint8_t *p;
 				uint32_t pal;
 				int i, d;
-				uint8_t bh, dat;
 
 				if (sctp->sprite_ctrl < 0x4000) {
 					p = &BGCHR16[((sctp->sprite_ctrl * 256) & 0xffff)  + (y * 16)];

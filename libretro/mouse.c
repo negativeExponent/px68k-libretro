@@ -23,47 +23,49 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "mouse.h"
 #include "common.h"
-#include "winx68k.h"
+#include "crtc.h"
 #include "prop.h"
 #include "scc.h"
-#include "crtc.h"
-#include "mouse.h"
+#include "winx68k.h"
 
-float	MouseDX = 0;
-float	MouseDY = 0;
-uint8_t	MouseStat = 0;
-uint8_t	MouseSW = 0;
+float MouseDX = 0;
+float MouseDY = 0;
+uint8_t MouseStat = 0;
+uint8_t MouseSW = 0;
 
-POINT	CursorPos;
-int	mousex = 0, mousey = 0;
+POINT CursorPos;
+int mousex = 0, mousey = 0;
 
 void Mouse_Init(void)
 {
-	if (Config.JoyOrMouse) {
+	if (Config.JoyOrMouse)
+	{
 		Mouse_StartCapture(1);
 	}
 }
-
 
 // ----------------------------------
 //	Mouse Event Occured
 // ----------------------------------
 void Mouse_Event(int param, float dx, float dy)
 {
-	if (MouseSW) {
-		switch (param) {
-		case 0:	// mouse move
+	if (MouseSW)
+	{
+		switch (param)
+		{
+		case 0: // mouse move
 			MouseDX += dx;
 			MouseDY += dy;
 			break;
-		case 1:	// left button
+		case 1: // left button
 			if (dx != 0)
 				MouseStat |= 1;
 			else
 				MouseStat &= 0xfe;
 			break;
-		case 2:	// right button
+		case 2: // right button
 			if (dx != 0)
 				MouseStat |= 2;
 			else
@@ -75,17 +77,15 @@ void Mouse_Event(int param, float dx, float dy)
 	}
 }
 
-
 // ----------------------------------
 //	Mouse Data send to SCC
 // ----------------------------------
 void Mouse_SetData(void)
 {
-	POINT pt;
 	int x, y;
 
-	if (MouseSW) {
-
+	if (MouseSW)
+	{
 		x = (int)MouseDX;
 		y = (int)MouseDY;
 
@@ -93,46 +93,57 @@ void Mouse_SetData(void)
 
 		MouseSt = MouseStat;
 
-		if (x > 127) {
+		if (x > 127)
+		{
 			MouseSt |= 0x10;
 			MouseX = 127;
-		} else if (x < -128) {
+		}
+		else if (x < -128)
+		{
 			MouseSt |= 0x20;
 			MouseX = -128;
-		} else {
+		}
+		else
+		{
 			MouseX = (signed char)x;
 		}
 
-		if (y > 127) {
+		if (y > 127)
+		{
 			MouseSt |= 0x40;
 			MouseY = 127;
-		} else if (y < -128) {
+		}
+		else if (y < -128)
+		{
 			MouseSt |= 0x80;
 			MouseY = -128;
-		} else {
+		}
+		else
+		{
 			MouseY = (signed char)y;
 		}
-
-	} else {
+	}
+	else
+	{
 		MouseSt = 0;
 		MouseX = 0;
 		MouseY = 0;
 	}
 }
 
-
 // ----------------------------------
 //	Start Capture
 // ----------------------------------
 void Mouse_StartCapture(int flag)
 {
-	if (flag && !MouseSW) {
+	if (flag && !MouseSW)
+	{
 		MouseSW = 1;
-	} else 	if (!flag && MouseSW) {
+	}
+	else if (!flag && MouseSW)
+	{
 		MouseSW = 0;
 	}
 }
 
-void Mouse_ChangePos(void)
-{
-}
+void Mouse_ChangePos(void) { }
