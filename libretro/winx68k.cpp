@@ -74,7 +74,7 @@ static int ClkUsed = 0;
 static int FrameSkipCount = 0;
 static int FrameSkipQueue = 0;
 
-static uint32_t old_ram_size = 0;
+static int old_ram_size = 0;
 static int old_clkdiv = 0;
 
 #ifdef __cplusplus
@@ -279,7 +279,7 @@ void WinX68k_Exec(void)
 	int KeyIntCnt = 0, MouseIntCnt = 0;
 	uint32_t t_start = timeGetTime(), t_end;
 
-	if(!(Memory_ReadD(0xed0008)==Config.ram_size)){
+	if(!(Memory_ReadD(0xed0008)==(uint32_t)Config.ram_size)){
 		Memory_WriteB(0xe8e00d, 0x31);             // SRAM write permission
 		Memory_WriteD(0xed0008, Config.ram_size);         // Define RAM amount
 	}
