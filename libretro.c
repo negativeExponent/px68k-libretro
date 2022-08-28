@@ -96,11 +96,11 @@ struct disk_control_interface_t
    disk_drive cur_drive;                          /* current active drive */
    bool inserted[2];                            /* tray state for FDD0/FDD1, 0 = disk ejected, 1 = disk inserted */
 
-   unsigned char path[MAX_DISKS][MAX_PATH];     /* disk image paths */
-   unsigned char label[MAX_DISKS][MAX_PATH];    /* disk image base name w/o extension */
+   char path[MAX_DISKS][MAX_PATH];     /* disk image paths */
+   char label[MAX_DISKS][MAX_PATH];    /* disk image base name w/o extension */
 
    unsigned g_initial_disc;                     /* initial disk index */
-   unsigned char g_initial_disc_path[MAX_PATH]; /* initial disk path */
+   char g_initial_disc_path[MAX_PATH]; /* initial disk path */
 };
 
 static struct disk_control_interface_t disk;
@@ -314,7 +314,7 @@ static bool add_image_index(void)
 
 static bool replace_image_index(unsigned index, const struct retro_game_info *info)
 {
-   unsigned char image[MAX_PATH];
+   char image[MAX_PATH];
    strcpy(disk.path[index], info->path);
    extract_basename(image, info->path, sizeof(image));
    snprintf(disk.label[index], sizeof(disk.label), "%s", image);
