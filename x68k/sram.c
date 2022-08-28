@@ -11,7 +11,7 @@
 #include	"sram.h"
 
 	uint8_t	SRAM[0x4000];
-	uint8_t	SRAMFILE[] = "sram.dat";
+	char	SRAMFILE[] = "sram.dat";
 
 
 // -----------------------------------------------------------------------

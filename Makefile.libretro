@@ -420,7 +420,7 @@ endif
 LDFLAGS +=  $(fpic) $(SHARED) $(EXTRA_LDF)
 FLAGS   += $(INCFLAGS)
 
-WARNINGS := -Wall
+WARNINGS := -Wall -Wno-invalid-source-encoding
 
 FLAGS    += -D__LIBRETRO__ $(ENDIANNESS_DEFINES) $(WARNINGS) $(fpic)
 
