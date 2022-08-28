@@ -129,15 +129,7 @@ char menu_items[][15][30] = {
 };
 
 static void menu_system(int v);
-static void menu_joy_or_mouse(int v);
 static void menu_create_flist(int v);
-static void menu_frame_skip(int v);
-static void menu_sound_rate(int v);
-static void menu_vkey_size(int v);
-static void menu_vbtn_swap(int v);
-static void menu_hwjoy_setting(int v);
-static void menu_nowait(int v);
-static void menu_joykey(int v);
 
 struct _menu_func
 {
@@ -259,12 +251,6 @@ static void menu_system(int v)
 		IRQH_Int(7, NULL);
 		break;
 	}
-}
-
-static void menu_joy_or_mouse(int v)
-{
-	Config.JoyOrMouse = v;
-	Mouse_StartCapture(v == 1);
 }
 
 static void upper(char *s)

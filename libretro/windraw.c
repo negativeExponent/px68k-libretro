@@ -174,12 +174,6 @@ void WinDraw_ChangeMode(int flag)
 	(void)flag;
 }
 
-void WinDraw_ShowSplash(void) { }
-
-void WinDraw_HideSplash(void) { }
-
-static void draw_kbd_to_tex(void);
-
 int WinDraw_Init(void)
 {
 	WindowX = 768;
