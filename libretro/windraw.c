@@ -947,7 +947,7 @@ static uint16_t jis2idx(uint16_t jc)
 	return jc;
 }
 
-#define isHankaku(s) ((s) >= 0x20 && (s) <= 0x7e || (s) >= 0xa0 && (s) <= 0xdf)
+#define isHankaku(s) (((s) >= 0x20 && (s) <= 0x7e) || ((s) >= 0xa0 && (s) <= 0xdf))
 #define MENU_WIDTH   800
 
 // fs : font size : 16 or 24
