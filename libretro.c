@@ -49,8 +49,8 @@ static char RETRO_DIR[512];
 static const char *retro_save_directory;
 static const char *retro_system_directory;
 const char *retro_content_directory;
-char retro_system_conf[512];
-char base_dir[MAX_PATH];
+char retro_system_conf[1024];
+char base_dir[2048];
 
 char Core_Key_State[512];
 char Core_old_Key_State[512];
@@ -321,17 +321,6 @@ static bool replace_image_index(unsigned index, const struct retro_game_info *in
    return true;
 }
 
-static bool disk_set_initial_image(unsigned index, const char *path)
-{
-   if (string_is_empty(path))
-      return false;
-
-   disk.g_initial_disc = index;
-   strncpy(disk.g_initial_disc_path, path, sizeof(disk.g_initial_disc_path));
-
-   return true;
-}
-
 static bool disk_get_image_path(unsigned index, char *path, size_t len)
 {
    if (len < 1)
@@ -482,7 +471,7 @@ static void parse_cmdline(const char *argv);
 static bool read_m3u(const char *file)
 {
    unsigned index = 0;
-   char line[MAX_PATH];
+   char line[2048];
    char name[MAX_PATH];
    FILE *f = fopen(file, "r");
 
@@ -561,7 +550,7 @@ static void Add_Option(const char* option)
       first++;
    }
 
-   sprintf(XARGV[PARAMCOUNT++], "%s\0", option);
+   sprintf(XARGV[PARAMCOUNT++], "%s", option);
 }
 
 static int isM3U = 0;
@@ -1359,10 +1348,12 @@ void retro_init(void)
       retro_save_directory = retro_system_directory;
    }
 
-   if(retro_system_directory == NULL) sprintf(RETRO_DIR, "%s\0",".");
-   else sprintf(RETRO_DIR, "%s\0", retro_system_directory);
+   if (retro_system_directory == NULL)
+     sprintf(RETRO_DIR, "%s", ".");
+   else
+     sprintf(RETRO_DIR, "%s", retro_system_directory);
 
-   sprintf(retro_system_conf, "%s%ckeropi\0", RETRO_DIR, slash);
+   sprintf(retro_system_conf, "%s%ckeropi", RETRO_DIR, slash);
 
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
 
@@ -1413,7 +1404,7 @@ void retro_reset(void)
 {
    WinX68k_Reset();
    if (Config.MIDI_SW && Config.MIDI_Reset)
-		MIDI_Reset();
+      MIDI_Reset();
 }
 
 static int firstcall = 1;
