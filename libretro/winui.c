@@ -283,7 +283,7 @@ static void switch_mfl(int a, int b)
 
 #ifdef __LIBRETRO__
 extern char slash;
-extern char base_dir[MAX_PATH];
+extern char base_dir[2048];
 #endif
 
 static void menu_create_flist(int v)
