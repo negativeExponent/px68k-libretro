@@ -1,22 +1,24 @@
 
+#include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
-#include <math.h>
 
 #include <libretro.h>
 #include <libretro_core_options.h>
 #include <string/stdstring.h>
 
-#include "libretro/winx68k.h"
+#include "libretro/common.h"
+#include "fmgen/fmg_wrap.h"
 #include "libretro/dswin.h"
 #include "libretro/keyboard.h"
-#include "libretro/prop.h"
 #include "libretro/mouse.h"
-#include "fmgen/fmg_wrap.h"
+#include "libretro/prop.h"
+#include "libretro/winx68k.h"
 #include "x68k/adpcm.h"
 #include "x68k/fdd.h"
+#include "x68k/sram.h"
 #include "x68k/x68kmemory.h"
 #ifndef NO_MERCURY
 #include "x68k/mercury.h"
@@ -59,14 +61,14 @@ static bool joypad1, joypad2;
 
 static bool opt_analog;
 
-int retrow = 800;
-int retroh = 600;
-int CHANGEAV = 0;
-int CHANGEAV_TIMING = 0; /* Separate change of geometry from change of refresh rate */
-int VID_MODE = MODE_NORM; /* what framerate we start in */
+int retrow          = 800;
+int retroh          = 600;
+int CHANGEAV        = 0;
+int CHANGEAV_TIMING = 0;         /* Separate change of geometry from change of refresh rate */
+int VID_MODE        = MODE_NORM; /* what framerate we start in */
 static float FRAMERATE;
 uint32_t libretro_supports_input_bitmasks = 0;
-int64_t total_usec = -1;
+int64_t total_usec                        = -1;
 
 static int16_t soundbuf[1024 * 2];
 
@@ -82,7 +84,8 @@ static int opt_rumble_enabled = 1;
 
 #define MAX_DISKS 10
 
-typedef enum {
+typedef enum
+{
    FDD0 = 0,
    FDD1 = 1
 } disk_drive;
@@ -90,17 +93,15 @@ typedef enum {
 /* .dsk swap support */
 struct disk_control_interface_t
 {
-   unsigned dci_version;                        /* disk control interface version, 0 = use old interface */
-   unsigned total_images;                       /* total number if disk images */
-   unsigned index;                              /* currect disk index */
-   disk_drive cur_drive;                          /* current active drive */
-   bool inserted[2];                            /* tray state for FDD0/FDD1, 0 = disk ejected, 1 = disk inserted */
-
-   char path[MAX_DISKS][MAX_PATH];     /* disk image paths */
-   char label[MAX_DISKS][MAX_PATH];    /* disk image base name w/o extension */
-
-   unsigned g_initial_disc;                     /* initial disk index */
-   char g_initial_disc_path[MAX_PATH]; /* initial disk path */
+	unsigned dci_version;               /* disk control interface version, 0 = use old interface */
+	unsigned total_images;              /* total number if disk images */
+	unsigned index;                     /* currect disk index */
+	disk_drive cur_drive;               /* current active drive */
+	bool inserted[2];                   /* tray state for FDD0/FDD1, 0 = disk ejected, 1 = disk inserted */
+	char path[MAX_DISKS][MAX_PATH];     /* disk image paths */
+	char label[MAX_DISKS][MAX_PATH];    /* disk image base name w/o extension */
+	unsigned g_initial_disc;            /* initial disk index */
+	char g_initial_disc_path[MAX_PATH]; /* initial disk path */
 };
 
 static struct disk_control_interface_t disk;
@@ -109,14 +110,13 @@ static struct retro_disk_control_ext_callback dskcb_ext;
 
 static void update_variables(void);
 
-static bool is_path_absolute(const char* path)
+static bool is_path_absolute(const char *path)
 {
    if (path[0] == slash)
       return true;
 
 #ifdef _WIN32
-   if ((path[0] >= 'a' && path[0] <= 'z') ||
-      (path[0] >= 'A' && path[0] <= 'Z'))
+   if ((path[0] >= 'a' && path[0] <= 'z') || (path[0] >= 'A' && path[0] <= 'Z'))
    {
       if (path[1] == ':')
          return true;
@@ -162,9 +162,9 @@ static void extract_directory(char *buf, const char *path, size_t size)
 }
 
 /* BEGIN MIDI INTERFACE */
-#include "x68k/midi.h"
 #include "win32api/mmsystem.h"
-static int libretro_supports_midi_output = 0;
+#include "x68k/midi.h"
+static int libretro_supports_midi_output   = 0;
 static struct retro_midi_interface midi_cb = { 0 };
 
 WINMMAPI MMRESULT WINAPI midiOutClose(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
@@ -174,9 +174,10 @@ WINMMAPI MMRESULT WINAPI midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uin
 
 WINMMAPI MMRESULT WINAPI midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg)
 {
-   if (libretro_supports_midi_output && midi_cb.output_enabled()) {
-      midi_cb.write(dwMsg         & 0xFF, 0); /* status byte */
-      midi_cb.write((dwMsg >> 8)  & 0xFF, 0); /* note no. */
+   if (libretro_supports_midi_output && midi_cb.output_enabled())
+   {
+      midi_cb.write(dwMsg & 0xFF, 0);         /* status byte */
+      midi_cb.write((dwMsg >> 8) & 0xFF, 0);  /* note no. */
       midi_cb.write((dwMsg >> 16) & 0xFF, 0); /* velocity */
       midi_cb.write((dwMsg >> 24) & 0xFF, 0); /* none */
    }
@@ -186,7 +187,8 @@ WINMMAPI MMRESULT WINAPI midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg)
 WINMMAPI MMRESULT WINAPI midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 {
    int i;
-   if (libretro_supports_midi_output && midi_cb.output_enabled()) {
+   if (libretro_supports_midi_output && midi_cb.output_enabled())
+   {
       for (i = 0; i < pmh->dwBufferLength; i++)
          midi_cb.write((uint8_t)pmh->lpData[i], 0);
    }
@@ -194,10 +196,11 @@ WINMMAPI MMRESULT WINAPI midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cb
    return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
-    uint32_t dwInstance, uint32_t fdwOpen)
+WINMMAPI MMRESULT WINAPI midiOutOpen(
+    LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback, uint32_t dwInstance, uint32_t fdwOpen)
 {
-   if (libretro_supports_midi_output && midi_cb.output_enabled()) {
+   if (libretro_supports_midi_output && midi_cb.output_enabled())
+   {
       *phmo = &midi_cb;
       return MMSYSERR_NOERROR;
    }
@@ -209,7 +212,7 @@ static void update_variable_midi_interface(void)
 {
    struct retro_variable var;
 
-   var.key = "px68k_midi_output";
+   var.key   = "px68k_midi_output";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -220,7 +223,7 @@ static void update_variable_midi_interface(void)
          Config.MIDI_SW = 1;
    }
 
-   var.key = "px68k_midi_output_type";
+   var.key   = "px68k_midi_output_type";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -247,11 +250,7 @@ static void midi_interface_init(void)
 
 static void update_variable_disk_drive_swap(void)
 {
-   struct retro_variable var =
-   {
-      "px68k_disk_drive",
-      NULL
-   };
+   struct retro_variable var = { "px68k_disk_drive", NULL };
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
@@ -287,20 +286,13 @@ static bool get_eject_state(void)
    return !disk.inserted[disk.cur_drive];
 }
 
-static unsigned get_image_index(void)
-{
-   return disk.index;
-}
+static unsigned get_image_index(void) { return disk.index; }
+static unsigned get_num_images(void) { return disk.total_images; }
 
 static bool set_image_index(unsigned index)
 {
    disk.index = index;
    return true;
-}
-
-static unsigned get_num_images(void)
-{
-   return disk.total_images;
 }
 
 static bool add_image_index(void)
@@ -357,12 +349,12 @@ static bool disk_get_image_label(unsigned index, char *label, size_t len)
 
 void attach_disk_swap_interface(void)
 {
-   dskcb.set_eject_state = set_eject_state;
-   dskcb.get_eject_state = get_eject_state;
-   dskcb.set_image_index = set_image_index;
-   dskcb.get_image_index = get_image_index;
-   dskcb.get_num_images  = get_num_images;
-   dskcb.add_image_index = add_image_index;
+   dskcb.set_eject_state     = set_eject_state;
+   dskcb.get_eject_state     = get_eject_state;
+   dskcb.set_image_index     = set_image_index;
+   dskcb.get_image_index     = get_image_index;
+   dskcb.get_num_images      = get_num_images;
+   dskcb.add_image_index     = add_image_index;
    dskcb.replace_image_index = replace_image_index;
 
    environ_cb(RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE, &dskcb);
@@ -370,16 +362,16 @@ void attach_disk_swap_interface(void)
 
 void attach_disk_swap_interface_ext(void)
 {
-   dskcb_ext.set_eject_state = set_eject_state;
-   dskcb_ext.get_eject_state = get_eject_state;
-   dskcb_ext.set_image_index = set_image_index;
-   dskcb_ext.get_image_index = get_image_index;
-   dskcb_ext.get_num_images  = get_num_images;
-   dskcb_ext.add_image_index = add_image_index;
+   dskcb_ext.set_eject_state     = set_eject_state;
+   dskcb_ext.get_eject_state     = get_eject_state;
+   dskcb_ext.set_image_index     = set_image_index;
+   dskcb_ext.get_image_index     = get_image_index;
+   dskcb_ext.get_num_images      = get_num_images;
+   dskcb_ext.add_image_index     = add_image_index;
    dskcb_ext.replace_image_index = replace_image_index;
-   dskcb_ext.set_initial_image = NULL;
-   dskcb_ext.get_image_path = disk_get_image_path;
-   dskcb_ext.get_image_label = disk_get_image_label;
+   dskcb_ext.set_initial_image   = NULL;
+   dskcb_ext.get_image_path      = disk_get_image_path;
+   dskcb_ext.get_image_label     = disk_get_image_label;
 
    environ_cb(RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE, &dskcb_ext);
 }
@@ -443,11 +435,8 @@ static int HandleExtension(char *path, char *ext)
 {
    int len = strlen(path);
 
-   if (len >= 4 &&
-         path[len - 4] == '.' &&
-         path[len - 3] == ext[0] &&
-         path[len - 2] == ext[1] &&
-         path[len - 1] == ext[2])
+   if (len >= 4 && path[len - 4] == '.' && path[len - 3] == ext[0] && path[len - 2] == ext[1] &&
+       path[len - 1] == ext[2])
    {
       return 1;
    }
@@ -461,7 +450,7 @@ static unsigned char ARGUC = 0;
 
 /* Args for Core */
 static char XARGV[64][1024];
-static const char* xargv_cmd[64];
+static const char *xargv_cmd[64];
 static int PARAMCOUNT = 0;
 
 extern int cmain(int argc, char *argv[]);
@@ -491,12 +480,13 @@ static bool read_m3u(const char *file)
       if (newline)
          *newline = '\0';
 
-      /* Remove any beginning and ending quotes as these can cause issues when feeding the paths into command line later */
+      /* Remove any beginning and ending quotes as these can cause issues when feeding the paths into command line
+       * later */
       if (line[0] == '"')
-          memmove(line, line + 1, strlen(line));
+         memmove(line, line + 1, strlen(line));
 
       if (line[strlen(line) - 1] == '"')
-          line[strlen(line) - 1]  = '\0';
+         line[strlen(line) - 1] = '\0';
 
       if (line[0] != '\0')
       {
@@ -540,11 +530,11 @@ static bool read_m3u(const char *file)
    return (disk.total_images != 0);
 }
 
-static void Add_Option(const char* option)
+static void Add_Option(const char *option)
 {
    static int first = 0;
 
-   if(first == 0)
+   if (first == 0)
    {
       PARAMCOUNT = 0;
       first++;
@@ -560,9 +550,9 @@ static int load(const char *argv)
    if (strlen(argv) > strlen("cmd"))
    {
       int res = 0;
-      if (HandleExtension((char*)argv, "cmd") || HandleExtension((char*)argv, "CMD"))
+      if (HandleExtension((char *)argv, "cmd") || HandleExtension((char *)argv, "CMD"))
       {
-         res = loadcmdfile((char*)argv);
+         res = loadcmdfile((char *)argv);
          if (!res)
          {
             if (log_cb)
@@ -572,25 +562,25 @@ static int load(const char *argv)
 
          parse_cmdline(CMDFILE);
       }
-      else if (HandleExtension((char*)argv, "m3u") || HandleExtension((char*)argv, "M3U"))
+      else if (HandleExtension((char *)argv, "m3u") || HandleExtension((char *)argv, "M3U"))
       {
-         if (!read_m3u((char*)argv))
+         if (!read_m3u((char *)argv))
          {
             if (log_cb)
                log_cb(RETRO_LOG_ERROR, "%s\n", "[libretro]: failed to read m3u file ...");
             return false;
          }
 
-         if(disk.total_images > 1)
+         if (disk.total_images > 1)
          {
-            sprintf((char*)argv, "%s \"%s\" \"%s\"", "px68k", disk.path[0], disk.path[1]);
+            sprintf((char *)argv, "%s \"%s\" \"%s\"", "px68k", disk.path[0], disk.path[1]);
             disk.inserted[1] = true;
          }
          else
-            sprintf((char*)argv, "%s \"%s\"", "px68k", disk.path[0]);
+            sprintf((char *)argv, "%s \"%s\"", "px68k", disk.path[0]);
 
          disk.inserted[0] = true;
-         isM3U = 1;
+         isM3U            = 1;
 
          parse_cmdline(argv);
       }
@@ -607,7 +597,8 @@ static int pre_main(void)
    for (i = 0; i < 64; i++)
       xargv_cmd[i] = NULL;
 
-   if (no_content) {
+   if (no_content)
+   {
       PARAMCOUNT = 0;
       goto run_pmain;
    }
@@ -647,7 +638,7 @@ static int pre_main(void)
 
    for (i = 0; i < PARAMCOUNT; i++)
    {
-      xargv_cmd[i] = (char*)(XARGV[i]);
+      xargv_cmd[i] = (char *)(XARGV[i]);
    }
 
 #ifdef DEBUG
@@ -686,50 +677,50 @@ static void parse_cmdline(const char *argv)
 
    for (p = buffer; *p != '\0'; p++)
    {
-      c = (unsigned char) *p; /* convert to unsigned char for is* functions */
+      c = (unsigned char)*p; /* convert to unsigned char for is* functions */
       switch (state)
       {
-         case DULL: /* not in a word, not in a double quoted string */
-            if (isspace(c)) /* still not in a word, so ignore this char */
-               continue;
-            /* not a space -- if it's a double quote we go to IN_STRING, else to IN_WORD */
-            if (c == '"')
-            {
-               state = IN_STRING;
-               start_of_word = p + 1; /* word starts at *next* char, not this one */
-               continue;
-            }
-            state = IN_WORD;
-            start_of_word = p; /* word starts here */
+      case DULL:          /* not in a word, not in a double quoted string */
+         if (isspace(c)) /* still not in a word, so ignore this char */
             continue;
-         case IN_STRING:
-            /* we're in a double quoted string, so keep going until we hit a close " */
-            if (c == '"')
-            {
-               /* word goes from start_of_word to p-1 */
-               /* ... do something with the word ... */
-               for (c2 = 0, p2 = start_of_word; p2 < p; p2++, c2++)
-                  ARGUV[ARGUC][c2] = (unsigned char) *p2;
+         /* not a space -- if it's a double quote we go to IN_STRING, else to IN_WORD */
+         if (c == '"')
+         {
+            state         = IN_STRING;
+            start_of_word = p + 1; /* word starts at *next* char, not this one */
+            continue;
+         }
+         state         = IN_WORD;
+         start_of_word = p; /* word starts here */
+         continue;
+      case IN_STRING:
+         /* we're in a double quoted string, so keep going until we hit a close " */
+         if (c == '"')
+         {
+            /* word goes from start_of_word to p-1 */
+            /* ... do something with the word ... */
+            for (c2 = 0, p2 = start_of_word; p2 < p; p2++, c2++)
+               ARGUV[ARGUC][c2] = (unsigned char)*p2;
 
-               ARGUC++;
+            ARGUC++;
 
-               state = DULL; /* back to "not in word, not in string" state */
-            }
-            continue; /* either still IN_STRING or we handled the end above */
-         case IN_WORD:
-            /* we're in a word, so keep going until we get to a space */
-            if (isspace(c))
-            {
-               /* word goes from start_of_word to p-1 */
-               /* ... do something with the word ... */
-               for (c2 = 0, p2 = start_of_word; p2 <p; p2++, c2++)
-                  ARGUV[ARGUC][c2] = (unsigned char) *p2;
+            state = DULL; /* back to "not in word, not in string" state */
+         }
+         continue; /* either still IN_STRING or we handled the end above */
+      case IN_WORD:
+         /* we're in a word, so keep going until we get to a space */
+         if (isspace(c))
+         {
+            /* word goes from start_of_word to p-1 */
+            /* ... do something with the word ... */
+            for (c2 = 0, p2 = start_of_word; p2 < p; p2++, c2++)
+               ARGUV[ARGUC][c2] = (unsigned char)*p2;
 
-               ARGUC++;
+            ARGUC++;
 
-               state = DULL; /* back to "not in word, not in string" state */
-            }
-            continue; /* either still IN_WORD or we handled the end above */
+            state = DULL; /* back to "not in word, not in string" state */
+         }
+         continue; /* either still IN_WORD or we handled the end above */
       }
    }
 }
@@ -819,27 +810,27 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
    switch (device)
    {
-      case RETRO_DEVICE_JOYPAD:
-         if (port == 0)
-            joypad1 = true;
-         if (port == 1)
-            joypad2 = true;
-         break;
-      case RETRO_DEVICE_KEYBOARD:
-         if (port == 0)
-            joypad1 = false;
-         if (port == 1)
-            joypad2 = false;
-         break;
-      case RETRO_DEVICE_NONE:
-         if (port == 0)
-            joypad1 = false;
-         if (port == 1)
-            joypad2 = false;
-         break;
-      default:
-         if (log_cb)
-            log_cb(RETRO_LOG_ERROR, "[libretro]: Invalid device, setting type to RETRO_DEVICE_JOYPAD ...\n");
+   case RETRO_DEVICE_JOYPAD:
+      if (port == 0)
+         joypad1 = true;
+      if (port == 1)
+         joypad2 = true;
+      break;
+   case RETRO_DEVICE_KEYBOARD:
+      if (port == 0)
+         joypad1 = false;
+      if (port == 1)
+         joypad2 = false;
+      break;
+   case RETRO_DEVICE_NONE:
+      if (port == 0)
+         joypad1 = false;
+      if (port == 1)
+         joypad2 = false;
+      break;
+   default:
+      if (log_cb)
+         log_cb(RETRO_LOG_ERROR, "[libretro]: Invalid device, setting type to RETRO_DEVICE_JOYPAD ...\n");
    }
    log_cb(RETRO_LOG_INFO, "Set Controller Device: %d, Port: %d %d %d\n", device, port, joypad1, joypad2);
    retro_set_controller_descriptors();
@@ -850,8 +841,8 @@ void retro_set_environment(retro_environment_t cb)
    int nocontent = 1;
 
    static const struct retro_controller_description port[] = {
-      { "RetroPad",              RETRO_DEVICE_JOYPAD },
-      { "RetroKeyboard",         RETRO_DEVICE_KEYBOARD },
+      { "RetroPad", RETRO_DEVICE_JOYPAD },
+      { "RetroKeyboard", RETRO_DEVICE_KEYBOARD },
       { 0 },
    };
 
@@ -862,7 +853,7 @@ void retro_set_environment(retro_environment_t cb)
    };
 
    environ_cb = cb;
-   cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+   cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void *)ports);
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &nocontent);
    libretro_set_core_options(environ_cb);
 }
@@ -870,27 +861,33 @@ void retro_set_environment(retro_environment_t cb)
 static void update_variables(void)
 {
    int i = 0, snd_opt = 0;
-   char key[256] = {0};
-   struct retro_variable var = {0};
+   char key[256]             = { 0 };
+   struct retro_variable var = { 0 };
 
    strcpy(key, "px68k_joytype");
    var.key = key;
    for (i = 0; i < 2; i++)
    {
       key[strlen("px68k_joytype")] = '1' + i;
-      var.value = NULL;
-      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-         if (!(strcmp(var.value, "Default (2 Buttons)"))) {
+      var.value                    = NULL;
+      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+      {
+         if (!(strcmp(var.value, "Default (2 Buttons)")))
+         {
             Config.JOY_TYPE[i] = 0;
-         } else if (!(strcmp(var.value, "CPSF-MD (8 Buttons)"))) {
+         }
+         else if (!(strcmp(var.value, "CPSF-MD (8 Buttons)")))
+         {
             Config.JOY_TYPE[i] = 1;
-         } else if (!(strcmp(var.value, "CPSF-SFC (8 Buttons)"))) {
+         }
+         else if (!(strcmp(var.value, "CPSF-SFC (8 Buttons)")))
+         {
             Config.JOY_TYPE[i] = 2;
          }
       }
    }
 
-   var.key = "px68k_cpuspeed";
+   var.key   = "px68k_cpuspeed";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -913,7 +910,7 @@ static void update_variables(void)
          Config.clockmhz = 200;
    }
 
-   var.key = "px68k_ramsize";
+   var.key   = "px68k_ramsize";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -923,31 +920,17 @@ static void update_variables(void)
          value = 1;
       else if (strcmp(var.value, "2MB") == 0)
          value = 2;
-      else if (strcmp(var.value, "3MB") == 0)
-         value = 3;
       else if (strcmp(var.value, "4MB") == 0)
          value = 4;
-      else if (strcmp(var.value, "5MB") == 0)
-         value = 5;
-      else if (strcmp(var.value, "6MB") == 0)
-         value = 6;
-      else if (strcmp(var.value, "7MB") == 0)
-         value = 7;
       else if (strcmp(var.value, "8MB") == 0)
          value = 8;
-      else if (strcmp(var.value, "9MB") == 0)
-         value = 9;
-      else if (strcmp(var.value, "10MB") == 0)
-         value = 10;
-      else if (strcmp(var.value, "11MB") == 0)
-         value = 11;
       else if (strcmp(var.value, "12MB") == 0)
          value = 12;
 
-      Config.ram_size = (value * 1024 * 1024);
+      SRAM_SetRAMSize(value);
    }
 
-   var.key = "px68k_analog";
+   var.key   = "px68k_analog";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -958,7 +941,7 @@ static void update_variables(void)
          opt_analog = true;
    }
 
-   var.key = "px68k_adpcm_vol";
+   var.key   = "px68k_adpcm_vol";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -971,7 +954,7 @@ static void update_variables(void)
       }
    }
 
-   var.key = "px68k_opm_vol";
+   var.key   = "px68k_opm_vol";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -985,7 +968,7 @@ static void update_variables(void)
    }
 
 #ifndef NO_MERCURY
-   var.key = "px68k_mercury_vol";
+   var.key   = "px68k_mercury_vol";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1001,7 +984,7 @@ static void update_variables(void)
 
    update_variable_disk_drive_swap();
 
-   var.key = "px68k_menufontsize";
+   var.key   = "px68k_menufontsize";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1012,7 +995,7 @@ static void update_variables(void)
          Config.MenuFontSize = 1;
    }
 
-   var.key = "px68k_joy1_select";
+   var.key   = "px68k_joy1_select";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1039,7 +1022,7 @@ static void update_variables(void)
          Config.joy1_select_mapping = 0;
    }
 
-   var.key = "px68k_save_fdd_path";
+   var.key   = "px68k_save_fdd_path";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1050,7 +1033,7 @@ static void update_variables(void)
          Config.save_fdd_path = 1;
    }
 
-   var.key = "px68k_save_hdd_path";
+   var.key   = "px68k_save_hdd_path";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1061,7 +1044,7 @@ static void update_variables(void)
          Config.save_hdd_path = 1;
    }
 
-   var.key = "px68k_rumble_on_disk_read";
+   var.key   = "px68k_rumble_on_disk_read";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1074,7 +1057,7 @@ static void update_variables(void)
 
    /* PX68K Menu */
 
-   var.key = "px68k_joy_mouse";
+   var.key   = "px68k_joy_mouse";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1089,7 +1072,7 @@ static void update_variables(void)
       Mouse_StartCapture(value == 1);
    }
 
-   var.key = "px68k_vbtn_swap";
+   var.key   = "px68k_vbtn_swap";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1100,7 +1083,7 @@ static void update_variables(void)
          Config.VbtnSwap = 1;
    }
 
-   var.key = "px68k_no_wait_mode";
+   var.key   = "px68k_no_wait_mode";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1111,7 +1094,7 @@ static void update_variables(void)
          Config.NoWaitMode = 1;
    }
 
-   var.key = "px68k_frameskip";
+   var.key   = "px68k_frameskip";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1140,7 +1123,7 @@ static void update_variables(void)
          Config.FrameRate = 1;
    }
 
-   var.key = "px68k_adjust_frame_rates";
+   var.key   = "px68k_adjust_frame_rates";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1153,7 +1136,7 @@ static void update_variables(void)
       CHANGEAV_TIMING = CHANGEAV_TIMING || Config.AdjustFrameRates != temp;
    }
 
-   var.key = "px68k_audio_desync_hack";
+   var.key   = "px68k_audio_desync_hack";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1178,17 +1161,16 @@ void retro_get_system_info(struct retro_system_info *info)
 #define PX68K_VERSION "0.15+"
 #endif
    memset(info, 0, sizeof(*info));
-   info->library_name = "PX68K";
-   info->library_version = PX68K_VERSION GIT_VERSION;
-   info->need_fullpath = true;
+   info->library_name     = "PX68K";
+   info->library_version  = PX68K_VERSION GIT_VERSION;
+   info->need_fullpath    = true;
    info->valid_extensions = "dim|zip|img|d88|88d|hdm|dup|2hd|xdf|hdf|cmd|m3u";
 }
-
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
    /* FIXME handle PAL/NTSC */
-   struct retro_game_geometry geom = { retrow, retroh,800, 600 ,4.0 / 3.0 };
+   struct retro_game_geometry geom   = { retrow, retroh, 800, 600, 4.0 / 3.0 };
    struct retro_system_timing timing = { FRAMERATE, SOUNDRATE };
 
    info->geometry = geom;
@@ -1198,9 +1180,9 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 void update_geometry(void)
 {
    struct retro_system_av_info system_av_info;
-   system_av_info.geometry.base_width = retrow;
-   system_av_info.geometry.base_height = retroh;
-   system_av_info.geometry.aspect_ratio = (float)4.0/3.0;
+   system_av_info.geometry.base_width   = retrow;
+   system_av_info.geometry.base_height  = retroh;
+   system_av_info.geometry.aspect_ratio = (float)4.0 / 3.0;
    environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &system_av_info);
 }
 
@@ -1216,7 +1198,7 @@ static void setup_frame_time_cb(void)
 {
    struct retro_frame_time_callback cb;
 
-   cb.callback = frame_time_cb;
+   cb.callback  = frame_time_cb;
    cb.reference = ceil(1000000 / FRAMERATE);
    if (!environ_cb(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &cb))
       total_usec = -1;
@@ -1228,29 +1210,16 @@ void update_timing(void)
 {
    struct retro_system_av_info system_av_info;
    retro_get_system_av_info(&system_av_info);
-   FRAMERATE = framerates[Config.AdjustFrameRates][VID_MODE];
+   FRAMERATE                 = framerates[Config.AdjustFrameRates][VID_MODE];
    system_av_info.timing.fps = FRAMERATE;
    environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &system_av_info);
    setup_frame_time_cb();
 }
 
-size_t retro_serialize_size(void)
-{
-   return 0;
-}
-
-bool retro_serialize(void *data, size_t size)
-{
-   return false;
-}
-
-bool retro_unserialize(const void *data, size_t size)
-{
-   return false;
-}
-
-void retro_cheat_reset(void)
-{}
+size_t retro_serialize_size(void) { return 0; }
+bool retro_serialize(void *data, size_t size) { return false; }
+bool retro_unserialize(const void *data, size_t size) { return false; }
+void retro_cheat_reset(void) { }
 
 void retro_cheat_set(unsigned index, bool enabled, const char *code)
 {
@@ -1262,12 +1231,13 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
 bool retro_load_game(const struct retro_game_info *info)
 {
    no_content = 1;
-   RPATH[0] = '\0';
+   RPATH[0]   = '\0';
 
-   if (info && info->path) {
+   if (info && info->path)
+   {
       const char *full_path = 0;
-      no_content = 0;
-      full_path = info->path;
+      no_content            = 0;
+      full_path             = info->path;
       strcpy(RPATH, full_path);
       extract_directory(base_dir, info->path, sizeof(base_dir));
 
@@ -1286,32 +1256,22 @@ bool retro_load_game_special(unsigned game_type, const struct retro_game_info *i
    return false;
 }
 
-void retro_unload_game(void)
-{
-}
-
-unsigned retro_get_region(void)
-{
-   return RETRO_REGION_NTSC;
-}
-
-unsigned retro_api_version(void)
-{
-   return RETRO_API_VERSION;
-}
+void retro_unload_game(void) { }
+unsigned retro_get_region(void) { return RETRO_REGION_NTSC; }
+unsigned retro_api_version(void) { return RETRO_API_VERSION; }
 
 void *retro_get_memory_data(unsigned id)
 {
-   if ( id == RETRO_MEMORY_SYSTEM_RAM )
+   if (id == RETRO_MEMORY_SYSTEM_RAM)
       return MEM;
    return NULL;
 }
 
 size_t retro_get_memory_size(unsigned id)
 {
-   if ( id == RETRO_MEMORY_SYSTEM_RAM )
+   if (id == RETRO_MEMORY_SYSTEM_RAM)
       return 0xc00000;
-    return 0;
+   return 0;
 }
 
 void retro_init(void)
@@ -1349,9 +1309,9 @@ void retro_init(void)
    }
 
    if (retro_system_directory == NULL)
-     sprintf(RETRO_DIR, "%s", ".");
+      sprintf(RETRO_DIR, "%s", ".");
    else
-     sprintf(RETRO_DIR, "%s", retro_system_directory);
+      sprintf(RETRO_DIR, "%s", retro_system_directory);
 
    sprintf(retro_system_conf, "%s%ckeropi", RETRO_DIR, slash);
 
@@ -1371,18 +1331,17 @@ void retro_init(void)
       libretro_supports_input_bitmasks = 1;
 
    disk_swap_interface_init();
-/*
-    struct retro_keyboard_callback cbk = { keyboard_cb };
-    environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cbk);
-*/
+   /*
+       struct retro_keyboard_callback cbk = { keyboard_cb };
+       environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cbk);
+   */
    midi_interface_init();
 
    /* set sane defaults */
    Config.save_fdd_path = 1;
-   Config.clockmhz = 10;
-   Config.ram_size = 2 * 1024 *1024;
-   Config.JOY_TYPE[0] = 0;
-   Config.JOY_TYPE[1] = 0;
+   Config.clockmhz      = 10;
+   Config.JOY_TYPE[0]   = 0;
+   Config.JOY_TYPE[1]   = 0;
 
    update_variables();
 
@@ -1397,7 +1356,7 @@ void retro_deinit(void)
 {
    end_loop_retro();
    libretro_supports_input_bitmasks = 0;
-   libretro_supports_midi_output = 0;
+   libretro_supports_midi_output    = 0;
 }
 
 void retro_reset(void)
@@ -1438,7 +1397,7 @@ void retro_run(void)
    bool updated = false;
    int soundbuf_size;
 
-   if(firstcall)
+   if (firstcall)
    {
       pre_main();
       firstcall = 0;
@@ -1458,7 +1417,7 @@ void retro_run(void)
       {
          update_timing();
          CHANGEAV_TIMING = 0;
-         CHANGEAV = 0;
+         CHANGEAV        = 0;
       }
       if (CHANGEAV)
       {
@@ -1487,6 +1446,6 @@ void retro_run(void)
    if (libretro_supports_midi_output && midi_cb.output_enabled())
       midi_cb.flush();
 
-   audio_batch_cb((const int16_t*)soundbuf, soundbuf_size);
-   video_cb(videoBuffer, retrow, retroh, /*retrow*/ 800 << 1/*2*/);
+   audio_batch_cb((const int16_t *)soundbuf, soundbuf_size);
+   video_cb(videoBuffer, retrow, retroh, /*retrow*/ 800 << 1 /*2*/);
 }
