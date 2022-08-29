@@ -72,9 +72,6 @@ static int ClkUsed = 0;
 static int FrameSkipCount = 0;
 static int FrameSkipQueue = 0;
 
-static int old_ram_size = 0;
-static int old_clkdiv = 0;
-
 #ifdef __cplusplus
 };
 #endif
@@ -92,9 +89,9 @@ void WinX68k_SCSICheck(void)
 		0x00, 0x00, 0x07, 0xd4,             // $fc001c "move.l #$fc002a, $7d4.l"
 		0x74, 0xff,                         // $fc0020 "moveq #-1, d2"
 		0x4e, 0x75,                         // $fc0022 "rts"
-		//0x53, 0x43, 0x53, 0x49, 0x49, 0x4e,	// $fc0024 ID "SCSIIN"
-		// If internal SCSI is ON, it seems SASI is automatically switched OFF...
-		// Therefore, let's avoid ID conflict...
+		// 0x53, 0x43, 0x53, 0x49, 0x49, 0x4e,	// $fc0024 ID "SCSIIN"
+		//  If internal SCSI is ON, it seems SASI is automatically switched OFF...
+		//  Therefore, let's avoid ID conflict...
 		0x44, 0x55, 0x4d, 0x4d, 0x59, 0x20, // $fc0024 ID "DUMMY "
 		0x70, 0xff,                         // $fc002a "moveq #-1, d0"	(SCSI IOCS call entry point)
 		0x4e, 0x75,                         // $fc002c "rts"
@@ -161,8 +158,8 @@ int WinX68k_LoadROMs(void)
 
 	for (i = 0; i < 0x40000; i += 2)
 	{
-		tmp = IPL[i];
-		IPL[i] = IPL[i + 1];
+		tmp        = IPL[i];
+		IPL[i]     = IPL[i + 1];
 		IPL[i + 1] = tmp;
 	}
 
@@ -230,7 +227,7 @@ int WinX68k_Reset(void)
 	C68K.ICount = 0;
 #endif
 	m68000_ICountBk = 0;
-	ICount = 0;
+	ICount          = 0;
 
 	DSound_Stop();
 	SRAM_VirusCheck();
@@ -243,8 +240,8 @@ int WinX68k_Init(void)
 {
 #define MEM_SIZE 0xc00000
 
-	IPL = (uint8_t *)malloc(0x40000);
-	MEM = (uint8_t *)malloc(MEM_SIZE);
+	IPL  = (uint8_t *)malloc(0x40000);
+	MEM  = (uint8_t *)malloc(MEM_SIZE);
 	FONT = (uint8_t *)malloc(0xc0000);
 
 	if (MEM)
@@ -288,12 +285,6 @@ void WinX68k_Exec(void)
 	int KeyIntCnt = 0, MouseIntCnt = 0;
 	uint32_t t_start = timeGetTime(), t_end;
 
-	if (!(Memory_ReadD(0xed0008) == (uint32_t)Config.ram_size))
-	{
-		Memory_WriteB(0xe8e00d, 0x31);            // SRAM write permission
-		Memory_WriteD(0xed0008, Config.ram_size); // Define RAM amount
-	}
-
 	Joystick_Update(FALSE, -1, 0);
 	Joystick_Update(FALSE, -1, 1);
 
@@ -322,16 +313,16 @@ void WinX68k_Exec(void)
 		else
 		{
 			FrameSkipCount = 0;
-			DispFrame = 0;
+			DispFrame      = 0;
 		}
 	}
 
-	vline = 0;
+	vline     = 0;
 	clk_count = -ICount;
 	clk_total = (CRTC_Regs[0x29] & 0x10) ? VSYNC_HIGH : VSYNC_NORM;
 
 	clk_total = (clk_total * Config.clockmhz) / 10;
-	clkdiv = Config.clockmhz;
+	clkdiv    = Config.clockmhz;
 
 	//	if (Config.XVIMode == 1) {
 	//		clk_total = (clk_total*16)/10;
@@ -343,15 +334,9 @@ void WinX68k_Exec(void)
 	//		clkdiv = 10;
 	//	}
 
-	if (clkdiv != old_clkdiv || Config.ram_size != old_ram_size)
-	{
-		old_clkdiv = clkdiv;
-		old_ram_size = Config.ram_size;
-	}
-
 	ICount += clk_total;
 	clk_next = (clk_total / VLINE_TOTAL);
-	hsync = 1;
+	hsync    = 1;
 
 	do
 	{
@@ -362,7 +347,7 @@ void WinX68k_Exec(void)
 
 		if (hsync)
 		{
-			hsync = 0;
+			hsync    = 0;
 			clk_line = 0;
 			MFP_Int(0);
 			if ((vline >= CRTC_VSTART) && (vline < CRTC_VEND))
@@ -475,7 +460,7 @@ void WinX68k_Exec(void)
 
 			vline++;
 			clk_next = (clk_total * (vline + 1)) / VLINE_TOTAL;
-			hsync = 1;
+			hsync    = 1;
 		}
 	} while (vline < VLINE_TOTAL);
 
@@ -543,8 +528,8 @@ extern "C" int pmain(int argc, char *argv[])
 	struct sockaddr_in dest;
 
 	memset(&dest, 0, sizeof(dest));
-	dest.sin_port = htons(2151);
-	dest.sin_family = AF_INET;
+	dest.sin_port        = htons(2151);
+	dest.sin_family      = AF_INET;
 	dest.sin_addr.s_addr = inet_addr("127.0.0.1");
 
 	rfd_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -667,12 +652,12 @@ extern "C" int pmain(int argc, char *argv[])
 	return 1;
 }
 
-#define KEYP(a, b)                                                                 \
-	{                                                                              \
-		if (Core_Key_State[a] && Core_Key_State[a] != Core_old_Key_State[a])       \
-			send_keycode(b, 2);                                                    \
-		else if (!Core_Key_State[a] && Core_Key_State[a] != Core_old_Key_State[a]) \
-			send_keycode(b, 1);                                                    \
+#define KEYP(a, b)                                                                                                     \
+	{                                                                                                                  \
+		if (Core_Key_State[a] && Core_Key_State[a] != Core_old_Key_State[a])                                           \
+			send_keycode(b, 2);                                                                                        \
+		else if (!Core_Key_State[a] && Core_Key_State[a] != Core_old_Key_State[a])                                     \
+			send_keycode(b, 1);                                                                                        \
 	}
 
 extern "C" void handle_retrok()
@@ -681,19 +666,19 @@ extern "C" void handle_retrok()
 	{
 		if (menu_mode == menu_out)
 		{
-			oldrw = retrow;
-			oldrh = retroh;
-			retroh = 600;
-			retrow = 800;
-			CHANGEAV = 1;
+			oldrw     = retrow;
+			oldrh     = retroh;
+			retroh    = 600;
+			retrow    = 800;
+			CHANGEAV  = 1;
 			menu_mode = menu_enter;
 			DSound_Stop();
 		}
 		else
 		{
 			CHANGEAV = 1;
-			retrow = oldrw;
-			retroh = oldrh;
+			retrow   = oldrw;
+			retroh   = oldrh;
 			DSound_Play();
 			menu_mode = menu_out;
 		}
@@ -747,8 +732,7 @@ extern "C" void handle_retrok()
 	KEYP(RETROK_COMMA, 0x31);
 	KEYP(RETROK_PERIOD, 0x32);
 	KEYP(RETROK_SLASH, 0x33);
-	KEYP(RETROK_0,
-	     0x34); // underquote _ as shift+0 which was empty, Japanese chars can't overlap as we're not using them
+	KEYP(RETROK_0, 0x34); // underquote _ as shift+0 which was empty, Japanese chars can't overlap as we're not using them
 
 	KEYP(RETROK_SPACE, 0x35);
 	KEYP(RETROK_HOME, 0x36);
@@ -904,7 +888,7 @@ extern "C" void exec_app_retro()
 
 		Joystick_Update(TRUE, menu_key_down, 0);
 
-		ret = WinUI_Menu(menu_mode == menu_enter);
+		ret       = WinUI_Menu(menu_mode == menu_enter);
 		menu_mode = menu_in;
 		if (ret == WUM_MENU_END)
 		{

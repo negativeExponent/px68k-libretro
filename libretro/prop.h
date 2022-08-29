@@ -56,14 +56,12 @@ typedef struct
 	int PushVideoBeforeAudio;
 	int AdjustFrameRates;
 	int AudioDesyncHack;
-	int MenuFontSize; // font size of menu, 0 = normal, 1 = large
+	int MenuFontSize;        // font size of menu, 0 = normal, 1 = large
 	int joy1_select_mapping; /* used for keyboard to joypad map for P1 Select */
 	int save_fdd_path;
 	int save_hdd_path;
 	/* Cpu clock in MHz */
 	int clockmhz;
-	/* RAM Size = size * 1024 * 1024 */
-	int ram_size;
 	/* Set controller type for each player to use
 	 * 0 = Standard 2-buttons gamepad
 	 * 1 = CPSF-MD (8 Buttons
