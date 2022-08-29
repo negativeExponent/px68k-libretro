@@ -30,6 +30,7 @@
 #include "mercury.h"
 #include "prop.h"
 #include "windows.h"
+#include "midi.h"
 
 int playing = FALSE;
 
@@ -79,6 +80,7 @@ void DSound_Stop(void)
 	{
 		ADPCM_SetVolume(0);
 		OPM_SetVolume(0);
+		MIDI_Stop();
 	}
 }
 

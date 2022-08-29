@@ -326,6 +326,16 @@ void MIDI_Init(void) {
 	}
 }
 
+void MIDI_Stop(void) {
+	if (hOut) {
+		uint32_t msg;
+		MIDI_Waitlastexclusiveout();
+		for (msg=0x7bb0; msg<0x7bc0; msg++) {
+			midiOutShortMsg(hOut, msg);
+		}
+	}
+}
+
 
 // -----------------------------------------------------------------------
 //   Å±¼ý¢·
