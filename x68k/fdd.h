@@ -1,5 +1,5 @@
-#ifndef _winx68k_fdd
-#define _winx68k_fdd
+#ifndef _WINX68K_FDD_H
+#define _WINX68K_FDD_H
 
 #include "common.h"
 
@@ -17,7 +17,6 @@ enum {
 	FD_DIM,
 };
 
-uint32_t FASTCALL FDD_Int(uint8_t irq);
 void FDD_SetFD(int drive, char* filename, int readonly);
 void FDD_EjectFD(int drive);
 void FDD_Init(void);
@@ -42,6 +41,4 @@ void FDD_SetBlink(int drive, int blink);
  * Reset at every frame */
 extern int FDD_IsReading;
 
-#endif
-
-
+#endif /* _WINX68K_FDD_H */

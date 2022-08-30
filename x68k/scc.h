@@ -1,5 +1,5 @@
-#ifndef _winx68k_scc
-#define _winx68k_scc
+#ifndef _WINX68K_SCC_H
+#define _WINX68K_SCC_H
 
 #include "common.h"
 
@@ -12,4 +12,4 @@ extern signed char MouseX;
 extern signed char MouseY;
 extern uint8_t MouseSt;
 
-#endif
+#endif /* _WINX68K_SCC_H */
