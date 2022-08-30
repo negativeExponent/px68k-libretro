@@ -53,7 +53,7 @@ void D88_Cleanup(void)
 int D88_SetFD(int drv, char* filename)
 {
 	int trk, sct;
-	FILEH fp;
+	void *fp;
 	D88_SECTOR d88s;
 
 	strncpy(D88File[drv], filename, MAX_PATH);
@@ -107,7 +107,7 @@ d88_set_error:
 int D88_Eject(int drv)
 {
 	int trk, pos;
-	FILEH fp;
+	void *fp;
 
 	if ( !D88File[drv][0] ) return FALSE;
 

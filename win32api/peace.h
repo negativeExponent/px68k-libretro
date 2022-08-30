@@ -9,24 +9,24 @@ extern "C" {
 
 uint32_t	FAKE_GetTickCount(void);
 
-BOOL	ReadFile(HANDLE, void *, uint32_t, uint32_t *, LPOVERLAPPED);
-BOOL	WriteFile(HANDLE, const void *, uint32_t, uint32_t *, LPOVERLAPPED);
-HANDLE	CreateFile(const char *, uint32_t, uint32_t, LPSECURITY_ATTRIBUTES,
-		uint32_t, uint32_t, HANDLE);
-uint32_t	SetFilePointer(HANDLE, long, long *, uint32_t);
-BOOL	FAKE_CloseHandle(HANDLE);
+BOOL	ReadFile(void *, void *, uint32_t, uint32_t *, void *);
+BOOL	WriteFile(void *, const void *, uint32_t, uint32_t *, void *);
+void	*CreateFile(const char *, uint32_t, uint32_t, void *,
+		uint32_t, uint32_t, void *);
+uint32_t	SetFilePointer(void *, long, long *, uint32_t);
+BOOL	FAKE_CloseHandle(void *);
 uint32_t	GetFileAttributes(const char *);
 
-HLOCAL	LocalAlloc(uint32_t, uint32_t);
-HLOCAL	LocalFree(HLOCAL);
-void 	*LocalLock(HLOCAL);
-BOOL	LocalUnlock(HLOCAL);
+void	*LocalAlloc(uint32_t, uint32_t);
+void	*LocalFree(void *);
+void 	*LocalLock(void *);
+BOOL	LocalUnlock(void *);
 
-HGLOBAL GlobalAlloc(uint32_t, uint32_t);
-HGLOBAL	GlobalFree(HGLOBAL);
-void 	*GlobalLock(HGLOBAL);
-BOOL	GlobalUnlock(HGLOBAL);
-HGLOBAL	GlobalHandle(const void *);
+void	*GlobalAlloc(uint32_t, uint32_t);
+void	*GlobalFree(void *);
+void 	*GlobalLock(void *);
+BOOL	GlobalUnlock(void *);
+void	*GlobalHandle(const void *);
 
 uint32_t	GetPrivateProfileString(const char *, const char *, const char *, char *,
 		uint32_t, const char *);

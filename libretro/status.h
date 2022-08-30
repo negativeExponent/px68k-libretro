@@ -17,7 +17,7 @@ extern "C" {
 
 void StatBar_Redraw(void);
 void StatBar_Show(int sw);
-void StatBar_Draw(DRAWITEMSTRUCT* dis);
+void StatBar_Draw(void ** dis);
 void StatBar_FDName(int drv, char* name);
 void StatBar_FDD(int drv, int led, int col);
 void StatBar_UpdateTimer(void);

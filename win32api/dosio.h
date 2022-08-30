@@ -34,8 +34,6 @@
 #include "appftype.h"
 #include "common.h"
 
-#define FILEH HANDLE
-
 #define FSEEK_SET 0
 #define FSEEK_CUR 1
 #define FSEEK_END 2
@@ -47,22 +45,22 @@ extern "C"
 	void dosio_init(void);
 	void dosio_term(void);
 
-	FILEH file_open(char *filename);
-	FILEH file_create(char *filename, int ftype);
-	uint32_t file_seek(FILEH handle, long pointer, int16_t mode);
-	uint32_t file_lread(FILEH handle, void *data, uint32_t length);
-	uint32_t file_lwrite(FILEH handle, void *data, uint32_t length);
-	uint16_t file_read(FILEH handle, void *data, uint16_t length);
-	uint16_t file_write(FILEH handle, void *data, uint16_t length);
-	uint32_t file_zeroclr(FILEH handle, uint32_t length);
-	uint16_t file_lineread(FILEH handle, void *data, uint16_t length);
-	int16_t file_close(FILEH handle);
+	void *file_open(char *filename);
+	void *file_create(char *filename, int ftype);
+	uint32_t file_seek(void *handle, long pointer, int16_t mode);
+	uint32_t file_lread(void *handle, void *data, uint32_t length);
+	uint32_t file_lwrite(void *handle, void *data, uint32_t length);
+	uint16_t file_read(void *handle, void *data, uint16_t length);
+	uint16_t file_write(void *handle, void *data, uint16_t length);
+	uint32_t file_zeroclr(void *handle, uint32_t length);
+	uint16_t file_lineread(void *handle, void *data, uint16_t length);
+	int16_t file_close(void *handle);
 	int16_t file_attr(char *filename);
 
 	void file_setcd(char *exename);
 	char *file_getcd(char *filename);
-	FILEH file_open_c(char *filename);
-	FILEH file_create_c(char *filename, int ftype);
+	void *file_open_c(char *filename);
+	void *file_create_c(char *filename, int ftype);
 	int16_t file_attr_c(char *filename);
 
 	int file_getftype(char *filename);

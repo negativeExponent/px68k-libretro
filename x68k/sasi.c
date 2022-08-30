@@ -74,7 +74,7 @@ void SASI_Init(void)
 // -----------------------------------------------------------------------
 int16_t SASI_Seek(void)
 {
-	FILEH fp;
+	void *fp;
 
 	memset(SASI_Buf, 0, 256);
 	fp = File_Open(Config.HDImage[SASI_Device*2+SASI_Unit]);
@@ -103,7 +103,8 @@ int16_t SASI_Seek(void)
 //   しーく（ライト時）
 // -----------------------------------------------------------------------
 int16_t SASI_Flush(void)
-{	FILEH fp;
+{
+	void *fp;
 
 	fp = File_Open(Config.HDImage[SASI_Device*2+SASI_Unit]);
 	if (!fp) return -1;

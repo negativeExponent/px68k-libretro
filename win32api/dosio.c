@@ -55,40 +55,40 @@ void dosio_term(void)
 }
 
 /* ファイル操作 */
-FILEH file_open(char *filename)
+void *file_open(char *filename)
 {
-	FILEH	ret;
+	void *ret;
 
 	ret = CreateFile(filename, GENERIC_READ | GENERIC_WRITE,
 	    0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (ret == (FILEH)INVALID_HANDLE_VALUE) {
+	if (ret == INVALID_HANDLE_VALUE) {
 		ret = CreateFile(filename, GENERIC_READ,
 		    0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (ret == (FILEH)INVALID_HANDLE_VALUE)
-			return (FILEH)FALSE;
+		if (ret == INVALID_HANDLE_VALUE)
+			return NULL;
 	}
 	return ret;
 }
 
-FILEH file_create(char *filename, int ftype)
+void *file_create(char *filename, int ftype)
 {
-	FILEH	ret;
+	void *ret;
 
 	(void)ftype;
 
 	ret = CreateFile(filename, GENERIC_READ | GENERIC_WRITE,
 	    0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (ret == (FILEH)INVALID_HANDLE_VALUE)
-		return (FILEH)FALSE;
+	if (ret == INVALID_HANDLE_VALUE)
+		return NULL;
 	return ret;
 }
 
-uint32_t file_seek(FILEH handle, long pointer, int16_t mode)
+uint32_t file_seek(void *handle, long pointer, int16_t mode)
 {
 	return SetFilePointer(handle, pointer, 0, mode);
 }
 
-uint32_t file_lread(FILEH handle, void *data, uint32_t length)
+uint32_t file_lread(void *handle, void *data, uint32_t length)
 {
 	uint32_t	readsize;
 
@@ -97,7 +97,7 @@ uint32_t file_lread(FILEH handle, void *data, uint32_t length)
 	return readsize;
 }
 
-uint32_t file_lwrite(FILEH handle, void *data, uint32_t length)
+uint32_t file_lwrite(void *handle, void *data, uint32_t length)
 {
 	uint32_t	writesize;
 
@@ -106,7 +106,7 @@ uint32_t file_lwrite(FILEH handle, void *data, uint32_t length)
 	return writesize;
 }
 
-uint16_t file_read(FILEH handle, void *data, uint16_t length)
+uint16_t file_read(void *handle, void *data, uint16_t length)
 {
 	uint32_t	readsize;
 
@@ -115,7 +115,7 @@ uint16_t file_read(FILEH handle, void *data, uint16_t length)
 	return (uint16_t)readsize;
 }
 
-uint32_t file_zeroclr(FILEH handle, uint32_t length)
+uint32_t file_zeroclr(void *handle, uint32_t length)
 {
 	char	buf[256];
 	uint32_t	size;
@@ -138,7 +138,7 @@ uint32_t file_zeroclr(FILEH handle, uint32_t length)
 	return ret;
 }
 
-uint16_t file_write(FILEH handle, void *data, uint16_t length)
+uint16_t file_write(void *handle, void *data, uint16_t length)
 {
 	uint32_t	writesize;
 
@@ -147,7 +147,7 @@ uint16_t file_write(FILEH handle, void *data, uint16_t length)
 	return (uint16_t)writesize;
 }
 
-uint16_t file_lineread(FILEH handle, void *data, uint16_t length)
+uint16_t file_lineread(void *handle, void *data, uint16_t length)
 {
 	char *p = (char *)data;
 	uint32_t	readsize;
@@ -176,7 +176,7 @@ uint16_t file_lineread(FILEH handle, void *data, uint16_t length)
 	return ret;
 }
 
-int16_t file_close(FILEH handle)
+int16_t file_close(void *handle)
 {
 	FAKE_CloseHandle(handle);
 	return 0;
@@ -203,13 +203,13 @@ char *file_getcd(char *filename)
 	return curpath;
 }
 
-FILEH file_open_c(char *filename)
+void *file_open_c(char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_open(curpath);
 }
 
-FILEH file_create_c(char *filename, int ftype)
+void *file_create_c(char *filename, int ftype)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_create(curpath, ftype);

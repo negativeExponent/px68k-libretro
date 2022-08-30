@@ -125,7 +125,7 @@ int WinX68k_LoadROMs(void)
 	static const char *BIOSFILE[]   = { "iplrom.dat", "iplrom30.dat", "iplromco.dat", "iplromxv.dat" };
 	static const char FONTFILE[]    = "cgrom.dat";
 	static const char FONTFILETMP[] = "cgrom.tmp";
-	FILEH fp;
+	void *fp;
 	int i;
 	uint8_t tmp;
 

@@ -30,7 +30,7 @@ void XDF_Cleanup(void)
 
 int XDF_SetFD(int drv, char* filename)
 {
-	FILEH fp;
+	void *fp;
 
 	strncpy(XDFFile[drv], filename, MAX_PATH);
 	XDFFile[drv][MAX_PATH-1] = 0;
@@ -53,7 +53,7 @@ int XDF_SetFD(int drv, char* filename)
 
 int XDF_Eject(int drv)
 {
-	FILEH fp;
+	void *fp;
 
 	if ( !XDFImg[drv] ) {
 		memset(XDFFile[drv], 0, MAX_PATH);
