@@ -5,7 +5,6 @@
 
 #include "windows.h"
 
-#define	WINMMAPI
 typedef	uint32_t	MMRESULT;
 typedef	HANDLE		HMIDIOUT;
 typedef	HMIDIOUT 	*LPHMIDIOUT;
@@ -35,13 +34,13 @@ typedef struct midihdr {
 extern "C" {
 #endif
 
-WINMMAPI MMRESULT WINAPI midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
-WINMMAPI MMRESULT WINAPI midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
-WINMMAPI MMRESULT WINAPI midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg);
-WINMMAPI MMRESULT WINAPI midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
-WINMMAPI MMRESULT WINAPI midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback, uint32_t dwInstance, uint32_t fdwOpen);
-WINMMAPI MMRESULT WINAPI midiOutClose(HMIDIOUT hmo);
-WINMMAPI MMRESULT WINAPI midiOutReset(HMIDIOUT hmo);
+MMRESULT midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
+MMRESULT midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
+MMRESULT midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg);
+MMRESULT midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
+MMRESULT midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback, uint32_t dwInstance, uint32_t fdwOpen);
+MMRESULT midiOutClose(HMIDIOUT hmo);
+MMRESULT midiOutReset(HMIDIOUT hmo);
 
 #ifdef __cplusplus
 };

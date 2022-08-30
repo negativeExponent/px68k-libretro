@@ -44,7 +44,7 @@
 #include "windows.h"
 #include "mmsystem.h"
 
-uint32_t WINAPI FAKE_GetLastError(void)
+uint32_t FAKE_GetLastError(void)
 {
 	return NO_ERROR;
 }
@@ -58,7 +58,7 @@ BOOL SetEndOfFile(void *hFile)
 static int _WritePrivateProfileString_subr(
 			FILE **, long, long, const char *, const char *);
 
-BOOL WINAPI WritePrivateProfileString(const char *sect, const char *key, const char *str, const char *inifile)
+BOOL WritePrivateProfileString(const char *sect, const char *key, const char *str, const char *inifile)
 {
 	char lbuf[256];
 	char newbuf[256];

@@ -167,12 +167,12 @@ static void extract_directory(char *buf, const char *path, size_t size)
 static int libretro_supports_midi_output   = 0;
 static struct retro_midi_interface midi_cb = { 0 };
 
-WINMMAPI MMRESULT WINAPI midiOutClose(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
-WINMMAPI MMRESULT WINAPI midiOutReset(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
-WINMMAPI MMRESULT WINAPI midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh) { return !MIDIERR_STILLPLAYING; }
-WINMMAPI MMRESULT WINAPI midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh) { return MMSYSERR_NOERROR; }
+MMRESULT midiOutClose(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
+MMRESULT midiOutReset(HMIDIOUT hmo) { return MMSYSERR_NOERROR; }
+MMRESULT midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh) { return !MIDIERR_STILLPLAYING; }
+MMRESULT midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh) { return MMSYSERR_NOERROR; }
 
-WINMMAPI MMRESULT WINAPI midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg)
+MMRESULT midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg)
 {
    if (libretro_supports_midi_output && midi_cb.output_enabled())
    {
@@ -184,7 +184,7 @@ WINMMAPI MMRESULT WINAPI midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg)
    return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
+MMRESULT midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 {
    int i;
    if (libretro_supports_midi_output && midi_cb.output_enabled())
@@ -196,7 +196,7 @@ WINMMAPI MMRESULT WINAPI midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cb
    return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI midiOutOpen(
+MMRESULT midiOutOpen(
     LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback, uint32_t dwInstance, uint32_t fdwOpen)
 {
    if (libretro_supports_midi_output && midi_cb.output_enabled())
