@@ -854,7 +854,7 @@ static int getvalue(char **buf, int cutspace)
 	return (ret);
 }
 
-static int file_readline(FILEH fh, char *buf, int len)
+static int file_readline(void *fh, char *buf, int len)
 {
 	uint32_t pos;
 	uint32_t readsize;
@@ -962,7 +962,7 @@ static void mimpidefline_analaize(char *buf)
 int MIDI_SetMimpiMap(char *filename)
 {
 	uint8_t b;
-	FILEH fh;
+	void *fh;
 	char buf[128];
 
 	LOADED_TONEMAP = 0;
@@ -982,7 +982,7 @@ int MIDI_SetMimpiMap(char *filename)
 		return (FALSE);
 	}
 	fh = File_Open(filename);
-	if (fh == (FILEH)-1)
+	if (fh == (void *)-1)
 	{
 		ENABLE_TONEMAP = 0;
 		return (FALSE);

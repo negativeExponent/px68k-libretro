@@ -15,15 +15,6 @@
 
 typedef int BOOL;
 
-typedef void *LPSECURITY_ATTRIBUTES;
-typedef void *LPOVERLAPPED;
-
-typedef void *HANDLE;
-typedef HANDLE HLOCAL;
-typedef HANDLE HGLOBAL;
-
-typedef void *DRAWITEMSTRUCT;
-
 #ifndef FASTCALL
 #define FASTCALL
 #endif
@@ -93,7 +84,7 @@ typedef void *DRAWITEMSTRUCT;
 #define FILE_ATTRIBUTE_ARCHIVE   0x20
 #define FILE_ATTRIBUTE_NORMAL    0x40
 
-#define INVALID_HANDLE_VALUE (HANDLE) - 1
+#define INVALID_HANDLE_VALUE     (void *)-1
 
 #define NO_ERROR                0
 #define ERROR_FILE_NOT_FOUND    2
@@ -124,7 +115,7 @@ extern "C"
 
 BOOL WritePrivateProfileString(const char *, const char *, const char *, const char *);
 uint32_t FAKE_GetLastError(void);
-BOOL SetEndOfFile(HANDLE hFile);
+BOOL SetEndOfFile(void *hFile);
 
 #ifdef __cplusplus
 };

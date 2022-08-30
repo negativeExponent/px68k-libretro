@@ -51,14 +51,14 @@ public:
 	void SetLogicalOrigin(int32 origin) { lorigin = origin; }
 
 private:
-	HANDLE hfile;
+	void *hfile;
 	uint flags;
 	uint32 lorigin;
 	Error error;
 	char path[MAX_PATH];
-	
+
 	FileIO(const FileIO&);
 	const FileIO& operator=(const FileIO&);
 };
 
-#endif // 
+#endif //

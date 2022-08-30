@@ -59,7 +59,7 @@ void SRAM_Init(void)
 {
 	int i;
 	uint8_t tmp;
-	FILEH fp;
+	void *fp;
 
 	for (i = 0; i < 0x4000; i++)
 		SRAM[i] = 0xFF;
@@ -85,7 +85,7 @@ void SRAM_Cleanup(void)
 {
 	int i;
 	uint8_t tmp;
-	FILEH fp;
+	void *fp;
 
 	for (i = 0; i < 0x4000; i += 2)
 	{

@@ -109,13 +109,13 @@ uint32_t FAKE_GetTickCount(void)
 	return tv.tv_usec / 1000 + tv.tv_sec * 1000;
 }
 
-BOOL ReadFile(HANDLE h, void *buf, uint32_t len, uint32_t *lp, LPOVERLAPPED lpov)
+BOOL ReadFile(void *h, void *buf, uint32_t len, uint32_t *lp, void *lpov)
 {
 	struct internal_file *fp;
 
 	(void)lpov;
 
-	if (h == (HANDLE)INVALID_HANDLE_VALUE)
+	if (h == INVALID_HANDLE_VALUE)
 		return FALSE;
 
 	fp = LocalLock(h);
@@ -126,13 +126,13 @@ BOOL ReadFile(HANDLE h, void *buf, uint32_t len, uint32_t *lp, LPOVERLAPPED lpov
 	return TRUE;
 }
 
-BOOL WriteFile(HANDLE h, const void *buf, uint32_t len, uint32_t *lp, LPOVERLAPPED lpov)
+BOOL WriteFile(void *h, const void *buf, uint32_t len, uint32_t *lp, void *lpov)
 {
 	struct internal_file *fp;
 
 	(void)lpov;
 
-	if (h == (HANDLE)INVALID_HANDLE_VALUE)
+	if (h == INVALID_HANDLE_VALUE)
 		return FALSE;
 
 	fp = LocalLock(h);
@@ -143,12 +143,12 @@ BOOL WriteFile(HANDLE h, const void *buf, uint32_t len, uint32_t *lp, LPOVERLAPP
 	return TRUE;
 }
 
-HANDLE CreateFile(const char *filename, uint32_t rdwr, uint32_t share,
-	    LPSECURITY_ATTRIBUTES sap,
-	    uint32_t crmode, uint32_t flags, HANDLE template)
+void *CreateFile(const char *filename, uint32_t rdwr, uint32_t share,
+	    void *sap,
+	    uint32_t crmode, uint32_t flags, void *template)
 {
 	struct internal_file *fp;
-	HANDLE h;
+	void *h;
 	int fd, fmode = 0;
 
 	(void)share;
@@ -179,7 +179,7 @@ HANDLE CreateFile(const char *filename, uint32_t rdwr, uint32_t share,
 	}
 	fd = open(filename, fmode, 0644);
 	if (fd < 0)
-		return (HANDLE)INVALID_HANDLE_VALUE;
+		return INVALID_HANDLE_VALUE;
 
 	h = LocalAlloc(0, sizeof(struct internal_file));
 	sethandletype(h, HTYPE_FILE);
@@ -189,7 +189,7 @@ HANDLE CreateFile(const char *filename, uint32_t rdwr, uint32_t share,
 	return h;
 }
 
-uint32_t SetFilePointer(HANDLE h, long pos, long *newposh, uint32_t whence)
+uint32_t SetFilePointer(void *h, long pos, long *newposh, uint32_t whence)
 {
 	struct internal_file *fp;
 	off_t newpos;
@@ -204,7 +204,7 @@ uint32_t SetFilePointer(HANDLE h, long pos, long *newposh, uint32_t whence)
 	return newpos;
 }
 
-BOOL FAKE_CloseHandle(HANDLE h)
+BOOL FAKE_CloseHandle(void *h)
 {
 	switch (handletype(h)) {
 	case HTYPE_FILE:
@@ -239,27 +239,27 @@ uint32_t GetFileAttributes(const char *path)
 	return -1;
 }
 
-HLOCAL LocalAlloc(uint32_t flags, uint32_t bytes)
+void *LocalAlloc(uint32_t flags, uint32_t bytes)
 {
 	return GlobalAlloc(flags, bytes);
 }
 
-HLOCAL LocalFree(HLOCAL h)
+void *LocalFree(void *h)
 {
 	return GlobalFree(h);
 }
 
-void *LocalLock(HLOCAL h)
+void *LocalLock(void *h)
 {
 	return GlobalLock(h);
 }
 
-BOOL LocalUnlock(HLOCAL h)
+BOOL LocalUnlock(void *h)
 {
 	return GlobalUnlock(h);
 }
 
-HGLOBAL GlobalAlloc(uint32_t flags, uint32_t bytes)
+void *GlobalAlloc(uint32_t flags, uint32_t bytes)
 {
 	struct internal_handle *p;
 
@@ -276,7 +276,7 @@ HGLOBAL GlobalAlloc(uint32_t flags, uint32_t bytes)
 	return 0;
 }
 
-HGLOBAL GlobalFree(HGLOBAL h)
+void *GlobalFree(void *h)
 {
 	struct internal_handle *ih = h;
 
@@ -295,12 +295,12 @@ HGLOBAL GlobalFree(HGLOBAL h)
 	return h;
 }
 
-HGLOBAL GlobalHandle(const void *p)
+void *GlobalHandle(const void *p)
 {
-	return (HGLOBAL)(p - sizeof(struct internal_handle));
+	return (void *)(p - sizeof(struct internal_handle));
 }
 
-void *GlobalLock(HGLOBAL h)
+void *GlobalLock(void *h)
 {
 	struct internal_handle *ih = h;
 
@@ -311,7 +311,7 @@ void *GlobalLock(HGLOBAL h)
 	return ih->p;
 }
 
-BOOL GlobalUnlock(HGLOBAL h)
+BOOL GlobalUnlock(void *h)
 {
 	struct internal_handle *ih = h;
 
