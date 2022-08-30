@@ -11,7 +11,7 @@
 extern int rfd_sock;
 #endif
 
-#define vline HOGEvline // workaround for redefinition of 'vline'
+// #define vline HOGEvline // workaround for redefinition of 'vline'
 
 #define		SCREEN_WIDTH		768
 #define		SCREEN_HEIGHT		512

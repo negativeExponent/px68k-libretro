@@ -68,9 +68,6 @@
 #include "fmg_wrap.h"
 
 extern uint16_t FrameCount;
-extern uint32_t TimerICount;
-extern uint32_t hTimerID;
-uint32_t timertick = 0;
 extern int FullScreenFlag;
 int UI_MouseFlag = 0;
 int UI_MouseX = -1, UI_MouseY = -1;

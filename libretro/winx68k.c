@@ -1,49 +1,43 @@
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-#include "winx68k.h"
-#include "../m68000/m68000.h"
-#include "../x68k/x68kmemory.h"
-#include "adpcm.h"
-#include "bg.h"
-#include "common.h"
-#include "crtc.h"
-#include "dmac.h"
-#include "fdc.h"
-#include "fdd.h"
-#include "fileio.h"
-#include "gvram.h"
-#include "ioc.h"
-#include "irqh.h"
-#include "joystick.h"
-#include "keyboard.h"
-#include "mercury.h"
-#include "mfp.h"
-#include "midi.h"
-#include "mouse.h"
-#include "opm.h"
-#include "palette.h"
-#include "pia.h"
-#include "prop.h"
-#include "rtc.h"
-#include "sasi.h"
-#include "scc.h"
-#include "scsi.h"
-#include "sram.h"
-#include "status.h"
-#include "sysport.h"
-#include "timer.h"
-#include "tvram.h"
-#include "windraw.h"
-#include "winui.h"
-
-#include "dswin.h"
-#include "fmg_wrap.h"
+#include "libretro/winx68k.h"
+#include "fmgen/fmg_wrap.h"
+#include "libretro/common.h"
+#include "libretro/dswin.h"
+#include "libretro/fileio.h"
+#include "libretro/joystick.h"
+#include "libretro/keyboard.h"
+#include "libretro/mouse.h"
+#include "libretro/prop.h"
+#include "libretro/status.h"
+#include "libretro/timer.h"
+#include "libretro/windraw.h"
+#include "libretro/winui.h"
+#include "m68000/m68000.h"
+#include "x68k/adpcm.h"
+#include "x68k/bg.h"
+#include "x68k/crtc.h"
+#include "x68k/dmac.h"
+#include "x68k/fdc.h"
+#include "x68k/fdd.h"
+#include "x68k/gvram.h"
+#include "x68k/ioc.h"
+#include "x68k/irqh.h"
+#include "x68k/mercury.h"
+#include "x68k/mfp.h"
+#include "x68k/midi.h"
+#include "x68k/palette.h"
+#include "x68k/pia.h"
+#include "x68k/rtc.h"
+#include "x68k/sasi.h"
+#include "x68k/scc.h"
+#include "x68k/scsi.h"
+#include "x68k/sram.h"
+#include "x68k/sysport.h"
+#include "x68k/tvram.h"
+#include "x68k/x68kmemory.h"
+#include "libretro.h"
 
 #ifdef RFMDRV
-	int rfd_sock;
+int rfd_sock;
 #endif
 
 extern uint16_t BG_CHREND;
@@ -55,46 +49,43 @@ char winx68k_dir[MAX_PATH];
 char winx68k_ini[MAX_PATH];
 
 uint16_t VLINE_TOTAL = 567;
-uint32_t VLINE = 0;
-uint32_t vline = 0;
+uint32_t VLINE       = 0;
+uint32_t vline       = 0;
 
-uint8_t DispFrame = 0;
-uint32_t SoundSampleRate;
+static uint8_t DispFrame = 0;
+static int ClkUsed          = 0;
+static int FrameSkipCount   = 0;
+static int FrameSkipQueue   = 0;
 
-uint32_t hTimerID = 0;
-uint32_t TimerICount = 0;
-extern uint32_t timertick;
+extern retro_input_state_t input_state_cb;
+extern char Core_Key_State[512];
+extern char Core_old_Key_State[512];
 
-uint8_t ForceDebugMode = 0;
-uint32_t skippedframes = 0;
+extern int retrow, retroh, CHANGEAV;
+static int oldrw = 0, oldrh = 0;
 
-static int ClkUsed = 0;
-static int FrameSkipCount = 0;
-static int FrameSkipQueue = 0;
-
-#ifdef __cplusplus
-};
-#endif
+enum { menu_out, menu_enter, menu_in };
+static int menu_mode = menu_out;
 
 void WinX68k_SCSICheck(void)
 {
 	static const uint8_t SCSIIMG[] = {
-		0x00, 0xfc, 0x00, 0x14,             // $fc0000 SCSI boot entry address
-		0x00, 0xfc, 0x00, 0x16,             // $fc0004 IOCS vector setting entry address (always before "Human" 8 bytes)
-		0x00, 0x00, 0x00, 0x00,             // $fc0008 ?
-		0x48, 0x75, 0x6d, 0x61,             // $fc000c ↓
-		0x6e, 0x36, 0x38, 0x6b,             // $fc0010 ID "Human68k"	(always just before start-up entry point)
-		0x4e, 0x75,                         // $fc0014 "rts"		(start-up entry point)
-		0x23, 0xfc, 0x00, 0xfc, 0x00, 0x2a, // $fc0016 ↓		(IOCS vector setting entry point)
-		0x00, 0x00, 0x07, 0xd4,             // $fc001c "move.l #$fc002a, $7d4.l"
-		0x74, 0xff,                         // $fc0020 "moveq #-1, d2"
-		0x4e, 0x75,                         // $fc0022 "rts"
-		// 0x53, 0x43, 0x53, 0x49, 0x49, 0x4e,	// $fc0024 ID "SCSIIN"
-		//  If internal SCSI is ON, it seems SASI is automatically switched OFF...
-		//  Therefore, let's avoid ID conflict...
-		0x44, 0x55, 0x4d, 0x4d, 0x59, 0x20, // $fc0024 ID "DUMMY "
-		0x70, 0xff,                         // $fc002a "moveq #-1, d0"	(SCSI IOCS call entry point)
-		0x4e, 0x75,                         // $fc002c "rts"
+		0x00, 0xfc, 0x00, 0x14,                   /* $fc0000 SCSI boot entry address */
+		0x00, 0xfc, 0x00, 0x16,                   /* $fc0004 IOCS vector setting entry address (always before "Human" 8 bytes) */
+		0x00, 0x00, 0x00, 0x00,                   /* $fc0008 ? */
+		0x48, 0x75, 0x6d, 0x61,                   /* $fc000c ↓ */
+		0x6e, 0x36, 0x38, 0x6b,                   /* $fc0010 ID "Human68k"	(always just before start-up entry point) */
+		0x4e, 0x75,                               /* $fc0014 "rts" (start-up entry point) */
+		0x23, 0xfc, 0x00, 0xfc, 0x00, 0x2a,       /* $fc0016 ↓ (IOCS vector setting entry point) */
+		0x00, 0x00, 0x07, 0xd4,                   /* $fc001c "move.l #$fc002a, $7d4.l" */
+		0x74, 0xff,                               /* $fc0020 "moveq #-1, d2" */
+		0x4e, 0x75,                               /* $fc0022 "rts" */
+		/* 0x53, 0x43, 0x53, 0x49, 0x49, 0x4e, */ /* $fc0024 ID "SCSIIN" */
+		/*  If internal SCSI is ON, it seems SASI is automatically switched OFF...
+		 *  Therefore, let's avoid ID conflict... */
+		0x44, 0x55, 0x4d, 0x4d, 0x59, 0x20,       /* $fc0024 ID "DUMMY " */
+		0x70, 0xff,                               /* $fc002a "moveq #-1, d0"	(SCSI IOCS call entry point) */
+		0x4e, 0x75,                               /* $fc002c "rts" */
 	};
 
 	uint16_t *p1, *p2;
@@ -106,7 +97,7 @@ void WinX68k_SCSICheck(void)
 	{
 		p1 = (uint16_t *)(&IPL[i]);
 		p2 = p1 + 1;
-		// xxx: works only for little endian guys
+		/* xxx: works only for little endian guys */
 		if (*p1 == 0xfc00 && *p2 == 0x0000)
 		{
 			scsi = 1;
@@ -114,27 +105,25 @@ void WinX68k_SCSICheck(void)
 		}
 	}
 
-	// SCSI model time
+	/* SCSI model time */
 	if (scsi)
 	{
-		memset(IPL, 0, 0x2000);                // main is 8kb
-		memset(&IPL[0x2000], 0xff, 0x1e000);   // remaining is 0xff
-		memcpy(IPL, SCSIIMG, sizeof(SCSIIMG)); // fake­SCSI BIOS
-		                                       //		Memory_SetSCSIMode();
+		memset(IPL, 0, 0x2000);                /* main is 8kb */
+		memset(&IPL[0x2000], 0xff, 0x1e000);   /* remaining is 0xff */
+		memcpy(IPL, SCSIIMG, sizeof(SCSIIMG)); /* fake­SCSI BIOS */
+		/* Memory_SetSCSIMode(); */
 	}
 	else
 	{
-		// SASI model sees the IPL as it is
+		/* SASI model sees the IPL as it is */
 		memcpy(IPL, &IPL[0x20000], 0x20000);
 	}
 }
 
 int WinX68k_LoadROMs(void)
 {
-	static const char *BIOSFILE[] = {
-		"iplrom.dat", "iplrom30.dat", "iplromco.dat", "iplromxv.dat"
-	};
-	static const char FONTFILE[] = "cgrom.dat";
+	static const char *BIOSFILE[]   = { "iplrom.dat", "iplrom30.dat", "iplromco.dat", "iplromxv.dat" };
+	static const char FONTFILE[]    = "cgrom.dat";
 	static const char FONTFILETMP[] = "cgrom.tmp";
 	FILEH fp;
 	int i;
@@ -154,7 +143,7 @@ int WinX68k_LoadROMs(void)
 	File_Read(fp, &IPL[0x20000], 0x20000);
 	File_Close(fp);
 
-	WinX68k_SCSICheck(); // if SCSI IPL, SCSI BIOS is established around $fc0000
+	WinX68k_SCSICheck(); /* if SCSI IPL, SCSI BIOS is established around $fc0000 */
 
 	for (i = 0; i < 0x40000; i += 2)
 	{
@@ -166,11 +155,10 @@ int WinX68k_LoadROMs(void)
 	fp = File_OpenCurDir((char *)FONTFILE);
 	if (fp == 0)
 	{
-		// cgrom.tmp present?
+		/* cgrom.tmp present? */
 		fp = File_OpenCurDir((char *)FONTFILETMP);
 		if (fp == 0)
 		{
-			// font creation XXX
 			p6logd("Font ROM image can't be found.\n");
 			return FALSE;
 		}
@@ -221,7 +209,7 @@ int WinX68k_Reset(void)
 	Pal_Init();
 	IRQH_Init();
 	MIDI_Init();
-	// WinDrv_Init();
+	/* WinDrv_Init(); */
 
 #if defined(HAVE_M68000)
 	C68K.ICount = 0;
@@ -252,8 +240,8 @@ int WinX68k_Init(void)
 		m68000_init();
 		return TRUE;
 	}
-	else
-		return FALSE;
+
+	return FALSE;
 }
 
 void WinX68k_Cleanup(void)
@@ -263,11 +251,13 @@ void WinX68k_Cleanup(void)
 		free(IPL);
 		IPL = 0;
 	}
+
 	if (MEM)
 	{
 		free(MEM);
 		MEM = 0;
 	}
+
 	if (FONT)
 	{
 		free(FONT);
@@ -276,9 +266,6 @@ void WinX68k_Cleanup(void)
 }
 
 #define CLOCK_SLICE 200
-// -----------------------------------------------------------------------------------
-//  Core Main Loop
-// -----------------------------------------------------------------------------------
 void WinX68k_Exec(void)
 {
 	int clk_total, clkdiv, usedclk, hsync, clk_next, clk_count, clk_line = 0;
@@ -294,7 +281,7 @@ void WinX68k_Exec(void)
 	}
 	else
 	{
-		// Auto Frame Skip
+		/* Auto Frame Skip */
 		if (FrameSkipQueue)
 		{
 			if (FrameSkipCount > 15)
@@ -324,15 +311,15 @@ void WinX68k_Exec(void)
 	clk_total = (clk_total * Config.clockmhz) / 10;
 	clkdiv    = Config.clockmhz;
 
-	//	if (Config.XVIMode == 1) {
-	//		clk_total = (clk_total*16)/10;
-	//		clkdiv = 16;
-	//	} else if (Config.XVIMode == 2) {
-	//		clk_total = (clk_total*24)/10;
-	//		clkdiv = 24;
-	//	} else {
-	//		clkdiv = 10;
-	//	}
+	/*	if (Config.XVIMode == 1) {
+			clk_total = (clk_total*16)/10;
+			clkdiv = 16;
+		} else if (Config.XVIMode == 2) {
+			clk_total = (clk_total*24)/10;
+			clkdiv = 24;
+		} else {
+			clkdiv = 10;
+		} */
 
 	ICount += clk_total;
 	clk_next = (clk_total / VLINE_TOTAL);
@@ -342,7 +329,7 @@ void WinX68k_Exec(void)
 	{
 		int m, n = (ICount > CLOCK_SLICE) ? CLOCK_SLICE : ICount;
 #if defined(HAVE_M68000)
-		C68K.ICount = m68000_ICountBk = 0; // It must be given before an interrupt occurs (CARAT)
+		C68K.ICount = m68000_ICountBk = 0; /* It must be given before an interrupt occurs (CARAT) */
 #endif
 
 		if (hsync)
@@ -366,42 +353,43 @@ void WinX68k_Exec(void)
 				if (CRTC_VEND >= VLINE_TOTAL)
 				{
 					if ((long)vline == (CRTC_VEND - VLINE_TOTAL))
-						MFP_Int(9); // Is it Exciting Hour? （TOTAL<VEND）
+						MFP_Int(9); /* Exciting Hour （TOTAL<VEND）*/
 				}
 				else
 				{
 					if ((long)vline == (VLINE_TOTAL - 1))
-						MFP_Int(9); // Is it Crazy Climber?
+						MFP_Int(9); /* Crazy Climber */
 				}
 			}
 		}
 
-		{
 #if defined(HAVE_CYCLONE)
-			m68000_execute(n);
+		m68000_execute(n);
 #elif defined(HAVE_M68000)
-			C68K.ICount = n;
-			C68k_Exec(&C68K, C68K.ICount);
+		C68K.ICount = n;
+		C68k_Exec(&C68K, C68K.ICount);
 #elif defined(HAVE_C68K)
-			C68k_Exec(&C68K, n);
+		C68k_Exec(&C68K, n);
 #elif defined(HAVE_MUSASHI)
-			m68k_execute(n);
+		m68k_execute(n);
 #endif
+
+		/* clockspeed progress */
 #if defined(HAVE_M68000)
-			m = (n - C68K.ICount - m68000_ICountBk); // clockspeed progress
+		m = (n - C68K.ICount - m68000_ICountBk);
 #else
-			m = (n - m68000_ICountBk);
+		m = (n - m68000_ICountBk);
 #endif
-			ClkUsed += m * 10;
-			usedclk = ClkUsed / clkdiv;
-			clk_line += usedclk;
-			ClkUsed -= usedclk * clkdiv;
-			ICount -= m;
-			clk_count += m;
+
+		ClkUsed += m * 10;
+		usedclk = ClkUsed / clkdiv;
+		clk_line += usedclk;
+		ClkUsed -= usedclk * clkdiv;
+		ICount -= m;
+		clk_count += m;
 #if defined(HAVE_M68000)
-			C68K.ICount = m68000_ICountBk = 0;
+		C68K.ICount = m68000_ICountBk = 0;
 #endif
-		}
 
 		MFP_Timer(usedclk);
 		RTC_Timer(usedclk);
@@ -420,19 +408,20 @@ void WinX68k_Exec(void)
 			{
 				if (CRTC_VStep == 1)
 				{
-					// HighReso 256dot (read twice)
+					/* HighReso 256dot (read twice) */
 					if (vline % 2)
 						WinDraw_DrawLine();
 				}
 				else if (CRTC_VStep == 4)
-				{                       // LowReso 512dot
-					WinDraw_DrawLine(); // draw twice per scanline (interlace)
+				{
+					/* LowReso 512dot */
+					WinDraw_DrawLine(); /* draw twice per scanline (interlace) */
 					VLINE++;
 					WinDraw_DrawLine();
 				}
 				else
 				{
-					// High 512dot / Low 256dot
+					/* High 512dot / Low 256dot */
 					WinDraw_DrawLine();
 				}
 			}
@@ -466,17 +455,17 @@ void WinX68k_Exec(void)
 
 	if (CRTC_Mode & 2)
 	{
-		// FastClr byte adjustment (PITAPAT)
+		/* FastClr byte adjustment (PITAPAT) */
 		if (CRTC_FastClr)
 		{
-			// if FastClr=1 and CRTC_Mode&2 then end
+			/* if FastClr=1 and CRTC_Mode&2 then end */
 			CRTC_FastClr--;
 			if (!CRTC_FastClr)
 				CRTC_Mode &= 0xfd;
 		}
 		else
 		{
-			// FastClr start
+			/* FastClr start */
 			if (CRTC_Regs[0x29] & 0x10)
 				CRTC_FastClr = 1;
 			else
@@ -489,7 +478,6 @@ void WinX68k_Exec(void)
 	FDD_SetFDInt();
 	if (!DispFrame)
 		WinDraw_Draw();
-	TimerICount += clk_total;
 
 	t_end = timeGetTime();
 	if ((int)(t_end - t_start) > ((CRTC_Regs[0x29] & 0x10) ? 14 : 16))
@@ -500,29 +488,7 @@ void WinX68k_Exec(void)
 	}
 }
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-#include "libretro.h"
-
-extern retro_input_state_t input_state_cb;
-extern char Core_Key_State[512];
-extern char Core_old_Key_State[512];
-
-int mb1 = 0, mb2 = 0;
-extern int retrow, retroh, CHANGEAV;
-static int oldrw = 0, oldrh = 0;
-int end_loop = 0;
-
-enum {menu_out, menu_enter, menu_in};
-int menu_mode = menu_out;
-#ifdef __cplusplus
-};
-#endif
-
-extern "C" int pmain(int argc, char *argv[])
+int pmain(int argc, char *argv[])
 {
 #ifdef RFMDRV
 	struct sockaddr_in dest;
@@ -554,8 +520,6 @@ extern "C" int pmain(int argc, char *argv[])
 		return 1;
 	}
 
-	SoundSampleRate = Config.SampleRate;
-
 	StatBar_Show(Config.WindowFDDStat);
 	WinDraw_ChangeSize();
 	WinDraw_ChangeMode(FALSE);
@@ -577,7 +541,7 @@ extern "C" int pmain(int argc, char *argv[])
 		exit(1);
 	}
 
-	Keyboard_Init(); // before moving to WinDraw_Init()
+	Keyboard_Init(); /* before moving to WinDraw_Init() */
 
 	if (!WinDraw_Init())
 	{
@@ -586,12 +550,12 @@ extern "C" int pmain(int argc, char *argv[])
 		return 1;
 	}
 
-	if (SoundSampleRate)
+	if (Config.SampleRate)
 	{
-		ADPCM_Init(SoundSampleRate);
-		OPM_Init(4000000 /*3579545*/, SoundSampleRate);
+		ADPCM_Init(Config.SampleRate);
+		OPM_Init(4000000 /*3579545*/, Config.SampleRate);
 #ifndef NO_MERCURY
-		Mcry_Init(SoundSampleRate, winx68k_dir);
+		Mcry_Init(Config.SampleRate, winx68k_dir);
 #endif
 	}
 	else
@@ -612,10 +576,10 @@ extern "C" int pmain(int argc, char *argv[])
 	Timer_Init();
 
 	MIDI_Init();
-	MIDI_SetMimpiMap(Config.ToneMapFile); // ToneMap file usage
+	MIDI_SetMimpiMap(Config.ToneMapFile);
 	MIDI_EnableMimpiDef(Config.ToneMap);
 
-	if (/*raudio == 0 &&*/ !DSound_Init(Config.SampleRate, Config.BufferSize))
+	if (!DSound_Init(Config.SampleRate, Config.BufferSize))
 	{
 		if (Config.DSAlert)
 			fprintf(stderr, "Can't init sound.\n");
@@ -628,7 +592,7 @@ extern "C" int pmain(int argc, char *argv[])
 #endif
 	DSound_Play();
 
-	// apply defined command line settings
+	/* apply defined command line settings */
 	if (argc == 3 && argv[1][0] == '-' && argv[1][1] == 'h')
 		strcpy(Config.HDImage[0], argv[2]);
 	else
@@ -641,7 +605,7 @@ extern "C" int pmain(int argc, char *argv[])
 			strcpy(Config.FDDImage[0], argv[1]);
 			break;
 		case 0:
-			// start menu when running without content
+			/* start menu when running without content */
 			menu_mode = menu_enter;
 		}
 	}
@@ -660,8 +624,10 @@ extern "C" int pmain(int argc, char *argv[])
 			send_keycode(b, 1);                                                                                        \
 	}
 
-extern "C" void handle_retrok()
+void handle_retrok()
 {
+	int i;
+
 	if (Core_Key_State[RETROK_F12] && Core_Key_State[RETROK_F12] != Core_old_Key_State[RETROK_F12])
 	{
 		if (menu_mode == menu_out)
@@ -685,12 +651,11 @@ extern "C" void handle_retrok()
 	}
 
 	KEYP(RETROK_ESCAPE, 0x1);
-	int i;
 	for (i = 1; i < 10; i++)
 		KEYP(RETROK_0 + i, 0x1 + i);
 	KEYP(RETROK_0, 0xb);
 	KEYP(RETROK_MINUS, 0xc);
-	KEYP(RETROK_QUOTE, 0x28); // colon :
+	KEYP(RETROK_QUOTE, 0x28); /* colon : */
 	KEYP(RETROK_BACKSPACE, 0xf);
 
 	KEYP(RETROK_TAB, 0x10);
@@ -707,7 +672,7 @@ extern "C" void handle_retrok()
 	KEYP(RETROK_BACKQUOTE, 0x1B);
 	KEYP(RETROK_LEFTBRACKET, 0x1C);
 	KEYP(RETROK_RETURN, 0x1d);
-	KEYP(RETROK_EQUALS, 0xd); // caret ^
+	KEYP(RETROK_EQUALS, 0xd); /* caret ^ */
 
 	KEYP(RETROK_a, 0x1e);
 	KEYP(RETROK_s, 0x1f);
@@ -719,7 +684,7 @@ extern "C" void handle_retrok()
 	KEYP(RETROK_k, 0x25);
 	KEYP(RETROK_l, 0x26);
 	KEYP(RETROK_SEMICOLON, 0x27);
-	KEYP(RETROK_BACKSLASH, 0xe); // Yen symbol ¥
+	KEYP(RETROK_BACKSLASH, 0xe); /* Yen symbol ¥ */
 	KEYP(RETROK_RIGHTBRACKET, 0x29);
 
 	KEYP(RETROK_z, 0x2a);
@@ -732,7 +697,9 @@ extern "C" void handle_retrok()
 	KEYP(RETROK_COMMA, 0x31);
 	KEYP(RETROK_PERIOD, 0x32);
 	KEYP(RETROK_SLASH, 0x33);
-	KEYP(RETROK_0, 0x34); // underquote _ as shift+0 which was empty, Japanese chars can't overlap as we're not using them
+
+	/* underquote _ as shift+0 which was empty, Japanese chars can't overlap as we're not using them */
+	KEYP(RETROK_0, 0x34);
 
 	KEYP(RETROK_SPACE, 0x35);
 	KEYP(RETROK_HOME, 0x36);
@@ -762,39 +729,39 @@ extern "C" void handle_retrok()
 	KEYP(RETROK_KP3, 0x4d);
 	KEYP(RETROK_KP_ENTER, 0x4e);
 	KEYP(RETROK_KP0, 0x4f);
-	// KEYP(RETROK_COMMA,0x50);
+	/* KEYP(RETROK_COMMA,0x50); */
 	KEYP(RETROK_KP_PERIOD, 0x51);
 
-	KEYP(RETROK_PRINT, 0x52);     // symbol input (kigou)
-	KEYP(RETROK_SCROLLOCK, 0x53); // registration (touroku)
-	KEYP(RETROK_F11, 0x54);       // help
-	//	KEYP(RETROK_MENU,0x55); //xf1
-	//	KEYP(RETROK_KP_PERIOD,0x56); //xf2
-	//	KEYP(RETROK_KP_PERIOD,0x57); //xf3
+	KEYP(RETROK_PRINT, 0x52);     /* symbol input (kigou) */
+	KEYP(RETROK_SCROLLOCK, 0x53); /* registration (touroku) */
+	KEYP(RETROK_F11, 0x54);       /* help */
+	/*	KEYP(RETROK_MENU,0x55); */      /* xf1 */
+	/*	KEYP(RETROK_KP_PERIOD,0x56); */ /* xf2 */
+	/*	KEYP(RETROK_KP_PERIOD,0x57); */ /* xf3 */
 
-	// only process kb_to_joypad map when its not zero, else button is used as joypad select mode
+	/* only process kb_to_joypad map when its not zero, else button is used as joypad select mode */
 	if (Config.joy1_select_mapping)
 		KEYP(RETROK_XFX, Config.joy1_select_mapping);
 
-	//	KEYP(RETROK_KP_PERIOD,0x58); //xf4
-	//	KEYP(RETROK_KP_PERIOD,0x59); //xf5
-	//	KEYP(RETROK_KP_PERIOD,0x5a); //kana
-	//	KEYP(RETROK_KP_PERIOD,0x5b); //romaji
-	//	KEYP(RETROK_KP_PERIOD,0x5c); //input by codes
+	/*	KEYP(RETROK_KP_PERIOD,0x58); */ /* xf4 */
+	/*	KEYP(RETROK_KP_PERIOD,0x59); */ /* xf5 */
+	/*	KEYP(RETROK_KP_PERIOD,0x5a); */ /* kana */
+	/*	KEYP(RETROK_KP_PERIOD,0x5b); */ /* romaji */
+	/*	KEYP(RETROK_KP_PERIOD,0x5c); */ /* input by codes*/
 	KEYP(RETROK_CAPSLOCK, 0x5d);
 	KEYP(RETROK_INSERT, 0x5e);
-	//	KEYP(RETROK_KP_PERIOD,0x5f);
-	//	KEYP(RETROK_KP_PERIOD,0x60);
-	KEYP(RETROK_BREAK, 0x61); // break
-	KEYP(RETROK_PAUSE, 0x61); // break (allow shift+break combo)
-	//	KEYP(RETROK_KP_PERIOD,0x62); //copy
+	/*	KEYP(RETROK_KP_PERIOD,0x5f); */
+	/*	KEYP(RETROK_KP_PERIOD,0x60); */
+	KEYP(RETROK_BREAK, 0x61); /* break */
+	KEYP(RETROK_PAUSE, 0x61); /* break (allow shift+break combo) */
+	/*	KEYP(RETROK_KP_PERIOD,0x62); */ /* copy */
 
 	for (i = 0; i < 10; i++)
 		KEYP(RETROK_F1 + i, 0x63 + i);
 
-	//	KEYP(RETROK_KP_PERIOD,0x6d);
-	//	KEYP(RETROK_KP_PERIOD,0x6e);
-	//	KEYP(RETROK_KP_PERIOD,0x6f);
+	/*	KEYP(RETROK_KP_PERIOD,0x6d); */
+	/*	KEYP(RETROK_KP_PERIOD,0x6e); */
+	/*	KEYP(RETROK_KP_PERIOD,0x6f); */
 
 	KEYP(RETROK_LSHIFT, 0x70);
 	KEYP(RETROK_RSHIFT, 0x70);
@@ -806,27 +773,25 @@ extern "C" void handle_retrok()
 	KEYP(RETROK_RALT, 0x73);
 }
 
-extern "C" void exec_app_retro()
+void exec_app_retro()
 {
-	int menu_key_down;
+	int i;
+	int mouse_x, mouse_y, mouse_l, mouse_r;
+	static int mbL = 0, mbR = 0;
 
-	//  OPM_RomeoOut(Config.BufferSize * 5);
+	/*  OPM_RomeoOut(Config.BufferSize * 5); */
 	if (menu_mode == menu_out && (Config.AudioDesyncHack || Config.NoWaitMode || Timer_GetCount()))
 	{
 		WinX68k_Exec();
 	}
 
-	menu_key_down = -1;
-
-	static int mbL = 0, mbR = 0;
-
-	int mouse_x = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-	int mouse_y = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+	mouse_x = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+	mouse_y = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
 
 	Mouse_Event(0, mouse_x, mouse_y);
 
-	int mouse_l = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
-	int mouse_r = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT);
+	mouse_l = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
+	mouse_r = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT);
 
 	if (mbL == 0 && mouse_l)
 	{
@@ -849,18 +814,16 @@ extern "C" void exec_app_retro()
 		Mouse_Event(2, 0, 0);
 	}
 
-	int i;
-
 	for (i = 0; i < 320; i++)
 		Core_Key_State[i] = input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, i) ? 0x80 : 0;
 
 	Core_Key_State[RETROK_XFX] = 0;
 
-	if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2)) // Joypad Key for Menu
+	if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2)) /* Joypad Key for Menu */
 		Core_Key_State[RETROK_F12] = 0x80;
 
 	if (Config.joy1_select_mapping)
-		if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT)) // Joypad Key for Mapping
+		if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT)) /* Joypad Key for Mapping */
 			Core_Key_State[RETROK_XFX] = 0x80;
 
 	if (memcmp(Core_Key_State, Core_old_Key_State, sizeof(Core_Key_State)))
@@ -886,7 +849,7 @@ extern "C" void exec_app_retro()
 		if (Core_Key_State[RETROK_x] || Core_Key_State[RETROK_BACKSPACE])
 			keyb_in |= JOY_TRG2;
 
-		Joystick_Update(TRUE, menu_key_down, 0);
+		Joystick_Update(TRUE, -1, 0);
 
 		ret       = WinUI_Menu(menu_mode == menu_enter);
 		menu_mode = menu_in;
@@ -897,16 +860,16 @@ extern "C" void exec_app_retro()
 		}
 		else if (ret == WUM_EMU_QUIT)
 		{
-			end_loop = 1;
+			/* application exit here */
 		}
 	}
 }
 
-extern "C" void end_loop_retro(void)
+void end_loop_retro(void)
 {
-	Memory_WriteB(0xe8e00d, 0x31);                       // SRAM write permission
-	Memory_WriteD(0xed0040, Memory_ReadD(0xed0040) + 1); // Estimated operation time(min.)
-	Memory_WriteD(0xed0044, Memory_ReadD(0xed0044) + 1); // Estimated booting times
+	Memory_WriteB(0xe8e00d, 0x31);                       /* SRAM write permission */
+	Memory_WriteD(0xed0040, Memory_ReadD(0xed0040) + 1); /* Estimated operation time(min.) */
+	Memory_WriteD(0xed0044, Memory_ReadD(0xed0044) + 1); /* Estimated booting times */
 
 	OPM_Cleanup();
 #ifndef NO_MERCURY
@@ -916,7 +879,7 @@ extern "C" void end_loop_retro(void)
 	Joystick_Cleanup();
 	SRAM_Cleanup();
 	FDD_Cleanup();
-	// CDROM_Cleanup();
+	/* CDROM_Cleanup(); */
 	MIDI_Cleanup();
 	DSound_Cleanup();
 	WinX68k_Cleanup();
