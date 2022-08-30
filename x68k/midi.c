@@ -135,20 +135,13 @@ static uint8_t EXCV_XGRESET[] = { 0xf0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00
 
 #define MIDIOUTS(a, b, c) (((uint32_t)c << 16) | ((uint32_t)b << 8) | (uint32_t)a)
 
-uint32_t FASTCALL MIDI_Int(uint8_t irq)
+static int32_t FASTCALL MIDI_Int(int32_t irq)
 {
-	uint32_t ret;
 	IRQH_IRQCallBack(irq);
 	if (irq == 4)
-	{
-		ret = (uint32_t)(MIDI_Vector | MIDI_IntVect);
-	}
-	else
-	{
-		ret = (uint32_t)(-1);
-	}
+		return (int32_t)(MIDI_Vector | MIDI_IntVect);
 
-	return ret;
+	return IRQ_DEFAULT_VECTOR;
 }
 
 /* Advance the midi timer */
@@ -862,21 +855,21 @@ static int file_readline(void *fh, char *buf, int len)
 
 	if (len < 2)
 	{
-		return (-1);
+		return -1;
 	}
 	pos = File_Seek(fh, 0, FSEEK_CUR);
 	if (pos == (uint32_t)-1)
 	{
-		return (-1);
+		return -1;
 	}
 	readsize = File_Read(fh, buf, len - 1);
 	if (readsize == (uint32_t)-1)
 	{
-		return (-1);
+		return -1;
 	}
 	if (!readsize)
 	{
-		return (-1);
+		return -1;
 	}
 	for (i = 0; i < readsize; i++)
 	{
@@ -889,9 +882,9 @@ static int file_readline(void *fh, char *buf, int len)
 	buf[i] = '\0';
 	if (File_Seek(fh, pos, FSEEK_SET) != pos)
 	{
-		return (-1);
+		return -1;
 	}
-	return (i);
+	return i;
 }
 
 static void mimpidefline_analaize(char *buf)

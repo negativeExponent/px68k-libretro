@@ -1,30 +1,30 @@
-#ifndef _winx68k_dmac
-#define _winx68k_dmac
+#ifndef _WINX68K_DMAC_H
+#define _WINX68K_DMAC_H
 
 #include "common.h"
 
 typedef struct
 {
-	uint8_t CSR;		// 00
+	uint8_t CSR;		/* 00 */
 	uint8_t CER;
 	uint8_t dmy0[2];
-	uint8_t DCR;		// 04
+	uint8_t DCR;		/* 04 */
 	uint8_t OCR;
 	uint8_t SCR;
 	uint8_t CCR;
-	uint8_t dmy1[2];	// 08
+	uint8_t dmy1[2];	/* 08 */
 	uint16_t MTC;
-	uint32_t MAR;		// 0C
-	uint8_t dmy2[4];	// 10
-	uint32_t DAR;		// 14
-	uint8_t dmy3[2];	// 18
+	uint32_t MAR;		/* 0C */
+	uint8_t dmy2[4];	/* 10 */
+	uint32_t DAR;		/* 14 */
+	uint8_t dmy3[2];	/* 18 */
 	uint16_t BTC;
-	uint32_t BAR;		// 1C
-	uint8_t dmy4[5];	// 20
+	uint32_t BAR;		/* 1C */
+	uint8_t dmy4[5];	/* 20 */
 	uint8_t NIV;
 	uint8_t dmy5;
 	uint8_t EIV;
-	uint8_t dmy6;		// 28
+	uint8_t dmy6;		/* 28 */
 	uint8_t MFC;
 	uint8_t dmy7[3];
 	uint8_t CPR;
@@ -39,7 +39,6 @@ typedef struct
 
 extern dmac_ch	DMA[4];
 
-uint32_t FASTCALL DMA_Int(uint8_t irq);
 uint8_t FASTCALL DMA_Read(uint32_t adr);
 void FASTCALL DMA_Write(uint32_t adr, uint8_t data);
 
@@ -47,4 +46,4 @@ int FASTCALL DMA_Exec(int ch);
 void DMA_Init(void);
 void DMA_SetReadyCB(int ch, int (*func)(void));
 
-#endif //_winx68k_dmac
+#endif /* _WINX68K_DMAC_H */
