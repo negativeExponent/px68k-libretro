@@ -44,12 +44,6 @@ typedef	void *		DRAWITEMSTRUCT;
 #define	AVE(a, b)	(((a)+(b))/2)
 #endif
 
-/*
- * DUMMY DEFINITION
- */
-#define	WINAPI
-#define	CALLBACK
-
 #ifdef __GNUC__
 #ifndef UNUSED
 #define UNUSED __attribute ((unused))
@@ -171,10 +165,10 @@ typedef struct {
 extern "C" {
 #endif
 
-BOOL	WINAPI WritePrivateProfileString(const char *, const char *, const char *, const char *);
+BOOL	WritePrivateProfileString(const char *, const char *, const char *, const char *);
 
-uint32_t	WINAPI FAKE_GetLastError(void);
-BOOL	WINAPI SetEndOfFile(HANDLE hFile);
+uint32_t	FAKE_GetLastError(void);
+BOOL	SetEndOfFile(HANDLE hFile);
 #ifdef __cplusplus
 };
 #endif
