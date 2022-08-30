@@ -67,6 +67,7 @@ SOURCES_C 		+= \
 				$(CORE_DIR)/libretro/windraw.c \
 				$(CORE_DIR)/libretro/winui.c \
 				$(CORE_DIR)/libretro/common.c \
+				$(CORE_DIR)/libretro/winx68k.c \
 				$(CORE_DIR)/win32api/dosio.c \
 				$(CORE_DIR)/win32api/fake.c \
 				$(CORE_DIR)/win32api/peace.c \
@@ -79,5 +80,4 @@ SOURCES_CXX 	+= \
 				$(CORE_DIR)/fmgen/fmtimer.cpp \
 				$(CORE_DIR)/fmgen/opm.cpp \
 				$(CORE_DIR)/fmgen/opna.cpp \
-				$(CORE_DIR)/fmgen/psg.cpp \
-				$(CORE_DIR)/libretro/winx68k.cpp
+				$(CORE_DIR)/fmgen/psg.cpp
