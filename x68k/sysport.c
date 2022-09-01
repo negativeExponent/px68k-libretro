@@ -1,33 +1,28 @@
-// ---------------------------------------------------------------------------------------
-//  SYSPORT.C - X68k System Port
-// ---------------------------------------------------------------------------------------
+/*
+ *  SYSPORT.C - X68k System Port
+ */
 
-#include "common.h"
-#include "prop.h"
 #include "sysport.h"
+#include "common.h"
 #include "palette.h"
+#include "prop.h"
 
-uint8_t	SysPort[7];
+uint8_t SysPort[7];
 
-// -----------------------------------------------------------------------
-//   初期化
-// -----------------------------------------------------------------------
 void SysPort_Init(void)
 {
 	int i;
-	for (i=0; i<7; i++) SysPort[i]=0;
+
+	for (i = 0; i < 7; i++)
+		SysPort[i] = 0;
 }
 
-
-// -----------------------------------------------------------------------
-//   らいと
-// -----------------------------------------------------------------------
 void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 {
-	switch(adr)
+	switch (adr)
 	{
 	case 0xe8e001:
-		if (SysPort[1]!=(data&15))
+		if (SysPort[1] != (data & 15))
 		{
 			SysPort[1] = data & 15;
 			Pal_ChangeContrast(SysPort[1]);
@@ -51,15 +46,11 @@ void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-
-// -----------------------------------------------------------------------
-//   りーど
-// -----------------------------------------------------------------------
 uint8_t FASTCALL SysPort_Read(uint32_t adr)
 {
-	uint8_t ret=0xff;
+	uint8_t ret = 0xff;
 
-	switch(adr)
+	switch (adr)
 	{
 	case 0xe8e001:
 		ret = SysPort[1];
@@ -73,17 +64,17 @@ uint8_t FASTCALL SysPort_Read(uint32_t adr)
 	case 0xe8e007:
 		ret = SysPort[4];
 		break;
-	case 0xe8e00b:		// 10MHz:0xff、16MHz:0xfe、030(25MHz):0xdcをそれぞれ返すらしい
-		switch(Config.XVIMode)
+	case 0xe8e00b: /* 10MHz:0xff、16MHz:0xfe、030(25MHz):0xdcをそれぞれ返すらしい */
+		switch (Config.XVIMode)
 		{
-		case 1:			// XVI or RedZone
+		case 1: /* XVI or RedZone */
 		case 2:
 			ret = 0xfe;
 			break;
-		case 3:			// 030
+		case 3: /* 030 */
 			ret = 0xdc;
 			break;
-		default:		// 10MHz
+		default: /* 10MHz */
 			ret = 0xff;
 			break;
 		}

@@ -12,15 +12,15 @@ signed char MouseX = 0;
 signed char MouseY = 0;
 uint8_t MouseSt    = 0;
 
-uint8_t SCC_RegsA[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-uint8_t SCC_RegNumA   = 0;
-uint8_t SCC_RegSetA   = 0;
-uint8_t SCC_RegsB[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-uint8_t SCC_RegNumB   = 0;
-uint8_t SCC_RegSetB   = 0;
-uint8_t SCC_Vector    = 0;
-uint8_t SCC_Dat[3]    = { 0, 0, 0 };
-uint8_t SCC_DatNum    = 0;
+static uint8_t SCC_RegsA[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static uint8_t SCC_RegNumA   = 0;
+static uint8_t SCC_RegSetA   = 0;
+static uint8_t SCC_RegsB[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static uint8_t SCC_RegNumB   = 0;
+static uint8_t SCC_RegSetB   = 0;
+static uint8_t SCC_Vector    = 0;
+static uint8_t SCC_Dat[3]    = { 0, 0, 0 };
+static uint8_t SCC_DatNum    = 0;
 
 /*
  *   わりこみ

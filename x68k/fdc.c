@@ -125,6 +125,7 @@ static void FDC_EPhaseEnd(void)
 {
 	FDCID id;
 	FDCRSP *rsp = (FDCRSP *)fdc.RspBuf;
+
 	FDD_GetCurrentID(fdc.drv, &id);
 	rsp->c     = id.c;
 	rsp->h     = id.h;
@@ -392,6 +393,7 @@ static void FDC_ExecCmd(void)
 static void FDC_NextTrack(void)
 {
 	FDCPRM0 *prm0 = (FDCPRM0 *)fdc.PrmBuf;
+
 	if (prm0->r == prm0->eot)
 	{
 		if ((MT(prm0)) && (!HD(prm0)) && (!prm0->h))
@@ -510,6 +512,7 @@ static void FDC_WriteBuffer(void)
 uint8_t FASTCALL FDC_Read(uint32_t adr)
 {
 	uint8_t ret = 0x00;
+
 	if (adr == 0xe94001)
 	{
 		/* FDC Status */

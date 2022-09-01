@@ -1,5 +1,5 @@
-#ifndef _winx68k_sram
-#define _winx68k_sram
+#ifndef _WINX68K_SRAM_H
+#define _WINX68K_SRAM_H
 
 #include "common.h"
 
@@ -15,4 +15,4 @@ void SRAM_SetRAMSize(int);
 uint8_t FASTCALL SRAM_Read(uint32_t adr);
 void FASTCALL SRAM_Write(uint32_t adr, uint8_t data);
 
-#endif
+#endif /* _WINX68K_SRAM_H */

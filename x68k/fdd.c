@@ -51,20 +51,19 @@ static void ConvertCapital(unsigned char *buf)
 
 static int GetDiskType(char *file)
 {
-	char tmp[8], *p;
-	int ret = FD_XDF;
-	p       = strrchr(file, '.');
+	char tmp[8], *p = strrchr(file, '.');
+
 	if (p)
 	{
 		memset(tmp, 0, 8);
 		strncpy(tmp, p + 1, 3);
 		ConvertCapital((unsigned char *)tmp);
 		if ((!strncmp(tmp, "D88", 3)) || (!strncmp(tmp, "88D", 3)))
-			ret = FD_D88;
+			return FD_D88;
 		else if (!strncmp(tmp, "DIM", 3))
-			ret = FD_DIM;
+			return FD_DIM;
 	}
-	return ret;
+	return FD_XDF;
 }
 
 static int32_t FASTCALL FDD_Int(int32_t irq)
@@ -82,6 +81,7 @@ static int32_t FASTCALL FDD_Int(int32_t irq)
 void FDD_SetFD(int drive, char *filename, int readonly)
 {
 	int type = GetDiskType(filename);
+
 	if ((drive < 0) || (drive > 3))
 		return;
 	FDD_EjectFD(drive);
@@ -104,6 +104,7 @@ void FDD_SetFD(int drive, char *filename, int readonly)
 void FDD_EjectFD(int drive)
 {
 	int type;
+
 	if ((drive < 0) || (drive > 3))
 		return;
 	type = fdd.Types[drive];
@@ -177,6 +178,7 @@ void FDD_Cleanup(void)
 void FDD_Reset(void)
 {
 	int i;
+
 	FDD_SetAccess(-1);
 	for (i = 0; i < 4; i++)
 	{
@@ -191,6 +193,7 @@ void FDD_Reset(void)
 void FDD_SetFDInt(void)
 {
 	int i;
+
 	for (i = 0; i < 4; i++)
 	{
 		if (fdd.SetDelay[i])
@@ -209,6 +212,7 @@ void FDD_SetFDInt(void)
 int FDD_Seek(int drv, int trk, FDCID *id)
 {
 	int type;
+
 	if ((drv < 0) || (drv > 3))
 		return FALSE;
 	type = fdd.Types[drv];
@@ -221,6 +225,7 @@ int FDD_Seek(int drv, int trk, FDCID *id)
 int FDD_ReadID(int drv, FDCID *id)
 {
 	int type;
+
 	if ((drv < 0) || (drv > 3))
 		return FALSE;
 	type = fdd.Types[drv];
@@ -233,6 +238,7 @@ int FDD_ReadID(int drv, FDCID *id)
 int FDD_WriteID(int drv, int trk, unsigned char *buf, int num)
 {
 	int type;
+
 	if ((drv < 0) || (drv > 3))
 		return FALSE;
 	type = fdd.Types[drv];
@@ -245,6 +251,7 @@ int FDD_WriteID(int drv, int trk, unsigned char *buf, int num)
 int FDD_Read(int drv, FDCID *id, unsigned char *buf)
 {
 	int type;
+
 	if ((drv < 0) || (drv > 3))
 		return FALSE;
 	type = fdd.Types[drv];
@@ -260,6 +267,7 @@ int FDD_Read(int drv, FDCID *id, unsigned char *buf)
 int FDD_ReadDiag(int drv, FDCID *id, FDCID *retid, unsigned char *buf)
 {
 	int type;
+
 	if ((drv < 0) || (drv > 3))
 		return FALSE;
 	type = fdd.Types[drv];
@@ -272,6 +280,7 @@ int FDD_ReadDiag(int drv, FDCID *id, FDCID *retid, unsigned char *buf)
 int FDD_Write(int drv, FDCID *id, unsigned char *buf, int del)
 {
 	int type;
+
 	if ((drv < 0) || (drv > 3))
 		return FALSE;
 	type = fdd.Types[drv];
@@ -284,6 +293,7 @@ int FDD_Write(int drv, FDCID *id, unsigned char *buf, int del)
 int FDD_GetCurrentID(int drv, FDCID *id)
 {
 	int type;
+
 	if ((drv < 0) || (drv > 3))
 		return FALSE;
 	type = fdd.Types[drv];

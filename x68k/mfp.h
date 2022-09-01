@@ -40,4 +40,4 @@ void FASTCALL MFP_Timer(long clock);
 void FASTCALL MFP_TimerA(void);
 void MFP_Int(int irq);
 
-#endif //_WINX68K_MFP_H
+#endif /*_WINX68K_MFP_H */

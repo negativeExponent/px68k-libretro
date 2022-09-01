@@ -210,8 +210,8 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 void SASI_CheckCmd(void)
 {
 	int16_t result;
-	SASI_Unit = (SASI_Cmd[1] >> 5) & 1; /* X68kでは、ユニット番号は0か1しか取れない */
 
+	SASI_Unit = (SASI_Cmd[1] >> 5) & 1; /* X68kでは、ユニット番号は0か1しか取れない */
 	switch (SASI_Cmd[0])
 	{
 	case 0x00: /* Test Drive Ready */

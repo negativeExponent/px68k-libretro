@@ -1,12 +1,12 @@
-// ---------------------------------------------------------------------------------------
-//  PIA.C - uPD8255（必要最低限のみ）
-// ---------------------------------------------------------------------------------------
+/*
+ *  PIA.C - uPD8255（必要最低限のみ）
+ */
 
 #include "common.h"
-#include "joystick.h"
 #include "pia.h"
-#include "adpcm.h"
 #include "../m68000/m68000.h"
+#include "adpcm.h"
+#include "joystick.h"
 
 typedef struct {
 	uint8_t PortA;
@@ -17,62 +17,68 @@ typedef struct {
 
 static PIA pia;
 
-// -----------------------------------------------------------------------
-//   初期化
-// -----------------------------------------------------------------------
+/*
+ *   初期化
+ */
 void PIA_Init(void)
 {
 	pia.PortA = 0xff;
 	pia.PortB = 0xff;
 	pia.PortC = 0x0b;
-	pia.Ctrl = 0;
+	pia.Ctrl  = 0;
 }
 
-
-// -----------------------------------------------------------------------
-//   I/O Write
-// -----------------------------------------------------------------------
 void FASTCALL PIA_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t mask, bit, portc = pia.PortC;
-	if ( adr==0xe9a005 ) {
-		portc = pia.PortC;
+
+	if (adr == 0xe9a005)
+	{
+		portc     = pia.PortC;
 		pia.PortC = data;
-		if ( (portc&0x0f)!=(pia.PortC&0x0f) ) ADPCM_SetPan(pia.PortC&0x0f);
-		if ( (portc&0x10)!=(pia.PortC&0x10) ) Joystick_Write(0, (uint8_t)((data&0x10)?0xff:0x00));
-		if ( (portc&0x20)!=(pia.PortC&0x20) ) Joystick_Write(1, (uint8_t)((data&0x20)?0xff:0x00));
-	} else if ( adr==0xe9a007 ) {
-		if ( !(data&0x80) ) {
+		if ((portc & 0x0f) != (pia.PortC & 0x0f))
+			ADPCM_SetPan(pia.PortC & 0x0f);
+		if ((portc & 0x10) != (pia.PortC & 0x10))
+			Joystick_Write(0, (uint8_t)((data & 0x10) ? 0xff : 0x00));
+		if ((portc & 0x20) != (pia.PortC & 0x20))
+			Joystick_Write(1, (uint8_t)((data & 0x20) ? 0xff : 0x00));
+	}
+	else if (adr == 0xe9a007)
+	{
+		if (!(data & 0x80))
+		{
 			portc = pia.PortC;
-			bit = (data>>1)&7;
-			mask = 1<<bit;
-			if ( data&1 )
+			bit   = (data >> 1) & 7;
+			mask  = 1 << bit;
+			if (data & 1)
 				pia.PortC |= mask;
 			else
 				pia.PortC &= ~mask;
-			if ( (portc&0x0f)!=(pia.PortC&0x0f) ) ADPCM_SetPan(pia.PortC&0x0f);
-			if ( (portc&0x10)!=(pia.PortC&0x10) ) Joystick_Write(0, (uint8_t)((data&1)?0xff:0x00));
-			if ( (portc&0x20)!=(pia.PortC&0x20) ) Joystick_Write(1, (uint8_t)((data&1)?0xff:0x00));
+			if ((portc & 0x0f) != (pia.PortC & 0x0f))
+				ADPCM_SetPan(pia.PortC & 0x0f);
+			if ((portc & 0x10) != (pia.PortC & 0x10))
+				Joystick_Write(0, (uint8_t)((data & 1) ? 0xff : 0x00));
+			if ((portc & 0x20) != (pia.PortC & 0x20))
+				Joystick_Write(1, (uint8_t)((data & 1) ? 0xff : 0x00));
 		}
-	} else if ( adr==0xe9a001 ) {
+	}
+	else if (adr == 0xe9a001)
+	{
 		Joystick_Write(0, data);
-	} else if (adr == 0xe9a003) {
+	}
+	else if (adr == 0xe9a003)
+	{
 		Joystick_Write(1, data);
 	}
 }
 
-
-// -----------------------------------------------------------------------
-//   I/O Read
-// -----------------------------------------------------------------------
 uint8_t FASTCALL PIA_Read(uint32_t adr)
 {
-	uint8_t ret=0xff;
-	if ( adr==0xe9a001 )
-		ret = Joystick_Read(0);
-	if ( adr==0xe9a003 )
-		ret = Joystick_Read(1);
-	if ( adr==0xe9a005 )
-		ret = pia.PortC;
-	return ret;
+	if (adr == 0xe9a001)
+		return Joystick_Read(0);
+	if (adr == 0xe9a003)
+		return Joystick_Read(1);
+	if (adr == 0xe9a005)
+		return pia.PortC;
+	return 0xff;
 }
