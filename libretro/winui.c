@@ -30,10 +30,11 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include "common.h"
+
 #include "../m68000/m68000.h"
 #include "adpcm.h"
 #include "bg.h"
-#include "common.h"
 #include "crtc.h"
 #include "dmac.h"
 #include "dswin.h"

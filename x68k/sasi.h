@@ -1,5 +1,5 @@
-#ifndef _winx68k_sasi
-#define _winx68k_sasi
+#ifndef _WINX68K_SASI_H
+#define _WINX68K_SASI_H
 
 #include "common.h"
 
@@ -10,4 +10,4 @@ int SASI_IsReady(void);
 
 extern char SASI_Name[16][MAX_PATH];
 
-#endif //_winx68k_sasi
+#endif /*_WINX68K_SASI_H */

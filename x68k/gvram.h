@@ -1,12 +1,12 @@
-#ifndef _winx68k_gvram
-#define _winx68k_gvram
+#ifndef _WINX68K_GVRAM_H
+#define _WINX68K_GVRAM_H
 
 #include "common.h"
 
-extern	uint8_t	GVRAM[0x80000];
-extern	uint16_t	Grp_LineBuf[1024];
-extern	uint16_t	Grp_LineBufSP[1024];
-extern	uint16_t	Grp_LineBufSP2[1024];
+extern uint8_t GVRAM[0x80000];
+extern uint16_t Grp_LineBuf[1024];
+extern uint16_t Grp_LineBufSP[1024];
+extern uint16_t Grp_LineBufSP2[1024];
 
 void GVRAM_Init(void);
 
@@ -20,11 +20,10 @@ void FASTCALL Grp_DrawLine8(int page, int opaq);
 void FASTCALL Grp_DrawLine4(uint32_t page, int opaq);
 void FASTCALL Grp_DrawLine4h(void);
 void FASTCALL Grp_DrawLine16SP(void);
-void FASTCALL Grp_DrawLine8SP(int page/*, int opaq*/);
-void FASTCALL Grp_DrawLine4SP(uint32_t page/*, int opaq*/);
+void FASTCALL Grp_DrawLine8SP(int page /*, int opaq*/);
+void FASTCALL Grp_DrawLine4SP(uint32_t page /*, int opaq*/);
 void FASTCALL Grp_DrawLine4hSP(void);
 void FASTCALL Grp_DrawLine8TR(int page, int opaq);
 void FASTCALL Grp_DrawLine8TR_GT(int page, int opaq);
 void FASTCALL Grp_DrawLine4TR(uint32_t page, int opaq);
-#endif
-
+#endif /* _WINX68K_GVRAM_H */

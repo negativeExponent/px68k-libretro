@@ -51,6 +51,7 @@ static int32_t FASTCALL DMA_Int(int32_t irq)
 	int32_t ret = IRQ_DEFAULT_VECTOR;
 	int bit     = 0;
 	int i       = DMA_LastInt;
+
 	IRQH_IRQCallBack(irq);
 	if (irq == 3)
 	{
@@ -537,6 +538,7 @@ int FASTCALL DMA_Exec(int ch)
 void DMA_Init(void)
 {
 	int i;
+
 	DMA_IntCH   = 0;
 	DMA_LastInt = 0;
 	for (i = 0; i < 4; i++)

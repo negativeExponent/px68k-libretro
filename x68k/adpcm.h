@@ -1,8 +1,5 @@
-#ifndef _winx68k_adpcm_h
-#define _winx68k_adpcm_h
-
-extern uint8_t ADPCM_Clock;
-extern uint32_t ADPCM_ClockRate;
+#ifndef _WINX68K_ADPCM_H
+#define _WINX68K_ADPCM_H
 
 void FASTCALL ADPCM_PreUpdate(uint32_t clock);
 void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, int rate, uint8_t *pbsp, uint8_t *pbep);
@@ -17,4 +14,4 @@ void ADPCM_SetClock(int n);
 void ADPCM_Init(uint32_t samplerate);
 int ADPCM_IsReady(void);
 
-#endif
+#endif /* _WINX68K_ADPCM_H */

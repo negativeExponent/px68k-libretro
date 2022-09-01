@@ -1,9 +1,9 @@
 /*	$Id: mem_wrap.c,v 1.2 2003/12/05 18:07:19 nonaka Exp $	*/
 
-#include "common.h"
-#include <string.h>
 #include "../m68000/m68000.h"
+#include "common.h"
 #include "winx68k.h"
+#include <string.h>
 
 #include "adpcm.h"
 #include "bg.h"
@@ -11,10 +11,10 @@
 #include "dmac.h"
 #include "fdc.h"
 #include "gvram.h"
+#include "ioc.h"
 #include "mercury.h"
 #include "mfp.h"
 #include "midi.h"
-#include "ioc.h"
 #include "palette.h"
 #include "pia.h"
 #include "rtc.h"
@@ -133,7 +133,7 @@ uint8_t *MEM;
 uint8_t *OP_ROM;
 uint8_t *FONT;
 
-uint32_t BusErrFlag = 0;
+uint32_t BusErrFlag     = 0;
 uint32_t BusErrHandling = 0;
 uint32_t BusErrAdr;
 uint32_t MemByteAccess = 0;
@@ -152,7 +152,8 @@ void dma_writemem24_word(uint32_t addr, uint16_t val)
 {
 	MemByteAccess = 0;
 
-	if (addr & 1) {
+	if (addr & 1)
+	{
 		BusErrFlag |= 4;
 		return;
 	}
@@ -165,7 +166,8 @@ void dma_writemem24_dword(uint32_t addr, uint32_t val)
 {
 	MemByteAccess = 0;
 
-	if (addr & 1) {
+	if (addr & 1)
+	{
 		BusErrFlag |= 4;
 		return;
 	}
@@ -179,10 +181,11 @@ void dma_writemem24_dword(uint32_t addr, uint32_t val)
 void cpu_writemem24(uint32_t addr, uint32_t val)
 {
 	MemByteAccess = 0;
-	BusErrFlag = 0;
+	BusErrFlag    = 0;
 
 	wm_cnt(addr, val & 0xff);
-	if (BusErrFlag & 2) {
+	if (BusErrFlag & 2)
+	{
 		Memory_ErrTrace();
 		BusError(addr, val);
 	}
@@ -192,7 +195,8 @@ void cpu_writemem24_word(uint32_t addr, uint32_t val)
 {
 	MemByteAccess = 0;
 
-	if (addr & 1) {
+	if (addr & 1)
+	{
 		AdrError(addr, val);
 		return;
 	}
@@ -202,7 +206,8 @@ void cpu_writemem24_word(uint32_t addr, uint32_t val)
 	wm_cnt(addr, (val >> 8) & 0xff);
 	wm_main(addr + 1, val & 0xff);
 
-	if (BusErrFlag & 2) {
+	if (BusErrFlag & 2)
+	{
 		Memory_ErrTrace();
 		BusError(addr, val);
 	}
@@ -212,7 +217,8 @@ void cpu_writemem24_dword(uint32_t addr, uint32_t val)
 {
 	MemByteAccess = 0;
 
-	if (addr & 1) {
+	if (addr & 1)
+	{
 		AdrError(addr, val);
 		return;
 	}
@@ -224,7 +230,8 @@ void cpu_writemem24_dword(uint32_t addr, uint32_t val)
 	wm_main(addr + 2, (val >> 8) & 0xff);
 	wm_main(addr + 3, val & 0xff);
 
-	if (BusErrFlag & 2) {
+	if (BusErrFlag & 2)
+	{
 		Memory_ErrTrace();
 		BusError(addr, val);
 	}
@@ -239,11 +246,16 @@ static void wm_main(uint32_t addr, uint8_t val)
 static void wm_cnt(uint32_t addr, uint8_t val)
 {
 	addr &= 0x00ffffff;
-	if (addr < 0x00c00000) {	// Use RAM upto 12MB
+	if (addr < 0x00c00000)
+	{
 		MEM[addr ^ 1] = val;
-	} else if (addr < 0x00e00000) {
+	}
+	else if (addr < 0x00e00000)
+	{
 		GVRAM_Write(addr, val);
-	} else {
+	}
+	else
+	{
 		MemWriteTable[(addr >> 13) & 0xff](addr, val);
 	}
 }
@@ -251,7 +263,7 @@ static void wm_cnt(uint32_t addr, uint8_t val)
 static void wm_buserr(uint32_t addr, uint8_t val)
 {
 	BusErrFlag = 2;
-	BusErrAdr = addr;
+	BusErrAdr  = addr;
 	(void)val;
 }
 
@@ -263,9 +275,12 @@ static void wm_opm(uint32_t addr, uint8_t val)
 #endif
 
 	t = addr & 3;
-	if (t == 1) {
+	if (t == 1)
+	{
 		OPM_Write(0, val);
-	} else if (t == 3) {
+	}
+	else if (t == 3)
+	{
 		OPM_Write(1, val);
 	}
 #ifdef RFMDRV
@@ -277,9 +292,12 @@ static void wm_opm(uint32_t addr, uint8_t val)
 
 static void wm_e82(uint32_t addr, uint8_t val)
 {
-	if (addr < 0x00e82400) {
+	if (addr < 0x00e82400)
+	{
 		Pal_Write(addr, val);
-	} else if (addr < 0x00e82700) {
+	}
+	else if (addr < 0x00e82700)
+	{
 		VCtrl_Write(addr, val);
 	}
 }
@@ -303,7 +321,8 @@ uint16_t dma_readmem24_word(uint32_t addr)
 {
 	uint16_t v;
 
-	if (addr & 1) {
+	if (addr & 1)
+	{
 		BusErrFlag = 3;
 		return 0;
 	}
@@ -317,7 +336,8 @@ uint32_t dma_readmem24_dword(uint32_t addr)
 {
 	uint32_t v;
 
-	if (addr & 1) {
+	if (addr & 1)
+	{
 		BusErrFlag = 3;
 		return 0;
 	}
@@ -334,19 +354,21 @@ uint32_t cpu_readmem24(uint32_t addr)
 	uint8_t v;
 
 	v = rm_main(addr);
-	if (BusErrFlag & 1) {
+	if (BusErrFlag & 1)
+	{
 		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
 		Memory_ErrTrace();
 		BusError(addr, 0);
 	}
-	return (uint32_t) v;
+	return (uint32_t)v;
 }
 
 uint32_t cpu_readmem24_word(uint32_t addr)
 {
 	uint16_t v;
 
-	if (addr & 1) {
+	if (addr & 1)
+	{
 		AdrError(addr, 0);
 		return 0;
 	}
@@ -355,12 +377,13 @@ uint32_t cpu_readmem24_word(uint32_t addr)
 
 	v = rm_main(addr++) << 8;
 	v |= rm_main(addr);
-	if (BusErrFlag & 1) {
+	if (BusErrFlag & 1)
+	{
 		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
 		Memory_ErrTrace();
 		BusError(addr, 0);
 	}
-	return (uint32_t) v;
+	return (uint32_t)v;
 }
 
 uint32_t cpu_readmem24_dword(uint32_t addr)
@@ -369,7 +392,8 @@ uint32_t cpu_readmem24_dword(uint32_t addr)
 
 	MemByteAccess = 0;
 
-	if (addr & 1) {
+	if (addr & 1)
+	{
 		BusErrFlag = 3;
 		p6logd("func = %s addr = %x\n", __func__, addr);
 		return 0;
@@ -389,11 +413,16 @@ static uint8_t rm_main(uint32_t addr)
 	uint8_t v;
 
 	addr &= 0x00ffffff;
-	if (addr < 0x00c00000) {	// Use RAM upto 12MB
+	if (addr < 0x00c00000)
+	{
 		v = MEM[addr ^ 1];
-	} else if (addr < 0x00e00000) {
+	}
+	else if (addr < 0x00e00000)
+	{
 		v = GVRAM_Read(addr);
-	} else {
+	}
+	else
+	{
 		v = MemReadTable[(addr >> 13) & 0xff](addr);
 	}
 
@@ -418,7 +447,8 @@ static uint8_t rm_nop(uint32_t addr)
 
 static uint8_t rm_opm(uint32_t addr)
 {
-	if ((addr & 3) == 3) {
+	if ((addr & 3) == 3)
+	{
 		return OPM_Read(0);
 	}
 	return 0;
@@ -426,9 +456,12 @@ static uint8_t rm_opm(uint32_t addr)
 
 static uint8_t rm_e82(uint32_t addr)
 {
-	if (addr < 0x00e82400) {
+	if (addr < 0x00e82400)
+	{
 		return Pal_Read(addr);
-	} else if (addr < 0x00e83000) {
+	}
+	else if (addr < 0x00e83000)
+	{
 		return VCtrl_Read(addr);
 	}
 	return 0;
@@ -436,10 +469,10 @@ static uint8_t rm_e82(uint32_t addr)
 
 static uint8_t rm_buserr(uint32_t addr)
 {
-    p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
+	p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
 
 	BusErrFlag = 1;
-	BusErrAdr = addr;
+	BusErrAdr  = addr;
 
 	return 0;
 }
@@ -449,26 +482,28 @@ static uint8_t rm_buserr(uint32_t addr)
  */
 void Memory_Init(void)
 {
-#if defined (HAVE_CYCLONE)
+#if defined(HAVE_CYCLONE)
 	cpu_setOPbase24((uint32_t)m68000_get_reg(M68K_PC));
-#elif defined (HAVE_M68000)
-    cpu_setOPbase24((uint32_t)C68k_Get_Reg(&C68K, C68K_PC));
-#elif defined (HAVE_C68K)
-    cpu_setOPbase24((uint32_t)C68k_Get_PC(&C68K));
-#elif defined (HAVE_MUSASHI)
-    cpu_setOPbase24((uint32_t)m68k_get_reg(NULL, M68K_REG_PC));
+#elif defined(HAVE_M68000)
+	cpu_setOPbase24((uint32_t)C68k_Get_Reg(&C68K, C68K_PC));
+#elif defined(HAVE_C68K)
+	cpu_setOPbase24((uint32_t)C68k_Get_PC(&C68K));
+#elif defined(HAVE_MUSASHI)
+	cpu_setOPbase24((uint32_t)m68k_get_reg(NULL, M68K_REG_PC));
 #endif
 }
 
 void cpu_setOPbase24(uint32_t addr)
 {
 	switch ((addr >> 20) & 0xf) {
-	case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+	case 0: case 1: case 2: case 3:
+	case 4: case 5: case 6: case 7:
 	case 8: case 9: case 0xa: case 0xb:
 		OP_ROM = MEM;
 		break;
 
-	case 0xc: case 0xd:
+	case 0xc:
+	case 0xd:
 		OP_ROM = GVRAM - 0x00c00000;
 		break;
 
@@ -479,9 +514,10 @@ void cpu_setOPbase24(uint32_t addr)
 			OP_ROM = SCSIIPL - 0x00ea0000;
 		else if ((addr >= 0x00ed0000) && (addr < 0x00ed4000))
 			OP_ROM = SRAM - 0x00ed0000;
-		else {
+		else
+		{
 			BusErrFlag = 3;
-			BusErrAdr = addr;
+			BusErrAdr  = addr;
 			Memory_ErrTrace();
 			BusError(addr, 0);
 		}
@@ -490,9 +526,10 @@ void cpu_setOPbase24(uint32_t addr)
 	case 0xf:
 		if (addr >= 0x00fe0000)
 			OP_ROM = IPL - 0x00fe0000;
-		else {
+		else
+		{
 			BusErrFlag = 3;
-			BusErrAdr = addr;
+			BusErrAdr  = addr;
 			Memory_ErrTrace();
 			BusError(addr, 0);
 		}
@@ -504,19 +541,14 @@ void Memory_SetSCSIMode(void)
 {
 	int i;
 
-	for (i = 0xe0; i < 0xf0; i++) {
+	for (i = 0xe0; i < 0xf0; i++)
+	{
 		MemReadTable[i] = rm_buserr;
 	}
 }
 
-void Memory_ErrTrace(void)
-{
-}
-
-void Memory_IntErr(int i)
-{
-	(void)i;
-}
+void Memory_ErrTrace(void) { }
+void Memory_IntErr(int i) { }
 
 void AdrError(uint32_t adr, uint32_t unknown)
 {

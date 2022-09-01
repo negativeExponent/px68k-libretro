@@ -40,11 +40,6 @@
 int rfd_sock;
 #endif
 
-extern uint16_t BG_CHREND;
-extern uint16_t BG_BGTOP;
-extern uint16_t BG_BGEND;
-extern uint8_t BG_CHRSIZE;
-
 char winx68k_dir[MAX_PATH];
 char winx68k_ini[MAX_PATH];
 
