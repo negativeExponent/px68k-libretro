@@ -15,25 +15,25 @@ static char SRAMFILE[] = "sram.dat";
 
 void SRAM_SetRAMSize(int size)
 {
-	if ((Memory_ReadB(0xed0009) >> 4) == size)
+	if ((cpu_readmem24(0xed0009) >> 4) == size)
 		return;
 
-	Memory_WriteB(0xe8e00d, 0x31); /* SRAM Write permission */
-	Memory_WriteB(0xed0008, 0x00);
-	Memory_WriteB(0xed0009, ((size << 4) & 0xf0));
-	Memory_WriteB(0xed000a, 0x00);
-	Memory_WriteB(0xed000b, 0x00);
-	Memory_WriteB(0xe8e00d, 0x00);
+	cpu_writemem24(0xe8e00d, 0x31); /* SRAM Write permission */
+	cpu_writemem24(0xed0008, 0x00);
+	cpu_writemem24(0xed0009, ((size << 4) & 0xf0));
+	cpu_writemem24(0xed000a, 0x00);
+	cpu_writemem24(0xed000b, 0x00);
+	cpu_writemem24(0xe8e00d, 0x00);
 }
 
 void SRAM_Clear(void)
 {
 	int i;
 
-	Memory_WriteB(0xe8e00d, 0x31); /* SRAM Write permission */
+	cpu_writemem24(0xe8e00d, 0x31); /* SRAM Write permission */
 	for (i = 0; i < 0x4000; i++)
-		Memory_WriteB(0xed0000 + i, 0xff);
-	Memory_WriteB(0xe8e00d, 0x00);
+		cpu_writemem24(0xed0000 + i, 0xff);
+	cpu_writemem24(0xe8e00d, 0x00);
 }
 
 void SRAM_VirusCheck(void)
