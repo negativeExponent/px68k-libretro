@@ -6,6 +6,7 @@
 
 ******************************************************************************/
 
+#include "common.h"
 #include "../m68000/m68000.h"
 
 #if defined (HAVE_CYCLONE)
@@ -13,7 +14,6 @@ struct Cyclone m68k;
 typedef signed int s32;
 #elif defined (HAVE_M68000)
 #include "c68k.h"
-typedef signed int s32;
 #elif defined (HAVE_C68K)
 #include "c68k/c68k.h"
 #elif defined (HAVE_MUSASHI)
@@ -92,9 +92,7 @@ void m68k_write_memory_32(uint32_t address, uint32_t data)
 /*--------------------------------------------------------
 	CPU½é´ü²½
 --------------------------------------------------------*/
-#if !defined (HAVE_MUSASHI)
-s32 my_irqh_callback(s32 level);
-#endif
+signed int my_irqh_callback(signed int level);
 
 void m68000_init(void)
 {
