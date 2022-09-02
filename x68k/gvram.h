@@ -1,8 +1,6 @@
 #ifndef _WINX68K_GVRAM_H
 #define _WINX68K_GVRAM_H
 
-#include "common.h"
-
 extern uint8_t GVRAM[0x80000];
 extern uint16_t Grp_LineBuf[1024];
 extern uint16_t Grp_LineBufSP[1024];

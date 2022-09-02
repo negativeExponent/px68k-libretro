@@ -1,8 +1,6 @@
 #ifndef _WINX68K_BG_H
 #define _WINX68K_BG_H
 
-#include "common.h"
-
 extern uint8_t BG_Regs[0x12];
 extern long BG_HAdjust;
 extern long BG_VLINE;

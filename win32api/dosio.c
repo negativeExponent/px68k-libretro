@@ -33,6 +33,7 @@
 #include <sys/param.h>
 #include <time.h>
 
+#include "common.h"
 #include "dosio.h"
 
 #ifdef __LIBRETRO__

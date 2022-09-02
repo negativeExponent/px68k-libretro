@@ -1,8 +1,6 @@
 #ifndef _WINX68K_SCC_H
 #define _WINX68K_SCC_H
 
-#include "common.h"
-
 void SCC_IntCheck(void);
 void SCC_Init(void);
 uint8_t FASTCALL SCC_Read(uint32_t adr);

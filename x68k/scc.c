@@ -2,9 +2,8 @@
  *  SCC.C - Z8530 SCC（マウスのみ）
  */
 
-#include "scc.h"
-#include "../m68000/m68000.h"
 #include "common.h"
+#include "scc.h"
 #include "irqh.h"
 #include "mouse.h"
 

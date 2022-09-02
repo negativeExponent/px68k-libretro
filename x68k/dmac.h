@@ -1,8 +1,6 @@
 #ifndef _WINX68K_DMAC_H
 #define _WINX68K_DMAC_H
 
-#include "common.h"
-
 typedef struct
 {
 	uint8_t CSR;		/* 00 */

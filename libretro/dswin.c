@@ -23,9 +23,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "common.h"
 #include "dswin.h"
 #include "adpcm.h"
-#include "common.h"
 #include "fmg_wrap.h"
 #include "mercury.h"
 #include "prop.h"

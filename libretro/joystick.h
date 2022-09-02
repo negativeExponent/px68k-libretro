@@ -1,8 +1,6 @@
 #ifndef winx68k_joy_h
 #define winx68k_joy_h
 
-#include "common.h"
-
 #define	JOY_UP		0x01
 #define	JOY_DOWN	0x02
 #define	JOY_LEFT	0x04

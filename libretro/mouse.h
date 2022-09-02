@@ -1,8 +1,6 @@
 #ifndef _winx68k_mouse
 #define _winx68k_mouse
 
-#include "common.h"
-
 extern	int	MousePosX;
 extern	int	MousePosY;
 extern	uint8_t	MouseStat;

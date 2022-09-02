@@ -1,8 +1,6 @@
 #ifndef _WINX68K_SRAM_H
 #define _WINX68K_SRAM_H
 
-#include "common.h"
-
 extern uint8_t SRAM[0x4000];
 
 void SRAM_Init(void);

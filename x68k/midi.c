@@ -17,14 +17,12 @@
  *         ここら辺は好みなので configで設定できてもいいかも
  */
 
-#include "midi.h"
-#include "../m68000/m68000.h"
 #include "common.h"
+#include "midi.h"
 #include "fileio.h"
 #include "irqh.h"
 #include "mmsystem.h"
 #include "prop.h"
-#include "winx68k.h"
 #include "x68kmemory.h"
 
 #define MIDIBUFFERS  1024 /* 1024は流石に越えないでしょう^_^; */

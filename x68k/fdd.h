@@ -1,8 +1,6 @@
 #ifndef _WINX68K_FDD_H
 #define _WINX68K_FDD_H
 
-#include "common.h"
-
 typedef struct {
 	uint8_t c;
 	uint8_t h;

@@ -23,12 +23,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "mouse.h"
 #include "common.h"
-#include "crtc.h"
+#include "mouse.h"
 #include "prop.h"
 #include "scc.h"
-#include "winx68k.h"
 
 float MouseDX = 0;
 float MouseDY = 0;

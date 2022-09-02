@@ -4,14 +4,13 @@
  *    D88でのエラー処理とかマシになったはず……でもその分汚い……
  */
 
+#include "common.h"
 #include "fdc.h"
-#include "../m68000/m68000.h"
 #include "dmac.h"
 #include "fdd.h"
 #include "fileio.h"
 #include "ioc.h"
 #include "irqh.h"
-#include "winx68k.h"
 
 static const uint8_t CMD_TABLE[32] = {
 	0, 0, 8, 2, 1, 8, 8, 1, 0, 8, 1, 0, 8, 5, 0, 2,

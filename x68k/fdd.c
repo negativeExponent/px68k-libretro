@@ -2,8 +2,8 @@
  *  FDD.C - 内蔵FDD Unit（イメージファイルの管理とFD挿抜割り込みの発生）
  */
 
-#include "fdd.h"
 #include "common.h"
+#include "fdd.h"
 #include "disk_d88.h"
 #include "disk_dim.h"
 #include "disk_xdf.h"
@@ -12,7 +12,6 @@
 #include "ioc.h"
 #include "irqh.h"
 #include "status.h"
-#include <string.h>
 
 typedef struct {
 	int SetDelay[4];

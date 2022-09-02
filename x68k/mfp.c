@@ -2,8 +2,10 @@
  *  MFP.C - MFP (Multi-Function Periferal)
  */
 
-#include "mfp.h"
+#include "common.h"
 #include "../m68000/m68000.h"
+
+#include "mfp.h"
 #include "crtc.h"
 #include "irqh.h"
 #include "keyboard.h"

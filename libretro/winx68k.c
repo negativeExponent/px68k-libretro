@@ -1,4 +1,4 @@
-#include "libretro/winx68k.h"
+#include "common.h"
 #include "fmgen/fmg_wrap.h"
 #include "libretro/common.h"
 #include "libretro/dswin.h"
@@ -34,6 +34,7 @@
 #include "x68k/sysport.h"
 #include "x68k/tvram.h"
 #include "x68k/x68kmemory.h"
+#include "libretro/winx68k.h"
 #include "libretro.h"
 
 #ifdef RFMDRV

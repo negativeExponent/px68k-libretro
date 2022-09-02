@@ -1,8 +1,6 @@
 #ifndef _WINX68K_CRTC_H
 #define _WINX68K_CRTC_H
 
-#include "common.h"
-
 #define VSYNC_HIGH 180310L
 #define VSYNC_NORM 162707L
 

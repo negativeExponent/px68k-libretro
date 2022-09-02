@@ -9,8 +9,6 @@
 #ifndef M68000_H
 #define M68000_H
 
-#include "common.h"
-
 #if defined (HAVE_CYCLONE)
 #include "cyclone.h"
 #elif defined (HAVE_M68000)

@@ -1,8 +1,6 @@
 #ifndef dswin_h__
 #define dswin_h__
 
-#include "common.h"
-
 int DSound_Init(uint32_t rate, uint32_t length);
 int DSound_Cleanup(void);
 

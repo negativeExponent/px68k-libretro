@@ -1,8 +1,6 @@
 #ifndef _WINX68K_SYSPORT_H
 #define _WINX68K_SYSPORT_H
 
-#include "common.h"
-
 extern uint8_t SysPort[7];
 
 void SysPort_Init(void);

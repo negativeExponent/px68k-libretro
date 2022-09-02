@@ -1,8 +1,6 @@
 #ifndef _WINX68K_MEMORY_H
 #define _WINX68K_MEMORY_H
 
-#include "common.h"
-
 extern uint8_t *IPL;
 extern uint8_t *MEM;
 extern uint8_t *OP_ROM;

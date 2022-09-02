@@ -3,14 +3,13 @@
  *  ToDo : 透明色処理とか色々
  */
 
+#include "winx68k.h"
+
 #include "tvram.h"
-#include "../m68000/m68000.h"
 #include "bg.h"
-#include "common.h"
 #include "crtc.h"
 #include "palette.h"
 #include "windraw.h"
-#include "winx68k.h"
 
 uint8_t TVRAM[0x80000];
 static uint8_t TextDrawWork[1024 * 1024];

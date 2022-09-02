@@ -1,8 +1,6 @@
 #ifndef _WINX68K_PIA_H
 #define _WINX68K_PIA_H
 
-#include "common.h"
-
 extern	uint8_t	PIA_PortA;
 extern	uint8_t	PIA_PortB;
 extern	uint8_t	PIA_PortC;

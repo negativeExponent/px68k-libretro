@@ -1,8 +1,6 @@
 #ifndef _WINX68K_MFP_H
 #define _WINX68K_MFP_H
 
-#include "common.h"
-
 extern	uint8_t MFP[24];
 
 #define MFP_GPIP	0

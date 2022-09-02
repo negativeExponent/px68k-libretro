@@ -2,8 +2,8 @@
  *  SYSPORT.C - X68k System Port
  */
 
-#include "sysport.h"
 #include "common.h"
+#include "sysport.h"
 #include "palette.h"
 #include "prop.h"
 

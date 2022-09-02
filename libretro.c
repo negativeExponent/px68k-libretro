@@ -10,16 +10,17 @@
 #include <string/stdstring.h>
 
 #include "libretro/common.h"
+
 #include "fmgen/fmg_wrap.h"
 #include "libretro/dswin.h"
 #include "libretro/keyboard.h"
 #include "libretro/mouse.h"
 #include "libretro/prop.h"
-#include "libretro/winx68k.h"
 #include "x68k/adpcm.h"
 #include "x68k/fdd.h"
 #include "x68k/sram.h"
 #include "x68k/x68kmemory.h"
+#include "libretro/winx68k.h"
 #ifndef NO_MERCURY
 #include "x68k/mercury.h"
 #endif

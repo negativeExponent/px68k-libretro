@@ -2,15 +2,11 @@
  *  GVRAM.C - Graphic VRAM
  */
 
+#include "winx68k.h"
 #include "gvram.h"
-#include "../m68000/m68000.h"
-#include "common.h"
 #include "crtc.h"
 #include "palette.h"
 #include "tvram.h"
-#include "windraw.h"
-#include "winx68k.h"
-#include <string.h>
 
 uint8_t GVRAM[0x80000];
 uint16_t Grp_LineBuf[1024];

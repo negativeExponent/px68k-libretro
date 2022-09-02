@@ -2,9 +2,8 @@
  *  SASI.C - Shugart Associates System Interface (SASI HDD)
  */
 
-#include "sasi.h"
-#include "../m68000/m68000.h"
 #include "common.h"
+#include "sasi.h"
 #include "fileio.h"
 #include "ioc.h"
 #include "irqh.h"

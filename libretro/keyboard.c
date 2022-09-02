@@ -23,8 +23,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "keyboard.h"
 #include "common.h"
+#include "keyboard.h"
 #include "joystick.h"
 #include "mfp.h"
 #include "prop.h"

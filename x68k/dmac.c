@@ -3,15 +3,13 @@
  *  ToDo : もっと奇麗に ^^;
  */
 
-#include "dmac.h"
-#include "../m68000/m68000.h"
-#include "adpcm.h"
 #include "common.h"
+#include "dmac.h"
+#include "adpcm.h"
 #include "fdc.h"
 #include "irqh.h"
 #include "mercury.h"
 #include "sasi.h"
-#include "winx68k.h"
 #include "x68kmemory.h"
 
 dmac_ch DMA[4];
