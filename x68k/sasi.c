@@ -4,7 +4,7 @@
 
 #include "common.h"
 #include "sasi.h"
-#include "fileio.h"
+#include "dosio.h"
 #include "ioc.h"
 #include "irqh.h"
 #include "prop.h"
@@ -73,23 +73,23 @@ int16_t SASI_Seek(void)
 	void *fp;
 
 	memset(SASI_Buf, 0, 256);
-	fp = File_Open(Config.HDImage[SASI_Device * 2 + SASI_Unit]);
+	fp = file_open(Config.HDImage[SASI_Device * 2 + SASI_Unit]);
 	if (!fp)
 	{
 		memset(SASI_Buf, 0, 256);
 		return -1;
 	}
-	if (File_Seek(fp, SASI_Sector << 8, FSEEK_SET) != (SASI_Sector << 8))
+	if (file_seek(fp, SASI_Sector << 8, FSEEK_SET) != (SASI_Sector << 8))
 	{
-		File_Close(fp);
+		file_close(fp);
 		return 0;
 	}
-	if (File_Read(fp, SASI_Buf, 256) != 256)
+	if (file_lread(fp, SASI_Buf, 256) != 256)
 	{
-		File_Close(fp);
+		file_close(fp);
 		return 0;
 	}
-	File_Close(fp);
+	file_close(fp);
 
 	return 1;
 }
@@ -101,20 +101,20 @@ int16_t SASI_Flush(void)
 {
 	void *fp;
 
-	fp = File_Open(Config.HDImage[SASI_Device * 2 + SASI_Unit]);
+	fp = file_open(Config.HDImage[SASI_Device * 2 + SASI_Unit]);
 	if (!fp)
 		return -1;
-	if (File_Seek(fp, SASI_Sector << 8, FSEEK_SET) != (SASI_Sector << 8))
+	if (file_seek(fp, SASI_Sector << 8, FSEEK_SET) != (SASI_Sector << 8))
 	{
-		File_Close(fp);
+		file_close(fp);
 		return 0;
 	}
-	if (File_Write(fp, SASI_Buf, 256) != 256)
+	if (file_lwrite(fp, SASI_Buf, 256) != 256)
 	{
-		File_Close(fp);
+		file_close(fp);
 		return 0;
 	}
-	File_Close(fp);
+	file_close(fp);
 
 	return 1;
 }

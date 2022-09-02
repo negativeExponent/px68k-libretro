@@ -8,7 +8,6 @@
 #include "disk_dim.h"
 #include "disk_xdf.h"
 #include "fdc.h"
-#include "fileio.h"
 #include "ioc.h"
 #include "irqh.h"
 #include "status.h"

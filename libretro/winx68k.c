@@ -2,7 +2,7 @@
 #include "fmgen/fmg_wrap.h"
 #include "libretro/common.h"
 #include "libretro/dswin.h"
-#include "libretro/fileio.h"
+#include "dosio.h"
 #include "libretro/joystick.h"
 #include "libretro/keyboard.h"
 #include "libretro/mouse.h"
@@ -127,7 +127,7 @@ int WinX68k_LoadROMs(void)
 
 	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(BIOSFILE); ++i)
 	{
-		fp = File_OpenCurDir((char *)BIOSFILE[i]);
+		fp = file_open_c((char *)BIOSFILE[i]);
 	}
 
 	if (fp == 0)
@@ -136,8 +136,8 @@ int WinX68k_LoadROMs(void)
 		return FALSE;
 	}
 
-	File_Read(fp, &IPL[0x20000], 0x20000);
-	File_Close(fp);
+	file_lread(fp, &IPL[0x20000], 0x20000);
+	file_close(fp);
 
 	WinX68k_SCSICheck(); /* if SCSI IPL, SCSI BIOS is established around $fc0000 */
 
@@ -148,19 +148,19 @@ int WinX68k_LoadROMs(void)
 		IPL[i + 1] = tmp;
 	}
 
-	fp = File_OpenCurDir((char *)FONTFILE);
+	fp = file_open_c((char *)FONTFILE);
 	if (fp == 0)
 	{
 		/* cgrom.tmp present? */
-		fp = File_OpenCurDir((char *)FONTFILETMP);
+		fp = file_open_c((char *)FONTFILETMP);
 		if (fp == 0)
 		{
 			p6logd("Font ROM image can't be found.\n");
 			return FALSE;
 		}
 	}
-	File_Read(fp, FONT, 0xc0000);
-	File_Close(fp);
+	file_lread(fp, FONT, 0xc0000);
+	file_close(fp);
 
 	return TRUE;
 }
