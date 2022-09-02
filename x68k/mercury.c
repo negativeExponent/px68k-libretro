@@ -4,9 +4,7 @@
 
 #include "common.h"
 #include "mercury.h"
-#include "../m68000/m68000.h"
 #include "dmac.h"
-#include "dswin.h"
 #include "fmg_wrap.h"
 #include "irqh.h"
 #include <math.h>

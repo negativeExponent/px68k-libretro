@@ -1,8 +1,6 @@
 #ifndef _winx68k_keyboard
 #define _winx68k_keyboard
 
-#include "common.h"
-
 #define KeyBufSize 128
 
 extern	uint8_t	KeyBuf[KeyBufSize];

@@ -1,8 +1,6 @@
 #ifndef _winx68k_config
 #define _winx68k_config
 
-#include "common.h"
-
 typedef struct
 {
 	int SampleRate;

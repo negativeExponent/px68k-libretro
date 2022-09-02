@@ -1,8 +1,6 @@
 #ifndef _winx68k_winui_h
 #define _winx68k_winui_h
 
-#include "common.h"
-
 extern	uint8_t	Debug_Text, Debug_Grp, Debug_Sp;
 extern	uint32_t	LastClock[4];
 

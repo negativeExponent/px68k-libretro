@@ -1,8 +1,6 @@
 #ifndef _WINX68K_PAL_H
 #define _WINX68K_PAL_H
 
-#include "common.h"
-
 extern uint8_t Pal_Regs[1024];
 extern uint16_t TextPal[256];
 extern uint16_t GrphPal[256];

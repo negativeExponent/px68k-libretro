@@ -1,8 +1,6 @@
 #ifndef _WINX68K_MIDI_H
 #define _WINX68K_MIDI_H
 
-#include "common.h"
-
 void MIDI_Init(void);
 void MIDI_Cleanup(void);
 void MIDI_Reset(void);

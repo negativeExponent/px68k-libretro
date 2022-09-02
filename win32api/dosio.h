@@ -32,7 +32,6 @@
 #define __NP2_DOSIO_H__
 
 #include "appftype.h"
-#include "common.h"
 
 #define FSEEK_SET 0
 #define FSEEK_CUR 1

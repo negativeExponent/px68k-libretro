@@ -30,10 +30,7 @@
 #include <sys/stat.h>
 
 #include "common.h"
-#include "fileio.h"
-#include "keyboard.h"
 #include "prop.h"
-#include "winx68k.h"
 
 static char ini_title[] = "WinX68k";
 static int initialized = 0;

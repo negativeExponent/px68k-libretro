@@ -27,46 +27,20 @@
  *  WINUI.C - UI                                                              *
  * -------------------------------------------------------------------------- */
 
-#include <errno.h>
+#include <dirent.h>
 #include <sys/stat.h>
 
 #include "common.h"
 
-#include "../m68000/m68000.h"
-#include "adpcm.h"
-#include "bg.h"
-#include "crtc.h"
-#include "dmac.h"
-#include "dswin.h"
-#include "fdc.h"
 #include "fdd.h"
-#include "disk_d88.h"
-#include "fileio.h"
-#include "ioc.h"
 #include "irqh.h"
 #include "joystick.h"
-#include "keyboard.h"
-#include "mercury.h"
-#include "mfp.h"
-#include "midi.h"
-#include "mouse.h"
-#include "palette.h"
-#include "pia.h"
 #include "prop.h"
-#include "rtc.h"
-#include "sasi.h"
-#include "scc.h"
 #include "sram.h"
 #include "status.h"
-#include "tvram.h"
 #include "windraw.h"
 #include "winui.h"
 #include "winx68k.h"
-
-#include <dirent.h>
-#include <sys/stat.h>
-
-#include "fmg_wrap.h"
 
 extern uint16_t FrameCount;
 extern int FullScreenFlag;

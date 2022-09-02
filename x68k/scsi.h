@@ -1,8 +1,6 @@
 #ifndef _WINX68K_SCSI_H
 #define _WINX68K_SCSI_H
 
-#include "common.h"
-
 extern uint8_t SCSIIPL[0x2000];
 
 void SCSI_Init(void);

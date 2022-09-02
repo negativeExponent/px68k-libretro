@@ -2,9 +2,9 @@
  *  IRQH.C - IRQ Handler (架空のデバイスにょ)
  */
 
-#include "irqh.h"
-#include "../m68000/m68000.h"
 #include "common.h"
+#include "../m68000/m68000.h"
+#include "irqh.h"
 
 #if defined(HAVE_CYCLONE)
 extern struct Cyclone m68k;

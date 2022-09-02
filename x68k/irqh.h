@@ -1,8 +1,6 @@
 #ifndef _WINX68K_IRQH_H
 #define _WINX68K_IRQH_H
 
-#include "common.h"
-
 #define IRQ_DEFAULT_VECTOR 0xFFFFFFFF
 
 void IRQH_Init(void);

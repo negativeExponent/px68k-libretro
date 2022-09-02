@@ -1,7 +1,7 @@
 // JOYSTICK.C - joystick support for WinX68k
 
-#include "joystick.h"
 #include "common.h"
+#include "joystick.h"
 #include "keyboard.h"
 #include "prop.h"
 #include "winui.h"

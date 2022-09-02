@@ -2,11 +2,9 @@
  *  CRTC.C - CRT Controller / Video Controller
  */
 
-#include "crtc.h"
-#include "../m68000/m68000.h"
-#include "bg.h"
 #include "common.h"
-#include "gvram.h"
+#include "crtc.h"
+#include "bg.h"
 #include "tvram.h"
 #include "windraw.h"
 #include "winx68k.h"

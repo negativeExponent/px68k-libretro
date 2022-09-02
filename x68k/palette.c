@@ -2,10 +2,9 @@
  *  PALETTE.C - Text/BG/Graphic Palette
  */
 
-#include "palette.h"
-#include "../m68000/m68000.h"
-#include "bg.h"
 #include "common.h"
+#include "palette.h"
+#include "bg.h"
 #include "crtc.h"
 #include "tvram.h"
 #include "windraw.h"

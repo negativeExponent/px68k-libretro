@@ -1,9 +1,7 @@
 /*	$Id: mem_wrap.c,v 1.2 2003/12/05 18:07:19 nonaka Exp $	*/
 
-#include "../m68000/m68000.h"
 #include "common.h"
-#include "winx68k.h"
-#include <string.h>
+#include "../m68000/m68000.h"
 
 #include "adpcm.h"
 #include "bg.h"

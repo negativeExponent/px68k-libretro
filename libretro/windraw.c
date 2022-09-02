@@ -31,8 +31,6 @@
 #include "bg.h"
 #include "crtc.h"
 #include "gvram.h"
-#include "joystick.h"
-#include "keyboard.h"
 #include "mouse.h"
 #include "palette.h"
 #include "prop.h"

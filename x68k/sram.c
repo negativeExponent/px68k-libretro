@@ -2,12 +2,11 @@
  *  SRAM.C - SRAM (16kb) нн╟Х
  */
 
-#include "sram.h"
 #include "common.h"
+#include "sram.h"
 #include "fileio.h"
 #include "prop.h"
 #include "sysport.h"
-#include "winx68k.h"
 #include "x68kmemory.h"
 
 uint8_t SRAM[0x4000];
