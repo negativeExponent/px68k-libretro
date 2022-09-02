@@ -1,6 +1,6 @@
 /*	$Id: status.c,v 1.3 2008/11/08 01:42:42 nonaka Exp $	*/
 
-/* 
+/*
  * Copyright (c) 2003 NONAKA Kimihiro
  * All rights reserved.
  *
@@ -35,7 +35,7 @@
 #include "winx68k.h"
 #include "prop.h"
 #include "status.h"
-#include "fileio.h"
+#include "dosio.h"
 #include "fdd.h"
 
 #if 0

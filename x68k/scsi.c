@@ -6,7 +6,6 @@
 
 #include "common.h"
 #include "scsi.h"
-#include "fileio.h"
 
 uint8_t SCSIIPL[0x2000];
 

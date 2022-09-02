@@ -19,7 +19,7 @@
 
 #include "common.h"
 #include "midi.h"
-#include "fileio.h"
+#include "dosio.h"
 #include "irqh.h"
 #include "mmsystem.h"
 #include "prop.h"
@@ -855,12 +855,12 @@ static int file_readline(void *fh, char *buf, int len)
 	{
 		return -1;
 	}
-	pos = File_Seek(fh, 0, FSEEK_CUR);
+	pos = file_seek(fh, 0, FSEEK_CUR);
 	if (pos == (uint32_t)-1)
 	{
 		return -1;
 	}
-	readsize = File_Read(fh, buf, len - 1);
+	readsize = file_lread(fh, buf, len - 1);
 	if (readsize == (uint32_t)-1)
 	{
 		return -1;
@@ -878,7 +878,7 @@ static int file_readline(void *fh, char *buf, int len)
 		}
 	}
 	buf[i] = '\0';
-	if (File_Seek(fh, pos, FSEEK_SET) != pos)
+	if (file_seek(fh, pos, FSEEK_SET) != pos)
 	{
 		return -1;
 	}
@@ -972,7 +972,7 @@ int MIDI_SetMimpiMap(char *filename)
 		ENABLE_TONEMAP = 0;
 		return (FALSE);
 	}
-	fh = File_Open(filename);
+	fh = file_open(filename);
 	if (fh == (void *)-1)
 	{
 		ENABLE_TONEMAP = 0;
@@ -982,7 +982,7 @@ int MIDI_SetMimpiMap(char *filename)
 	{
 		mimpidefline_analaize(buf);
 	}
-	File_Close(fh);
+	file_close(fh);
 
 	LOADED_TONEMAP = 1;
 	return (TRUE);

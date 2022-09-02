@@ -8,7 +8,6 @@
 #include "fdc.h"
 #include "dmac.h"
 #include "fdd.h"
-#include "fileio.h"
 #include "ioc.h"
 #include "irqh.h"
 

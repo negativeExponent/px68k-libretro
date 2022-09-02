@@ -425,7 +425,7 @@ WARNINGS := -Wall -Wno-invalid-source-encoding
 FLAGS    += -D__LIBRETRO__ $(ENDIANNESS_DEFINES) $(WARNINGS) $(fpic)
 
 CXXFLAGS += $(FLAGS) $(CPU_FLAGS) -fpermissive
-CFLAGS   += $(FLAGS) -std=c99 $(CPU_FLAGS)
+CFLAGS   += $(FLAGS) -std=c99 $(CPU_FLAGS) -Werror-implicit-function-declaration
 
 $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
