@@ -44,7 +44,7 @@ uint16_t menu_buffer[800 * 600];
 
 extern uint8_t Debug_Text, Debug_Grp, Debug_Sp;
 
-uint16_t *ScrBuf = 0;
+static uint16_t *ScrBuf = 0;
 
 int Draw_Opaque;
 int FullScreenFlag = 0;
@@ -181,12 +181,20 @@ int WinDraw_Init(void)
 	WinDraw_Pal16G = 0x07e0;
 	WinDraw_Pal16B = 0x001f;
 
-	ScrBuf = malloc(800 * 600 * 2);
+	ScrBuf = (uint16_t *)malloc(800 * 600 * 2);
+
+	if (!ScrBuf)
+		return FALSE;
 
 	return TRUE;
 }
 
-void WinDraw_Cleanup(void) { }
+void WinDraw_Cleanup(void)
+{
+	if (ScrBuf)
+		free(ScrBuf);
+	ScrBuf = NULL;
+}
 
 void WinDraw_Redraw(void)
 {
