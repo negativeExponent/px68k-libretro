@@ -2,7 +2,6 @@
 #define _winx68k_winui_h
 
 extern	uint8_t	Debug_Text, Debug_Grp, Debug_Sp;
-extern	uint32_t	LastClock[4];
 
 extern char cur_dir_str[];
 extern int cur_dir_slen;
@@ -11,7 +10,6 @@ extern int speedup_joy[0xff];
 void WinUI_Init(void);
 int WinUI_Menu(int first);
 float WinUI_get_vkscale(void);
-void send_key(void);
 
 #define WUM_MENU_END 1
 #define WUM_EMU_QUIT 2

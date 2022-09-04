@@ -518,10 +518,8 @@ int pmain(int argc, char *argv[])
 
 	StatBar_Show(Config.WindowFDDStat);
 	WinDraw_ChangeSize();
-	WinDraw_ChangeMode(FALSE);
 
 	WinUI_Init();
-	WinDraw_StartupScreen();
 
 	if (!WinX68k_Init())
 	{
@@ -880,7 +878,6 @@ void end_loop_retro(void)
 	DSound_Cleanup();
 	WinX68k_Cleanup();
 	WinDraw_Cleanup();
-	WinDraw_CleanupScreen();
 
 	SaveConfig();
 }

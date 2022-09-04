@@ -37,146 +37,24 @@
 #include "status.h"
 #include "tvram.h"
 
-#ifdef __LIBRETRO__
-extern uint16_t *videoBuffer;
-#endif
-uint16_t menu_buffer[800 * 600];
-
 extern uint8_t Debug_Text, Debug_Grp, Debug_Sp;
+extern uint16_t *videoBuffer;
+extern int retrow, retroh;
+extern int CHANGEAV, CHANGEAV_TIMING, VID_MODE;
 
 static uint16_t *ScrBuf = 0;
-
-int Draw_Opaque;
-int FullScreenFlag = 0;
-uint8_t Draw_DrawFlag = 1;
-uint8_t Draw_ClrMenu = 0;
-
-uint8_t Draw_BitMask[800];
-uint8_t Draw_TextBitMask[800];
-
-static int winx = 0, winy = 0;
-static uint32_t winh = 0, winw = 0;
-uint32_t root_width, root_height;
-uint16_t FrameCount = 0;
+static uint16_t menu_buffer[800 * 600];
 
 uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 
-uint32_t WindowX = 0;
-uint32_t WindowY = 0;
-
-void WinDraw_InitWindowSize(uint16_t width, uint16_t height)
-{
-	static BOOL inited = FALSE;
-
-	if (!inited)
-	{
-		inited = TRUE;
-	}
-
-	winw = width;
-	winh = height;
-
-	if (root_width < winw)
-		winx = (root_width - winw) / 2;
-	else if (winx < 0)
-		winx = 0;
-	else if ((winx + winw) > root_width)
-		winx = root_width - winw;
-	if (root_height < winh)
-		winy = (root_height - winh) / 2;
-	else if (winy < 0)
-		winy = 0;
-	else if ((winy + winh) > root_height)
-		winy = root_height - winh;
-}
-
 void WinDraw_ChangeSize(void)
 {
-	uint32_t oldx = WindowX, oldy = WindowY;
-	int dif;
-
-	Mouse_ChangePos();
-
-	switch (Config.WinStrech)
-	{
-	case 0:
-		WindowX = TextDotX;
-		WindowY = TextDotY;
-		break;
-
-	case 1:
-		WindowX = 768;
-		WindowY = 512;
-		break;
-
-	case 2:
-		if (TextDotX <= 384)
-			WindowX = TextDotX * 2;
-		else
-			WindowX = TextDotX;
-		if (TextDotY <= 256)
-			WindowY = TextDotY * 2;
-		else
-			WindowY = TextDotY;
-		break;
-
-	case 3:
-		if (TextDotX <= 384)
-			WindowX = TextDotX * 2;
-		else
-			WindowX = TextDotX;
-		if (TextDotY <= 256)
-			WindowY = TextDotY * 2;
-		else
-			WindowY = TextDotY;
-		dif = WindowX - WindowY;
-		if ((dif > -32) && (dif < 32))
-		{
-			// 正方形に近い画面なら、としておこう
-			WindowX = (int)(WindowX * 1.25);
-		}
-		break;
-	}
-
-	if ((WindowX > 768) || (WindowX <= 0))
-	{
-		if (oldx)
-			WindowX = oldx;
-		else
-			WindowX = oldx = 768;
-	}
-	if ((WindowY > 512) || (WindowY <= 0))
-	{
-		if (oldy)
-			WindowY = oldy;
-		else
-			WindowY = oldy = 512;
-	}
-
-	if ((oldx == WindowX) && (oldy == WindowY))
-		return;
-
-	WinDraw_InitWindowSize((uint16_t)WindowX, (uint16_t)WindowY);
-	StatBar_Show(Config.WindowFDDStat);
-	Mouse_ChangePos();
-}
-
-// static int dispflag = 0;
-void WinDraw_StartupScreen(void) { }
-
-void WinDraw_CleanupScreen(void) { }
-
-void WinDraw_ChangeMode(int flag)
-{
-	/* full screen mode(TRUE) <-> window mode(FALSE) */
-	(void)flag;
+	/* function is called from crtc */
+	/* StatBar_Show(Config.WindowFDDStat); */
 }
 
 int WinDraw_Init(void)
 {
-	WindowX = 768;
-	WindowY = 512;
-
 	WinDraw_Pal16R = 0xf800;
 	WinDraw_Pal16G = 0x07e0;
 	WinDraw_Pal16B = 0x001f;
@@ -200,9 +78,6 @@ void WinDraw_Redraw(void)
 {
 	TVRAM_SetAllDirty();
 }
-
-extern int retrow, retroh;
-extern int CHANGEAV, CHANGEAV_TIMING, VID_MODE;
 
 void FASTCALL WinDraw_Draw(void)
 {
@@ -233,11 +108,6 @@ void FASTCALL WinDraw_Draw(void)
 	}
 
 	videoBuffer = (uint16_t *)ScrBuf;
-
-	FrameCount++;
-	if (!Draw_DrawFlag /* && is_installed_idle_process()*/)
-		return;
-	Draw_DrawFlag = 0;
 }
 
 #define WD_MEMCPY(src) memcpy(&ScrBuf[adr], (src), TextDotX * 2)
@@ -490,13 +360,12 @@ void WinDraw_DrawLine(void)
 	int opaq, ton = 0, gon = 0, bgon = 0, tron = 0, pron = 0, tdrawed = 0;
 
 	if (VLINE == (uint32_t)-1)
-	{
 		return;
-	}
+
 	if (!TextDirtyLine[VLINE])
 		return;
+
 	TextDirtyLine[VLINE] = 0;
-	Draw_DrawFlag = 1;
 
 	if (Debug_Grp)
 	{
