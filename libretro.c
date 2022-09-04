@@ -53,7 +53,7 @@ static const char *retro_save_directory;
 static const char *retro_system_directory;
 const char *retro_content_directory;
 char retro_system_conf[1024];
-char base_dir[2048];
+char base_dir[1024];
 
 char Core_Key_State[512];
 char Core_old_Key_State[512];
@@ -94,15 +94,15 @@ typedef enum
 /* .dsk swap support */
 struct disk_control_interface_t
 {
-	unsigned dci_version;               /* disk control interface version, 0 = use old interface */
-	unsigned total_images;              /* total number if disk images */
-	unsigned index;                     /* currect disk index */
-	disk_drive cur_drive;               /* current active drive */
-	bool inserted[2];                   /* tray state for FDD0/FDD1, 0 = disk ejected, 1 = disk inserted */
-	char path[MAX_DISKS][MAX_PATH];     /* disk image paths */
-	char label[MAX_DISKS][MAX_PATH];    /* disk image base name w/o extension */
-	unsigned g_initial_disc;            /* initial disk index */
-	char g_initial_disc_path[MAX_PATH]; /* initial disk path */
+   unsigned dci_version;               /* disk control interface version, 0 = use old interface */
+   unsigned total_images;              /* total number if disk images */
+   unsigned index;                     /* currect disk index */
+   disk_drive cur_drive;               /* current active drive */
+   bool inserted[2];                   /* tray state for FDD0/FDD1, 0 = disk ejected, 1 = disk inserted */
+   char path[MAX_DISKS][MAX_PATH];     /* disk image paths */
+   char label[MAX_DISKS][MAX_PATH];    /* disk image base name w/o extension */
+   unsigned g_initial_disc;            /* initial disk index */
+   char g_initial_disc_path[MAX_PATH]; /* initial disk path */
 };
 
 static struct disk_control_interface_t disk;
@@ -113,6 +113,9 @@ static void update_variables(void);
 
 static bool is_path_absolute(const char *path)
 {
+   if (string_is_empty(path))
+      return false;
+
    if (path[0] == slash)
       return true;
 
@@ -446,7 +449,7 @@ static int HandleExtension(char *path, char *ext)
 }
 
 /* Args for experimental_cmdline */
-static char ARGUV[64][1024];
+static char ARGUV[64][MAX_PATH];
 static unsigned char ARGUC = 0;
 
 /* Args for Core */
@@ -669,7 +672,7 @@ run_pmain:
 static void parse_cmdline(const char *argv)
 {
    char *p, *p2, *start_of_word;
-   int c, c2;
+   int i, c, c2;
    static char buffer[512 * 4];
    enum states { DULL, IN_WORD, IN_STRING } state = DULL;
 
@@ -722,6 +725,18 @@ static void parse_cmdline(const char *argv)
             state = DULL; /* back to "not in word, not in string" state */
          }
          continue; /* either still IN_WORD or we handled the end above */
+      }
+   }
+
+   /* handle relative paths, append content dir if needed */
+   for (i = 1; i < ARGUC; i++)
+   {
+      if (!is_path_absolute(ARGUV[i]))
+      {
+         char tmp[2048] = { 0 };
+         strcpy(tmp, ARGUV[i]);
+         ARGUV[i][0] = '\0';
+         snprintf(ARGUV[i], sizeof(ARGUV[i]), "%s%c%s", base_dir, slash, tmp);
       }
    }
 }
@@ -1279,7 +1294,9 @@ void retro_init(void)
 {
    struct retro_log_callback log;
    struct retro_rumble_interface rumble;
-   const char *system_dir = NULL;
+   const char *system_dir  = NULL;
+   const char *content_dir = NULL;
+   const char *save_dir    = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
       log_cb = log.log;
@@ -1291,14 +1308,10 @@ void retro_init(void)
       retro_system_directory = system_dir;
    }
 
-   const char *content_dir = NULL;
-
    if (environ_cb(RETRO_ENVIRONMENT_GET_CONTENT_DIRECTORY, &content_dir) && content_dir)
    {
       retro_content_directory = content_dir;
    }
-
-   const char *save_dir = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir)
    {
