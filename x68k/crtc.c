@@ -173,7 +173,6 @@ uint8_t FASTCALL CRTC_Read(uint32_t adr)
 void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t reg     = (uint8_t)(adr & 0x3f);
-	int old_vidmode = VID_MODE;
 
 	if (adr < 0xe80400)
 	{
@@ -267,12 +266,6 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			}
 			else
 				CRTC_VStep = 2;
-
-			if (VID_MODE != old_vidmode)
-			{
-				old_vidmode     = VID_MODE;
-				CHANGEAV_TIMING = 1;
-			}
 
 			WinDraw_ChangeSize();
 			break;

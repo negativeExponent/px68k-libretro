@@ -193,11 +193,13 @@ void WinDraw_Redraw(void)
 	TVRAM_SetAllDirty();
 }
 
-extern int retrow, retroh, CHANGEAV;
+extern int retrow, retroh;
+extern int CHANGEAV, CHANGEAV_TIMING, VID_MODE;
 
 void FASTCALL WinDraw_Draw(void)
 {
 	static int oldtextx = -1, oldtexty = -1;
+	static int oldvidmode = -1;
 
 	if (oldtextx != TextDotX)
 	{
@@ -210,7 +212,13 @@ void FASTCALL WinDraw_Draw(void)
 		CHANGEAV = 1;
 	}
 
-	if (CHANGEAV == 1)
+	if (oldvidmode != VID_MODE)
+	{
+		oldvidmode = VID_MODE;
+		CHANGEAV_TIMING = 1;
+	}
+
+	if (CHANGEAV == 1 | CHANGEAV_TIMING == 1)
 	{
 		retrow = TextDotX;
 		retroh = TextDotY;
