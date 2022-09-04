@@ -42,20 +42,9 @@
 #include "winui.h"
 #include "winx68k.h"
 
-extern uint16_t FrameCount;
-extern int FullScreenFlag;
-int UI_MouseFlag = 0;
-int UI_MouseX = -1, UI_MouseY = -1;
-
-uint8_t MenuClearFlag = 0;
-
 uint8_t Debug_Text = 1, Debug_Grp = 1, Debug_Sp = 1;
 
 char filepath[MAX_PATH] = ".";
-int fddblink            = 0;
-int fddblinkcount       = 0;
-
-uint32_t LastClock[4] = { 0, 0, 0, 0 };
 
 char cur_dir_str[MAX_PATH];
 int cur_dir_slen;
