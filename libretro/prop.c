@@ -98,7 +98,7 @@ static void LoadDefaults(void)
 	int i;
 	int j;
 
-	Config.MenuFontSize = 0; // start with default normal menu size
+	Config.menuSize = 0; // start with default normal menu size
 	Config.FrameRate = 1;
 	filepath[0] = 0;
 	Config.OPM_VOL = 12;
@@ -120,18 +120,7 @@ static void LoadDefaults(void)
 	Config.JoyKeyReverse = 0;
 	Config.JoyKeyJoy2 = 0;
 	Config.SRAMWarning = 1;
-	Config.LongFileName = 1;
-	Config.WinDrvFD = 1;
-	Config.WinStrech = 1;
-	Config.DSMixing = 0;
 	Config.XVIMode = 0;
-	Config.CDROM_ASPI = 1;
-	Config.CDROM_SCSIID = 6;
-	Config.CDROM_ASPI_Drive = 0;
-	Config.CDROM_IOCTRL_Drive = 16;
-	Config.CDROM_Enable = 1;
-	Config.SSTP_Enable = 0;
-	Config.SSTP_Port = 11000;
 	Config.ToneMap = 0;
 	Config.ToneMapFile[0] = 0;
 	Config.MIDIDelay = Config.BufferSize * 5;
@@ -139,20 +128,10 @@ static void LoadDefaults(void)
 	Config.VkeyScale = 4;
 	Config.VbtnSwap = 0;
 	Config.JoyOrMouse = 1;
-	Config.HwJoyAxis[0] = 0;
-	Config.HwJoyAxis[1] = 1;
-	Config.HwJoyHat = 0;
-
-	for (i = 0; i < 8; i++)
-		Config.HwJoyBtn[i] = i;
-
 	Config.NoWaitMode = 0;
 	Config.AdjustFrameRates = 1;
 	Config.AudioDesyncHack = 0;
-
-	for (i = 0; i < 2; i++)
-		for (j = 0; j < 8; j++)
-			Config.JOY_BTN[i][j] = j;
+	Config.cpuClock = 10;
 
 	for (i = 0; i < 2; i++)
 		Config.FDDImage[i][0] = '\0';
@@ -180,7 +159,7 @@ void LoadConfig(void)
 	else
 		filepath[0] = 0;
 
-	if (Config.save_fdd_path)
+	if (Config.saveFDDPath)
 	{
 		for (i = 0; i < 2; i++)
 		{
@@ -189,7 +168,7 @@ void LoadConfig(void)
 		}
 	}
 
-	if (Config.save_hdd_path)
+	if (Config.saveHDDPath)
 	{
 		for (i = 0; i < 16; i++)
 		{
@@ -206,7 +185,7 @@ void SaveConfig(void)
 
 	WritePrivateProfileString(ini_title, "StartDir", filepath, winx68k_ini);
 
-	if (Config.save_fdd_path)
+	if (Config.saveFDDPath)
 	{
 		for (i = 0; i < 2; i++)
 		{
@@ -215,7 +194,7 @@ void SaveConfig(void)
 		}
 	}
 
-	if (Config.save_hdd_path)
+	if (Config.saveHDDPath)
 	{
 		for (i = 0; i < 16; i++)
 		{

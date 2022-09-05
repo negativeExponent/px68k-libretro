@@ -301,8 +301,8 @@ void WinX68k_Exec(void)
 	clk_count = -ICount;
 	clk_total = (CRTC_Regs[0x29] & 0x10) ? VSYNC_HIGH : VSYNC_NORM;
 
-	clk_total = (clk_total * Config.clockmhz) / 10;
-	clkdiv    = Config.clockmhz;
+	clk_total = (clk_total * Config.cpuClock) / 10;
+	clkdiv    = Config.cpuClock;
 
 	/*	if (Config.XVIMode == 1) {
 			clk_total = (clk_total*16)/10;
@@ -731,8 +731,8 @@ void handle_retrok()
 	/*	KEYP(RETROK_KP_PERIOD,0x57); */ /* xf3 */
 
 	/* only process kb_to_joypad map when its not zero, else button is used as joypad select mode */
-	if (Config.joy1_select_mapping)
-		KEYP(RETROK_XFX, Config.joy1_select_mapping);
+	if (Config.P1SelectMap)
+		KEYP(RETROK_XFX, Config.P1SelectMap);
 
 	/*	KEYP(RETROK_KP_PERIOD,0x58); */ /* xf4 */
 	/*	KEYP(RETROK_KP_PERIOD,0x59); */ /* xf5 */
@@ -816,7 +816,7 @@ void exec_app_retro()
 	if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2)) /* Joypad Key for Menu */
 		Core_Key_State[RETROK_F12] = 0x80;
 
-	if (Config.joy1_select_mapping)
+	if (Config.P1SelectMap)
 		if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT)) /* Joypad Key for Mapping */
 			Core_Key_State[RETROK_XFX] = 0x80;
 

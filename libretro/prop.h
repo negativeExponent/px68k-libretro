@@ -1,16 +1,13 @@
-#ifndef _winx68k_config
-#define _winx68k_config
+#ifndef _WINX68K_CONFIG_H
+#define _WINX68K_CONFIG_H
 
 typedef struct
 {
 	int SampleRate;
 	int BufferSize;
-	int WinPosX;
-	int WinPosY;
 	int OPM_VOL;
 	int PCM_VOL;
 	int MCR_VOL;
-	int JOY_BTN[2][8];
 	int MouseSpeed;
 	int WindowFDDStat;
 	int FullScrFDDStat;
@@ -27,17 +24,6 @@ typedef struct
 	char ToneMapFile[MAX_PATH];
 	int XVIMode;
 	int JoySwap;
-	int LongFileName;
-	int WinDrvFD;
-	int WinStrech;
-	int DSMixing;
-	int CDROM_ASPI;
-	int CDROM_ASPI_Drive;
-	int CDROM_IOCTRL_Drive;
-	int CDROM_SCSIID;
-	int CDROM_Enable;
-	int SSTP_Enable;
-	int SSTP_Port;
 	int Sound_LPF;
 	int SoundROMEO;
 	int MIDIDelay;
@@ -46,33 +32,27 @@ typedef struct
 	int VkeyScale;
 	int VbtnSwap;
 	int JoyOrMouse;
-	int HwJoyAxis[2];
-	int HwJoyHat;
-	int HwJoyBtn[8];
 	int NoWaitMode;
 	int FrameRate;
-	int PushVideoBeforeAudio;
 	int AdjustFrameRates;
 	int AudioDesyncHack;
-	int MenuFontSize;        // font size of menu, 0 = normal, 1 = large
-	int joy1_select_mapping; /* used for keyboard to joypad map for P1 Select */
-	int save_fdd_path;
-	int save_hdd_path;
-	/* Cpu clock in MHz */
-	int clockmhz;
+	int menuSize;    /* 0 = normal, 1 = large */
+	int P1SelectMap; /* assigne a keyboard map to Player 1's Select button */
+	int saveFDDPath;
+	int saveHDDPath;
+	int cpuClock; /* Cpu clock in MHz */
 	/* Set controller type for each player to use
 	 * 0 = Standard 2-buttons gamepad
 	 * 1 = CPSF-MD (8 Buttons
 	 * 2 = CPSF-SFC (8 Buttons) */
-	int JOY_TYPE[2];
+	int joyType[2];
 } Win68Conf;
 
 extern Win68Conf Config;
 
 void LoadConfig(void);
 void SaveConfig(void);
-void PropPage_Init(void);
 
 int set_modulepath(char *path, size_t len);
 
-#endif //_winx68k_config
+#endif /*_WINX68K_CONFIG_H */

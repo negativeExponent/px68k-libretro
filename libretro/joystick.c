@@ -135,7 +135,7 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 	ret0 ^= temp;
 
 	/* Buttons */
-	switch (Config.JOY_TYPE[port])
+	switch (Config.joyType[port])
 	{
 	case PAD_2BUTTON:
 		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_A))
@@ -149,7 +149,7 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 
 		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_START))
 			ret0 &= ~(JOY_UP | JOY_DOWN);
-		if (!Config.joy1_select_mapping)
+		if (!Config.P1SelectMap)
 			if (res & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
 				ret0 &= ~(JOY_LEFT | JOY_RIGHT);
 		break;
@@ -170,7 +170,7 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 
 		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_START))
 			ret1 ^= JOY_TRG6;
-		if (!Config.joy1_select_mapping)
+		if (!Config.P1SelectMap)
 			if (res & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
 				ret1 ^= JOY_TRG7;
 		break;
@@ -191,7 +191,7 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 
 		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_START))
 			ret1 ^= JOY_TRG6;
-		if (!Config.joy1_select_mapping)
+		if (!Config.P1SelectMap)
 			if (res & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
 				ret1 ^= JOY_TRG7;
 		break;

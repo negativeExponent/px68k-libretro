@@ -1042,7 +1042,7 @@ void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
 	// ソフトウェアキーボード描画時にset_sbp(kbd_buffer)されているので戻す
 
 	set_sbp(menu_buffer);
-	set_mfs(Config.MenuFontSize ? 24 : 16);
+	set_mfs(Config.menuSize ? 24 : 16);
 
 	// タイトル
 	if (scr_type == x68k)
