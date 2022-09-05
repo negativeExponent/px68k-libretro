@@ -908,15 +908,15 @@ static void update_variables(void)
       {
          if (!(strcmp(var.value, "Default (2 Buttons)")))
          {
-            Config.JOY_TYPE[i] = 0;
+            Config.joyType[i] = 0;
          }
          else if (!(strcmp(var.value, "CPSF-MD (8 Buttons)")))
          {
-            Config.JOY_TYPE[i] = 1;
+            Config.joyType[i] = 1;
          }
          else if (!(strcmp(var.value, "CPSF-SFC (8 Buttons)")))
          {
-            Config.JOY_TYPE[i] = 2;
+            Config.joyType[i] = 2;
          }
       }
    }
@@ -927,21 +927,21 @@ static void update_variables(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       if (strcmp(var.value, "10Mhz") == 0)
-         Config.clockmhz = 10;
+         Config.cpuClock = 10;
       else if (strcmp(var.value, "16Mhz") == 0)
-         Config.clockmhz = 16;
+         Config.cpuClock = 16;
       else if (strcmp(var.value, "25Mhz") == 0)
-         Config.clockmhz = 25;
+         Config.cpuClock = 25;
       else if (strcmp(var.value, "33Mhz (OC)") == 0)
-         Config.clockmhz = 33;
+         Config.cpuClock = 33;
       else if (strcmp(var.value, "66Mhz (OC)") == 0)
-         Config.clockmhz = 66;
+         Config.cpuClock = 66;
       else if (strcmp(var.value, "100Mhz (OC)") == 0)
-         Config.clockmhz = 100;
+         Config.cpuClock = 100;
       else if (strcmp(var.value, "150Mhz (OC)") == 0)
-         Config.clockmhz = 150;
+         Config.cpuClock = 150;
       else if (strcmp(var.value, "200Mhz (OC)") == 0)
-         Config.clockmhz = 200;
+         Config.cpuClock = 200;
    }
 
    var.key   = "px68k_ramsize";
@@ -1024,9 +1024,9 @@ static void update_variables(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       if (strcmp(var.value, "normal") == 0)
-         Config.MenuFontSize = 0;
+         Config.menuSize = 0;
       else
-         Config.MenuFontSize = 1;
+         Config.menuSize = 1;
    }
 
    var.key   = "px68k_joy1_select";
@@ -1035,25 +1035,25 @@ static void update_variables(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       if (!strcmp(var.value, "XF1"))
-         Config.joy1_select_mapping = KBD_XF1;
+         Config.P1SelectMap = KBD_XF1;
       else if (!strcmp(var.value, "XF2"))
-         Config.joy1_select_mapping = KBD_XF2;
+         Config.P1SelectMap = KBD_XF2;
       else if (!strcmp(var.value, "XF3"))
-         Config.joy1_select_mapping = KBD_XF3;
+         Config.P1SelectMap = KBD_XF3;
       else if (!strcmp(var.value, "XF4"))
-         Config.joy1_select_mapping = KBD_XF4;
+         Config.P1SelectMap = KBD_XF4;
       else if (!strcmp(var.value, "XF5"))
-         Config.joy1_select_mapping = KBD_XF5;
+         Config.P1SelectMap = KBD_XF5;
       else if (!strcmp(var.value, "F1"))
-         Config.joy1_select_mapping = KBD_F1;
+         Config.P1SelectMap = KBD_F1;
       else if (!strcmp(var.value, "F2"))
-         Config.joy1_select_mapping = KBD_F2;
+         Config.P1SelectMap = KBD_F2;
       else if (!strcmp(var.value, "OPT1"))
-         Config.joy1_select_mapping = KBD_OPT1;
+         Config.P1SelectMap = KBD_OPT1;
       else if (!strcmp(var.value, "OPT2"))
-         Config.joy1_select_mapping = KBD_OPT2;
+         Config.P1SelectMap = KBD_OPT2;
       else
-         Config.joy1_select_mapping = 0;
+         Config.P1SelectMap = 0;
    }
 
    var.key   = "px68k_save_fdd_path";
@@ -1062,9 +1062,9 @@ static void update_variables(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       if (!strcmp(var.value, "disabled"))
-         Config.save_fdd_path = 0;
+         Config.saveFDDPath = 0;
       if (!strcmp(var.value, "enabled"))
-         Config.save_fdd_path = 1;
+         Config.saveFDDPath = 1;
    }
 
    var.key   = "px68k_save_hdd_path";
@@ -1073,9 +1073,9 @@ static void update_variables(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       if (!strcmp(var.value, "disabled"))
-         Config.save_hdd_path = 0;
+         Config.saveHDDPath = 0;
       if (!strcmp(var.value, "enabled"))
-         Config.save_hdd_path = 1;
+         Config.saveHDDPath = 1;
    }
 
    var.key   = "px68k_rumble_on_disk_read";
@@ -1352,10 +1352,10 @@ void retro_init(void)
    midi_interface_init();
 
    /* set sane defaults */
-   Config.save_fdd_path = 1;
-   Config.clockmhz      = 10;
-   Config.JOY_TYPE[0]   = 0;
-   Config.JOY_TYPE[1]   = 0;
+   Config.saveFDDPath = 1;
+   Config.cpuClock      = 10;
+   Config.joyType[0]   = 0;
+   Config.joyType[1]   = 0;
 
    update_variables();
 
