@@ -487,7 +487,7 @@ INLINE void BG_DrawLineMcr16_ng(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGS
 	bg_drawline_loopx16(BGTOP, BGScrollX, BGScrollY, 0, 1);
 }
 
-LABEL void FASTCALL BG_DrawLine(int opaq, int gd)
+void FASTCALL BG_DrawLine(int opaq, int gd)
 {
 	int i;
 	void (*func8)(uint16_t, uint32_t, uint32_t), (*func16)(uint16_t, uint32_t, uint32_t);
