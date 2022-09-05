@@ -827,8 +827,8 @@ void exec_app_retro()
 
 	if (menu_mode != menu_out)
 	{
-		int ret;
-		int key;
+		int ret = 0;
+		int key = 0;
 
 		if (Core_Key_State[RETROK_RIGHT] || Core_Key_State[RETROK_PAGEDOWN])
 			key |= JOY_RIGHT;
