@@ -99,12 +99,6 @@ typedef int BOOL;
  */
 #define timeGetTime() FAKE_GetTickCount()
 
-typedef struct
-{
-	uint16_t x;
-	uint16_t y;
-} POINT;
-
 /*
  * prototype
  */

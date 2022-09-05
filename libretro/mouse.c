@@ -28,13 +28,10 @@
 #include "prop.h"
 #include "scc.h"
 
-float MouseDX = 0;
-float MouseDY = 0;
-uint8_t MouseStat = 0;
-uint8_t MouseSW = 0;
-
-POINT CursorPos;
-int mousex = 0, mousey = 0;
+static float MouseDX = 0;
+static float MouseDY = 0;
+static uint8_t MouseStat = 0;
+static uint8_t MouseSW = 0;
 
 void Mouse_Init(void)
 {
@@ -44,26 +41,23 @@ void Mouse_Init(void)
 	}
 }
 
-// ----------------------------------
-//	Mouse Event Occured
-// ----------------------------------
 void Mouse_Event(int param, float dx, float dy)
 {
 	if (MouseSW)
 	{
 		switch (param)
 		{
-		case 0: // mouse move
+		case 0:
 			MouseDX += dx;
 			MouseDY += dy;
 			break;
-		case 1: // left button
+		case 1:
 			if (dx != 0)
 				MouseStat |= 1;
 			else
 				MouseStat &= 0xfe;
 			break;
-		case 2: // right button
+		case 2:
 			if (dx != 0)
 				MouseStat |= 2;
 			else
@@ -75,9 +69,9 @@ void Mouse_Event(int param, float dx, float dy)
 	}
 }
 
-// ----------------------------------
-//	Mouse Data send to SCC
-// ----------------------------------
+/*
+ * Mouse Data send to SCC
+ */
 void Mouse_SetData(void)
 {
 	int x, y;
@@ -129,9 +123,9 @@ void Mouse_SetData(void)
 	}
 }
 
-// ----------------------------------
-//	Start Capture
-// ----------------------------------
+/*
+ *	Start Capture
+ */
 void Mouse_StartCapture(int flag)
 {
 	if (flag && !MouseSW)
