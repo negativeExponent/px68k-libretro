@@ -235,7 +235,7 @@ void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 /*
  *   こっから後はライン単位での画面展開部
  */
-LABEL void Grp_DrawLine16(void)
+void Grp_DrawLine16(void)
 {
 	uint16_t *srcp, *destp;
 	uint32_t x, y;
@@ -290,7 +290,7 @@ LABEL void Grp_DrawLine16(void)
 	}
 }
 
-LABEL void FASTCALL Grp_DrawLine8(int page, int opaq)
+void FASTCALL Grp_DrawLine8(int page, int opaq)
 {
 	uint16_t *srcp, *destp;
 	uint32_t x, x0;
@@ -390,7 +390,7 @@ LABEL void FASTCALL Grp_DrawLine8(int page, int opaq)
 }
 
 /* Manhattan Requiem Opening 7.0→7.5MHz */
-LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int opaq)
+void FASTCALL Grp_DrawLine4(uint32_t page, int opaq)
 {
 	uint16_t *srcp, *destp; /* XXX: ALIGN */
 	uint32_t x, y;
@@ -806,7 +806,7 @@ void FASTCALL Grp_DrawLine4hSP(void)
  *
  * やけにすっきり
  */
-LABEL void FASTCALL Grp_DrawLine8TR(int page, int opaq)
+void FASTCALL Grp_DrawLine8TR(int page, int opaq)
 {
 	if (opaq)
 	{
@@ -850,7 +850,7 @@ LABEL void FASTCALL Grp_DrawLine8TR(int page, int opaq)
 	}
 }
 
-LABEL void FASTCALL Grp_DrawLine8TR_GT(int page, int opaq)
+void FASTCALL Grp_DrawLine8TR_GT(int page, int opaq)
 {
 	if (opaq)
 	{
@@ -873,7 +873,7 @@ LABEL void FASTCALL Grp_DrawLine8TR_GT(int page, int opaq)
 	}
 }
 
-LABEL void FASTCALL Grp_DrawLine4TR(uint32_t page, int opaq)
+void FASTCALL Grp_DrawLine4TR(uint32_t page, int opaq)
 {
 	uint32_t x, y;
 	uint32_t v, v0;
