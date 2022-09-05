@@ -2,7 +2,6 @@
 #define _winx68k_windraw_h
 
 extern uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
-extern	int	kbd_x, kbd_y, kbd_w, kbd_h;
 
 int WinDraw_Init(void);
 void WinDraw_Cleanup(void);

@@ -268,9 +268,6 @@ void WinX68k_Exec(void)
 	int KeyIntCnt = 0, MouseIntCnt = 0;
 	uint32_t t_start = timeGetTime(), t_end;
 
-	Joystick_Update(FALSE, -1, 0);
-	Joystick_Update(FALSE, -1, 1);
-
 	if (Config.FrameRate != 7)
 	{
 		DispFrame = (DispFrame + 1) % Config.FrameRate;
@@ -776,6 +773,9 @@ void exec_app_retro()
 	/*  OPM_RomeoOut(Config.BufferSize * 5); */
 	if (menu_mode == menu_out && (Config.AudioDesyncHack || Config.NoWaitMode || Timer_GetCount()))
 	{
+		Joystick_Update(FALSE, -1, 0);
+		Joystick_Update(FALSE, -1, 1);
+
 		WinX68k_Exec();
 	}
 
@@ -828,22 +828,22 @@ void exec_app_retro()
 	if (menu_mode != menu_out)
 	{
 		int ret;
+		int key;
 
-		keyb_in = 0;
 		if (Core_Key_State[RETROK_RIGHT] || Core_Key_State[RETROK_PAGEDOWN])
-			keyb_in |= JOY_RIGHT;
+			key |= JOY_RIGHT;
 		if (Core_Key_State[RETROK_LEFT] || Core_Key_State[RETROK_PAGEUP])
-			keyb_in |= JOY_LEFT;
+			key |= JOY_LEFT;
 		if (Core_Key_State[RETROK_UP])
-			keyb_in |= JOY_UP;
+			key |= JOY_UP;
 		if (Core_Key_State[RETROK_DOWN])
-			keyb_in |= JOY_DOWN;
+			key |= JOY_DOWN;
 		if (Core_Key_State[RETROK_z] || Core_Key_State[RETROK_RETURN])
-			keyb_in |= JOY_TRG1;
+			key |= JOY_TRG1;
 		if (Core_Key_State[RETROK_x] || Core_Key_State[RETROK_BACKSPACE])
-			keyb_in |= JOY_TRG2;
+			key |= JOY_TRG2;
 
-		Joystick_Update(TRUE, -1, 0);
+		Joystick_Update(TRUE, key, 0);
 
 		ret       = WinUI_Menu(menu_mode == menu_enter);
 		menu_mode = menu_in;
