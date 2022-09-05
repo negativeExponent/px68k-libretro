@@ -89,6 +89,7 @@ void FASTCALL WinDraw_Draw(void)
 		oldtextx = TextDotX;
 		CHANGEAV = 1;
 	}
+
 	if (oldtexty != TextDotY)
 	{
 		oldtexty = TextDotY;
@@ -101,7 +102,7 @@ void FASTCALL WinDraw_Draw(void)
 		CHANGEAV_TIMING = 1;
 	}
 
-	if (CHANGEAV == 1 | CHANGEAV_TIMING == 1)
+	if (CHANGEAV | CHANGEAV_TIMING)
 	{
 		retrow = TextDotX;
 		retroh = TextDotY;

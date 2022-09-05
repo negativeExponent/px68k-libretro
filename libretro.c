@@ -78,8 +78,12 @@ static retro_video_refresh_t video_cb;
 static retro_environment_t environ_cb;
 static retro_input_poll_t input_poll_cb;
 static retro_set_rumble_state_t rumble_cb;
-static unsigned no_content;
+static retro_audio_sample_t audio_cb;
+static retro_audio_sample_batch_t audio_batch_cb;
+static retro_log_printf_t log_cb;
+retro_input_state_t input_state_cb;
 
+static unsigned no_content;
 static int opt_rumble_enabled = 1;
 
 #define MAX_DISKS 10
@@ -109,6 +113,25 @@ static struct retro_disk_control_callback dskcb;
 static struct retro_disk_control_ext_callback dskcb_ext;
 
 static void update_variables(void);
+
+void Error(const char *s)
+{
+	if (log_cb)
+		log_cb(RETRO_LOG_ERROR, "%s", s);
+}
+
+void p6logd(const char *fmt, ...)
+{
+	va_list args;
+	char p6l_buf[256];
+
+	va_start(args, fmt);
+	vsnprintf(p6l_buf, 256, fmt, args);
+	va_end(args);
+
+	if (log_cb)
+		log_cb(RETRO_LOG_INFO, "%s", p6l_buf);
+}
 
 static bool is_path_absolute(const char *path)
 {
@@ -406,11 +429,6 @@ static void disk_swap_interface_init(void)
       attach_disk_swap_interface();
 }
 /* end .dsk swap support */
-
-retro_input_state_t input_state_cb;
-retro_audio_sample_t audio_cb;
-retro_audio_sample_batch_t audio_batch_cb;
-retro_log_printf_t log_cb;
 
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
 void retro_set_audio_sample(retro_audio_sample_t cb) { audio_cb = cb; }
