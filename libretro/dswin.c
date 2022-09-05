@@ -24,35 +24,36 @@
  */
 
 #include "common.h"
+
 #include "dswin.h"
 #include "adpcm.h"
 #include "fmg_wrap.h"
 #include "mercury.h"
+#include "midi.h"
 #include "prop.h"
 #include "windows.h"
-#include "midi.h"
-
-int playing = FALSE;
 
 #define PCMBUF_SIZE 2 * 2 * 48000
-uint8_t pcmbuffer[PCMBUF_SIZE];
-uint8_t *pcmbufp = pcmbuffer;
-uint8_t *pbsp = pcmbuffer;
-uint8_t *pbrp = pcmbuffer, *pbwp = pcmbuffer;
-uint8_t *pbep = &pcmbuffer[PCMBUF_SIZE];
-uint32_t ratebase = 22050;
-long DSound_PreCounter = 0;
-uint8_t rsndbuf[PCMBUF_SIZE];
 
-int audio_fd = 1;
+static uint8_t rsndbuf[PCMBUF_SIZE];
+static uint8_t pcmbuffer[PCMBUF_SIZE];
+
+#ifndef NO_MERCURY
+static uint8_t *pcmbufp  = pcmbuffer;
+#endif
+static uint8_t *pbsp     = pcmbuffer;
+static uint8_t *pbrp     = pcmbuffer;
+static uint8_t *pbwp     = pcmbuffer;
+static uint8_t *pbep     = &pcmbuffer[PCMBUF_SIZE];
+static uint32_t ratebase = 22050;
+
+static long DSound_PreCounter = 0;
+static int audio_fd           = 1;
 
 void raudio_callback(void *userdata, unsigned char *stream, int len);
 
 int DSound_Init(uint32_t rate, uint32_t buflen)
 {
-	if (playing)
-		return FALSE;
-
 	if (rate == 0)
 	{
 		audio_fd = -1;
@@ -61,7 +62,6 @@ int DSound_Init(uint32_t rate, uint32_t buflen)
 
 	ratebase = rate;
 
-	playing = TRUE;
 	return TRUE;
 }
 
@@ -86,8 +86,6 @@ void DSound_Stop(void)
 
 int DSound_Cleanup(void)
 {
-	playing = FALSE;
-
 	if (audio_fd >= 0)
 		audio_fd = -1;
 
@@ -148,6 +146,7 @@ int audio_samples_avail()
 void audio_samples_discard(int discard)
 {
 	int avail = audio_samples_avail();
+
 	if (discard > avail)
 		discard = avail;
 
@@ -169,64 +168,66 @@ void audio_samples_discard(int discard)
 
 void raudio_callback(void *userdata, unsigned char *stream, int len)
 {
-	int lena, lenb, datalen;
 	uint8_t *buf;
 
 cb_start:
 	if (pbrp <= pbwp)
 	{
-		// pcmbuffer
-		// +---------+-------------+----------+
-		// |         |/////////////|          |
-		// +---------+-------------+----------+
-		// A         A<--datalen-->A          A
-		// |         |             |          |
-		// pbsp     pbrp          pbwp       pbep
+		/* pcmbuffer
+		 * +---------+-------------+----------+
+		 * |         |/////////////|          |
+		 * +---------+-------------+----------+
+		 * A         A<--datalen-->A          A
+		 * |         |             |          |
+		 * pbsp     pbrp          pbwp       pbep
+		 */
 
-		datalen = pbwp - pbrp;
+		int datalen = pbwp - pbrp;
 
-		// needs more data
+		/* needs more data */
 		if (datalen < len)
 			DSound_Send((len - datalen) / 4);
 
-		// change to TYPEC or TYPED
+		/* change to TYPEC or TYPED */
 		if (pbrp > pbwp)
 			goto cb_start;
 
 		buf = pbrp;
 		pbrp += len;
-		// printf("TYPEA: ");
+		/* TYPEA: */
 	}
 	else
 	{
-		// pcmbuffer
-		// +---------+-------------+----------+
-		// |/////////|             |//////////|
-		// +------+--+-------------+----------+
-		// <-lenb->  A             <---lena--->
-		// A         |             A          A
-		// |         |             |          |
-		// pbsp     pbwp          pbrp       pbep
+		/* pcmbuffer
+		 * +---------+-------------+----------+
+		 * |/////////|             |//////////|
+		 * +------+--+-------------+----------+
+		 * <-lenb->  A             <---lena--->
+		 * A         |             A          A
+		 * |         |             |          |
+		 * pbsp     pbwp          pbrp       pbep
+		 */
 
-		lena = pbep - pbrp;
+		int lena = pbep - pbrp;
+
 		if (lena >= len)
 		{
 			buf = pbrp;
 			pbrp += len;
-			// printf("TYPEC: ");
+			/* TYPEC: */
 		}
 		else
 		{
-			lenb = len - lena;
+			int lenb = len - lena;
 
 			if (pbwp - pbsp < lenb)
 				DSound_Send((lenb - (pbwp - pbsp)) / 4);
 
 			memcpy(rsndbuf, pbrp, lena);
 			memcpy(&rsndbuf[lena], pbsp, lenb);
-			buf = rsndbuf;
+			buf  = rsndbuf;
 			pbrp = pbsp + lenb;
-			// printf("TYPED: ");
+			/* TYPED: */
 		}
 	}
 	memcpy(userdata, buf, len);
