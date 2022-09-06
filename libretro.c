@@ -65,7 +65,7 @@ int retrow          = FULLSCREEN_WIDTH;
 int retroh          = FULLSCREEN_HEIGHT;
 int CHANGEAV        = 0;
 int CHANGEAV_TIMING = 0;         /* Separate change of geometry from change of refresh rate */
-int VID_MODE        = MODE_NORM; /* what framerate we start in */
+int VID_MODE        = MODE_HIGH; /* what framerate we start in */
 static float FRAMERATE;
 uint32_t libretro_supports_input_bitmasks = 0;
 int64_t total_usec                        = -1;
