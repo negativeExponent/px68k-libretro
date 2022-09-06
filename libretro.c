@@ -112,7 +112,7 @@ static struct disk_control_interface_t disk;
 static struct retro_disk_control_callback dskcb;
 static struct retro_disk_control_ext_callback dskcb_ext;
 
-static void update_variables(void);
+static void update_variables(int running);
 
 void Error(const char *s)
 {
@@ -892,11 +892,14 @@ void retro_set_environment(retro_environment_t cb)
    libretro_set_core_options(environ_cb);
 }
 
-static void update_variables(void)
+static void update_variables(int running)
 {
    int i = 0, snd_opt = 0;
    char key[256]             = { 0 };
    struct retro_variable var = { 0 };
+
+   if (!running)
+      update_variable_midi_interface();
 
    strcpy(key, "px68k_joytype");
    var.key = key;
@@ -1167,7 +1170,9 @@ static void update_variables(void)
          Config.AdjustFrameRates = 0;
       else if (!strcmp(var.value, "enabled"))
          Config.AdjustFrameRates = 1;
-      CHANGEAV_TIMING = CHANGEAV_TIMING || Config.AdjustFrameRates != temp;
+
+      if (running) /* minimize the chance of resetting av_info during startup */
+         CHANGEAV_TIMING = CHANGEAV_TIMING || Config.AdjustFrameRates != temp;
    }
 
    var.key   = "px68k_audio_desync_hack";
@@ -1357,7 +1362,7 @@ void retro_init(void)
    Config.joyType[0]   = 0;
    Config.joyType[1]   = 0;
 
-   update_variables();
+   update_variables(0);
 
    memset(Core_Key_State, 0, 512);
    memset(Core_old_Key_State, 0, sizeof(Core_old_Key_State));
@@ -1415,14 +1420,13 @@ void retro_run(void)
    {
       pre_main();
       firstcall = 0;
-      update_variables();
-      update_variable_midi_interface();
+      update_variables(0);
       return;
    }
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
    {
-      update_variables();
+      update_variables(1);
    }
 
    if (CHANGEAV || CHANGEAV_TIMING)
