@@ -2,8 +2,6 @@
 DEBUG = 0
 GIT_VERSION := " $(shell git rev-parse --short HEAD)"
 
-M68000 = 1
-
 SPACE :=
 SPACE := $(SPACE) $(SPACE)
 BACKSLASH :=
@@ -61,11 +59,9 @@ CORE_DIR := .
 
 # Unix
 ifneq (,$(findstring unix,$(platform)))
-	CXXFLAGS += -fno-merge-constants
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
 	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
-	FLAGS += -D__LINUX__
 
 # OS X
 else ifeq ($(platform), osx)
@@ -142,7 +138,7 @@ else ifneq (,$(findstring android,$(platform)))
 	CXXFLAGS = -g -O2  -fno-merge-constants
 	CC = arm-linux-androideabi-gcc
 	CXX = arm-linux-androideabi-g++
-	FLAGS += -D__LINUX__ -DARM -marm
+	FLAGS += -DARM -marm
 
 # crosspi arm
 else ifneq (,$(findstring crosspi,$(platform)))
@@ -155,7 +151,7 @@ else ifneq (,$(findstring crosspi,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
 	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
-	FLAGS += -D__LINUX__ -DARM -marm
+	FLAGS += -DARM -marm
 else ifeq ($(platform), vita)
 	TARGET := $(TARGET_NAME)_libretro_vita.a
 	CC = arm-vita-eabi-gcc
@@ -195,7 +191,7 @@ else ifeq ($(platform), classic_armv7_a7)
 	-marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
 	HAVE_NEON = 1
 	ARCH = arm
-	FLAGS += -D__LINUX__ -DARM -marm
+	FLAGS += -DARM -marm
 	ifeq ($(shell echo `$(CC) -dumpversion` "< 4.9" | bc -l), 1)
 	  CFLAGS += -march=armv7-a
 	else
@@ -220,7 +216,7 @@ else ifeq ($(platform), classic_armv8_a35)
 	-marm -mcpu=cortex-a35 -mfpu=neon-fp-armv8 -mfloat-abi=hard
 	HAVE_NEON = 1
 	ARCH = arm
-	FLAGS += -D__LINUX__ -DARM -marm
+	FLAGS += -DARM -marm
 	LDFLAGS += -marm -mcpu=cortex-a35 -mfpu=neon-fp-armv8 -mfloat-abi=hard -Ofast -flto -fuse-linker-plugin
 #######################################
 
@@ -408,7 +404,7 @@ ifeq ($(DEBUG), 1)
 else ifneq (,$(findstring msvc,$(platform)))
    FLAGS +=
 else
-   FLAGS +=
+   FLAGS += -O3
 endif
 
 ifneq ($(SANITIZER),)
@@ -420,11 +416,11 @@ endif
 LDFLAGS +=  $(fpic) $(SHARED) $(EXTRA_LDF)
 FLAGS   += $(INCFLAGS)
 
-WARNINGS := -Wall -Wno-invalid-source-encoding
+WARNINGS := -Wall
 
 FLAGS    += -D__LIBRETRO__ $(ENDIANNESS_DEFINES) $(WARNINGS) $(fpic)
 
-CXXFLAGS += $(FLAGS) $(CPU_FLAGS) -fpermissive
+CXXFLAGS += $(FLAGS) $(CPU_FLAGS)
 CFLAGS   += $(FLAGS) -std=c99 $(CPU_FLAGS) -Werror-implicit-function-declaration
 
 $(TARGET): $(OBJECTS)
