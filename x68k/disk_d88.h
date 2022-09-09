@@ -16,10 +16,10 @@ int D88_SetFD(int drive, char *filename);
 int D88_Eject(int drive);
 int D88_Seek(int drv, int trk, FDCID *id);
 int D88_ReadID(int drv, FDCID *id);
-int D88_WriteID(int drv, int trk, unsigned char *buf, int num);
-int D88_Read(int drv, FDCID *id, unsigned char *buf);
-int D88_ReadDiag(int drv, FDCID *id, FDCID *retid, unsigned char *buf);
-int D88_Write(int drv, FDCID *id, unsigned char *buf, int del);
+int D88_WriteID(int drv, int trk, uint8_t *buf, int num);
+int D88_Read(int drv, FDCID *id, uint8_t *buf);
+int D88_ReadDiag(int drv, FDCID *id, FDCID *retid, uint8_t *buf);
+int D88_Write(int drv, FDCID *id, uint8_t *buf, int del);
 int D88_GetCurrentID(int drv, FDCID *id);
 
 #endif /* _WINX68K_D88_H */

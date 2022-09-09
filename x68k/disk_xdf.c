@@ -5,9 +5,9 @@
 #include "disk_xdf.h"
 
 static char XDFFile[4][MAX_PATH];
-static int XDFCur[4]            = { 0, 0, 0, 0 };
-static int XDFTrk[4]            = { 0, 0, 0, 0 };
-static unsigned char *XDFImg[4] = { 0, 0, 0, 0 };
+static int XDFCur[4]      = { 0, 0, 0, 0 };
+static int XDFTrk[4]      = { 0, 0, 0, 0 };
+static uint8_t *XDFImg[4] = { 0, 0, 0, 0 };
 
 void XDF_Init(void)
 {
@@ -36,7 +36,7 @@ int XDF_SetFD(int drv, char *filename)
 	strncpy(XDFFile[drv], filename, MAX_PATH);
 	XDFFile[drv][MAX_PATH - 1] = 0;
 
-	XDFImg[drv] = (unsigned char *)malloc(1261568);
+	XDFImg[drv] = (uint8_t *)malloc(1261568);
 	if (!XDFImg[drv])
 		return FALSE;
 	memset(XDFImg[drv], 0xe5, 1261568);
@@ -133,7 +133,7 @@ int XDF_ReadID(int drv, FDCID *id)
 	return TRUE;
 }
 
-int XDF_WriteID(int drv, int trk, unsigned char *buf, int num)
+int XDF_WriteID(int drv, int trk, uint8_t *buf, int num)
 {
 	int i;
 	if ((drv < 0) || (drv > 3))
@@ -153,7 +153,7 @@ int XDF_WriteID(int drv, int trk, unsigned char *buf, int num)
 	return TRUE;
 }
 
-int XDF_Read(int drv, FDCID *id, unsigned char *buf)
+int XDF_Read(int drv, FDCID *id, uint8_t *buf)
 {
 	int pos;
 	if ((drv < 0) || (drv > 3))
@@ -176,7 +176,7 @@ int XDF_Read(int drv, FDCID *id, unsigned char *buf)
 	return TRUE;
 }
 
-int XDF_ReadDiag(int drv, FDCID *id, FDCID *retid, unsigned char *buf)
+int XDF_ReadDiag(int drv, FDCID *id, FDCID *retid, uint8_t *buf)
 {
 	int pos;
 	(void)id;
@@ -199,7 +199,7 @@ int XDF_ReadDiag(int drv, FDCID *id, FDCID *retid, unsigned char *buf)
 	return TRUE;
 }
 
-int XDF_Write(int drv, FDCID *id, unsigned char *buf, int del)
+int XDF_Write(int drv, FDCID *id, uint8_t *buf, int del)
 {
 	int pos;
 	(void)del;

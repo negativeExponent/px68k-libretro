@@ -26,10 +26,10 @@ static int (*SetFD[4])(int, char *)                               = { 0, XDF_Set
 static int (*Eject[4])(int)                                       = { 0, XDF_Eject, D88_Eject, DIM_Eject };
 static int (*Seek[4])(int, int, FDCID *)                          = { 0, XDF_Seek, D88_Seek, DIM_Seek };
 static int (*ReadID[4])(int, FDCID *)                             = { 0, XDF_ReadID, D88_ReadID, DIM_ReadID };
-static int (*WriteID[4])(int, int, unsigned char *, int)          = { 0, XDF_WriteID, D88_WriteID, DIM_WriteID };
-static int (*Read[4])(int, FDCID *, unsigned char *)              = { 0, XDF_Read, D88_Read, DIM_Read };
-static int (*ReadDiag[4])(int, FDCID *, FDCID *, unsigned char *) = { 0, XDF_ReadDiag, D88_ReadDiag, DIM_ReadDiag };
-static int (*Write[4])(int, FDCID *, unsigned char *, int)        = { 0, XDF_Write, D88_Write, DIM_Write };
+static int (*WriteID[4])(int, int, uint8_t *, int)          = { 0, XDF_WriteID, D88_WriteID, DIM_WriteID };
+static int (*Read[4])(int, FDCID *, uint8_t *)              = { 0, XDF_Read, D88_Read, DIM_Read };
+static int (*ReadDiag[4])(int, FDCID *, FDCID *, uint8_t *) = { 0, XDF_ReadDiag, D88_ReadDiag, DIM_ReadDiag };
+static int (*Write[4])(int, FDCID *, uint8_t *, int)        = { 0, XDF_Write, D88_Write, DIM_Write };
 static int (*GetCurrentID[4])(int, FDCID *) = { 0, XDF_GetCurrentID, D88_GetCurrentID, DIM_GetCurrentID };
 
 int FDD_IsReading = 0;
@@ -233,7 +233,7 @@ int FDD_ReadID(int drv, FDCID *id)
 		return FALSE;
 }
 
-int FDD_WriteID(int drv, int trk, unsigned char *buf, int num)
+int FDD_WriteID(int drv, int trk, uint8_t *buf, int num)
 {
 	int type;
 
@@ -246,7 +246,7 @@ int FDD_WriteID(int drv, int trk, unsigned char *buf, int num)
 		return FALSE;
 }
 
-int FDD_Read(int drv, FDCID *id, unsigned char *buf)
+int FDD_Read(int drv, FDCID *id, uint8_t *buf)
 {
 	int type;
 
@@ -262,7 +262,7 @@ int FDD_Read(int drv, FDCID *id, unsigned char *buf)
 		return FALSE;
 }
 
-int FDD_ReadDiag(int drv, FDCID *id, FDCID *retid, unsigned char *buf)
+int FDD_ReadDiag(int drv, FDCID *id, FDCID *retid, uint8_t *buf)
 {
 	int type;
 
@@ -275,7 +275,7 @@ int FDD_ReadDiag(int drv, FDCID *id, FDCID *retid, unsigned char *buf)
 		return FALSE;
 }
 
-int FDD_Write(int drv, FDCID *id, unsigned char *buf, int del)
+int FDD_Write(int drv, FDCID *id, uint8_t *buf, int del)
 {
 	int type;
 
