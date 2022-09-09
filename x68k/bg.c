@@ -393,7 +393,7 @@ void bg_drawline_loopx8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY, 
 			esi = &BGCHR8[si + 0x3f - ebp];
 			d   = -1;
 		}
-		else if ((signed char)bl >= 0x40)
+		else if ((int8_t)bl >= 0x40)
 		{
 			esi = &BGCHR8[si + ebp + 7];
 			d   = -1;
@@ -444,7 +444,7 @@ void bg_drawline_loopx16(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY,
 			esi = &BGCHR16[si + 0xff - ebp];
 			d   = -1;
 		}
-		else if ((signed char)bl >= 0x40)
+		else if ((int8_t)bl >= 0x40)
 		{
 			esi = &BGCHR16[si + ebp + 15];
 			d   = -1;
