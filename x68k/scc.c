@@ -7,8 +7,8 @@
 #include "irqh.h"
 #include "mouse.h"
 
-signed char MouseX = 0;
-signed char MouseY = 0;
+int8_t MouseX = 0;
+int8_t MouseY = 0;
 uint8_t MouseSt    = 0;
 
 static uint8_t SCC_RegsA[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };

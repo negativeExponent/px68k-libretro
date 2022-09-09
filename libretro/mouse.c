@@ -97,7 +97,7 @@ void Mouse_SetData(void)
 		}
 		else
 		{
-			MouseX = (signed char)x;
+			MouseX = (int8_t)x;
 		}
 
 		if (y > 127)
@@ -112,7 +112,7 @@ void Mouse_SetData(void)
 		}
 		else
 		{
-			MouseY = (signed char)y;
+			MouseY = (int8_t)y;
 		}
 	}
 	else
