@@ -24,9 +24,18 @@
 	+ 3 * (y[0]-2*y[1]+y[2])) * x + FM_IPSCALE/2) / FM_IPSCALE \
 	- 2*y[0]-3*y[1]+6*y[2]-y[3]) * x + 3*FM_IPSCALE) / (6*FM_IPSCALE) + y[1])
 
-static const int32_t index_shift[16] = {
-	-1 * 16, -1 * 16, -1 * 16, -1 * 16, 2 * 16, 4 * 16, 6 * 16, 8 * 16,
-	-1 * 16, -1 * 16, -1 * 16, -1 * 16, 2 * 16, 4 * 16, 6 * 16, 8 * 16
+static const int32_t index_shift[8] = {
+	-1, -1, -1, -1, 2, 4, 6, 8
+};
+static const int32_t index_table[58] = {
+	0, 0,
+	1, 2, 3, 4, 5, 6, 7, 8,
+	9, 10, 11, 12, 13, 14, 15, 16,
+	17, 18, 19, 20, 21, 22, 23, 24,
+	25, 26,	27,	28, 29, 30,	31, 32,
+	33, 34,	35, 36, 37, 38,	39, 40,
+	41, 42,	43, 44, 45, 46,	47, 48,
+	48, 48, 48, 48, 48, 48,	48, 48
 };
 static const int32_t ADPCM_Clocks[8] = {
 	93750, 125000, 187500, 125000, 46875, 62500, 93750, 62500
@@ -87,14 +96,6 @@ static void ADPCM_InitTable(void)
 		}
 	}
 }
-
-#define LimitMix(val)           \
-	{                           \
-		if (val > 0x7fff)       \
-			val = 0x7fff;       \
-		else if (val < -0x8000) \
-			val = -0x8000;      \
-	}
 
 /*
  *   MPUクロック経過分だけバッファにデータを溜めておく
@@ -249,20 +250,17 @@ void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, int rate, uint8_t *
 /*
  *   1nibble（4bit）をデコード
  */
-INLINE void ADPCM_WriteOne(int32_t val)
+INLINE void ADPCM_WriteOne(uint8_t val)
 {
-	ADPCM_Out += dif_table[ADPCM_Step + val];
+	ADPCM_Out += dif_table[(ADPCM_Step << 4) + val];
 
 	if (ADPCM_Out > ADPCMMAX)
 		ADPCM_Out = ADPCMMAX;
 	else if (ADPCM_Out < ADPCMMIN)
 		ADPCM_Out = ADPCMMIN;
-	ADPCM_Step += index_shift[val];
 
-	if (ADPCM_Step > (48 * 16))
-		ADPCM_Step = (48 * 16);
-	else if (ADPCM_Step < 0)
-		ADPCM_Step = 0;
+	ADPCM_Step += index_shift[val & 0x07];
+	ADPCM_Step = index_table[ADPCM_Step + 1];
 
 	if (OutsIp[0] == -1)
 	{
@@ -332,8 +330,8 @@ void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 	{
 		if (ADPCM_Playing)
 		{
-			ADPCM_WriteOne((int32_t)(data & 15));
-			ADPCM_WriteOne((int32_t)((data >> 4) & 15));
+			ADPCM_WriteOne((uint8_t)(data & 15));
+			ADPCM_WriteOne((uint8_t)((data >> 4) & 15));
 		}
 	}
 }
