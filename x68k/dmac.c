@@ -76,13 +76,13 @@ static int32_t FASTCALL DMA_Int(int32_t irq)
 
 uint8_t FASTCALL DMA_Read(uint32_t adr)
 {
-	unsigned char *p;
+	uint8_t *p;
 	int off = adr & 0x3f, ch = ((adr - 0xe84000) >> 6);
 
 	if (adr >= 0xe84100)
 		return 0; /* ばすえらー？ */
 
-	p = (unsigned char *)&DMA[ch];
+	p = (uint8_t *)&DMA[ch];
 
 	switch (off)
 	{
@@ -125,14 +125,14 @@ uint8_t FASTCALL DMA_Read(uint32_t adr)
 
 void FASTCALL DMA_Write(uint32_t adr, uint8_t data)
 {
-	unsigned char *p;
+	uint8_t *p;
 	int off = adr & 0x3f, ch = ((adr - 0xe84000) >> 6);
 	uint8_t old;
 
 	if (adr >= 0xe84100)
 		return; /* ばすえらー？ */
 
-	p = (unsigned char *)&DMA[ch];
+	p = (uint8_t *)&DMA[ch];
 
 	switch (off)
 	{
