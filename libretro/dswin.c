@@ -50,8 +50,6 @@ static uint32_t ratebase = 22050;
 static long DSound_PreCounter = 0;
 static int audio_fd           = 1;
 
-void raudio_callback(void *userdata, unsigned char *stream, int len);
-
 int DSound_Init(uint32_t rate, uint32_t buflen)
 {
 	if (rate == 0)
@@ -166,7 +164,7 @@ void audio_samples_discard(int discard)
 	pbrp += 4 * discard;
 }
 
-void raudio_callback(void *userdata, unsigned char *stream, int len)
+void raudio_callback(void *userdata, int len)
 {
 	uint8_t *buf;
 

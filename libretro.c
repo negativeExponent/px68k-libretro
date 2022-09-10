@@ -65,7 +65,7 @@ int retrow          = FULLSCREEN_WIDTH;
 int retroh          = FULLSCREEN_HEIGHT;
 int CHANGEAV        = 0;
 int CHANGEAV_TIMING = 0;         /* Separate change of geometry from change of refresh rate */
-int VID_MODE        = MODE_HIGH; /* what framerate we start in */
+int VID_MODE        = MODE_NORM; /* what framerate we start in */
 static float FRAMERATE;
 
 uint32_t libretro_supports_input_bitmasks      = 0;
@@ -117,21 +117,21 @@ static struct retro_disk_control_ext_callback dskcb_ext;
 
 void Error(const char *s)
 {
-	if (log_cb)
-		log_cb(RETRO_LOG_ERROR, "%s", s);
+   if (log_cb)
+      log_cb(RETRO_LOG_ERROR, "%s", s);
 }
 
 void p6logd(const char *fmt, ...)
 {
-	va_list args;
-	char p6l_buf[256];
+   va_list args;
+   char p6l_buf[256];
 
-	va_start(args, fmt);
-	vsnprintf(p6l_buf, 256, fmt, args);
-	va_end(args);
+   va_start(args, fmt);
+   vsnprintf(p6l_buf, 256, fmt, args);
+   va_end(args);
 
-	if (log_cb)
-		log_cb(RETRO_LOG_INFO, "%s", p6l_buf);
+   if (log_cb)
+      log_cb(RETRO_LOG_INFO, "%s", p6l_buf);
 }
 
 static bool is_path_absolute(const char *path)
@@ -224,8 +224,7 @@ uint32_t midiOutLongMsg(void *hmo, MIDIHDR *pmh, uint32_t cbmh)
    return MMSYSERR_NOERROR;
 }
 
-uint32_t midiOutOpen(
-    void **phmo, uint32_t uDeviceID, uint32_t dwCallback, uint32_t dwInstance, uint32_t fdwOpen)
+uint32_t midiOutOpen(void **phmo, uint32_t uDeviceID, uint32_t dwCallback, uint32_t dwInstance, uint32_t fdwOpen)
 {
    if (libretro_supports_midi_output && midi_cb.output_enabled())
    {
@@ -1177,7 +1176,7 @@ static void update_variables(int running)
       else if (!strcmp(var.value, "enabled"))
          Config.AdjustFrameRates = 1;
 
-      if (running) /* minimize the chance of resetting av_info during startup */
+      if (running)
          CHANGEAV_TIMING = CHANGEAV_TIMING || Config.AdjustFrameRates != temp;
    }
 
@@ -1196,6 +1195,36 @@ static void update_variables(int running)
 /************************************
  * libretro implementation
  ************************************/
+
+size_t retro_serialize_size(void) { return 0; }
+bool retro_serialize(void *data, size_t size) { return false; }
+bool retro_unserialize(const void *data, size_t size) { return false; }
+void retro_cheat_reset(void) { }
+void retro_cheat_set(unsigned index, bool enabled, const char *code) { }
+bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info) { return false; }
+void retro_unload_game(void) { }
+unsigned retro_get_region(void) { return RETRO_REGION_NTSC; }
+unsigned retro_api_version(void) { return RETRO_API_VERSION; }
+
+static void frame_time_cb(retro_usec_t usec)
+{
+   total_usec += usec;
+   /* -1 is reserved as an error code for unavailable a la stdlib clock() */
+   if (total_usec == -1)
+      total_usec = 0;
+}
+
+static void setup_frame_time_cb(void)
+{
+   struct retro_frame_time_callback cb;
+
+   cb.callback  = frame_time_cb;
+   cb.reference = ceil(1000000.0 / FRAMERATE);
+   if (!environ_cb(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &cb))
+      total_usec = -1;
+   else if (total_usec == -1)
+      total_usec = 0;
+}
 
 void retro_get_system_info(struct retro_system_info *info)
 {
@@ -1222,55 +1251,28 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->timing   = timing;
 }
 
-void update_geometry(void)
+static void update_geometry(void)
 {
    struct retro_system_av_info system_av_info;
+
    system_av_info.geometry.base_width   = retrow;
    system_av_info.geometry.base_height  = retroh;
    system_av_info.geometry.aspect_ratio = (float)4.0 / 3.0;
+
    environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &system_av_info);
 }
 
-static void frame_time_cb(retro_usec_t usec)
-{
-   total_usec += usec;
-   /* -1 is reserved as an error code for unavailable a la stdlib clock() */
-   if (total_usec == -1)
-      total_usec = 0;
-}
-
-static void setup_frame_time_cb(void)
-{
-   struct retro_frame_time_callback cb;
-
-   cb.callback  = frame_time_cb;
-   cb.reference = ceil(1000000.0 / FRAMERATE);
-   if (!environ_cb(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &cb))
-      total_usec = -1;
-   else if (total_usec == -1)
-      total_usec = 0;
-}
-
-void update_timing(void)
+static void update_timing(void)
 {
    struct retro_system_av_info system_av_info;
 
    retro_get_system_av_info(&system_av_info);
    FRAMERATE = framerates[Config.AdjustFrameRates][VID_MODE];
    system_av_info.timing.fps = FRAMERATE;
+
    environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &system_av_info);
    setup_frame_time_cb();
 }
-
-size_t retro_serialize_size(void) { return 0; }
-bool retro_serialize(void *data, size_t size) { return false; }
-bool retro_unserialize(const void *data, size_t size) { return false; }
-void retro_cheat_reset(void) { }
-void retro_cheat_set(unsigned index, bool enabled, const char *code) { }
-bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info) { return false; }
-void retro_unload_game(void) { }
-unsigned retro_get_region(void) { return RETRO_REGION_NTSC; }
-unsigned retro_api_version(void) { return RETRO_API_VERSION; }
 
 bool retro_load_game(const struct retro_game_info *info)
 {
@@ -1426,51 +1428,52 @@ void retro_run(void)
 
    if (firstcall)
    {
-      pre_main();
       firstcall = 0;
+      pre_main();
       update_variables(0);
       return;
    }
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-   {
       update_variables(1);
-   }
 
    if (CHANGEAV || CHANGEAV_TIMING)
    {
       if (CHANGEAV_TIMING)
       {
          update_timing();
-         CHANGEAV = CHANGEAV_TIMING = 0;
+         CHANGEAV = 0;
+         CHANGEAV_TIMING = 0;
       }
-      else if (CHANGEAV)
+
+      if (CHANGEAV)
       {
          update_geometry();
          CHANGEAV = 0;
+         CHANGEAV_TIMING = 0;
       }
    }
 
-   input_poll_cb();
-
-   rumbleFrames();
-
    FDD_IsReading = 0;
 
+   input_poll_cb();
+   rumbleFrames();
    exec_app_retro();
 
    soundbuf_size = (int)round(SAMPLERATE / FRAMERATE);
+
    if (Config.AudioDesyncHack)
    {
       int nsamples = audio_samples_avail();
       if (nsamples > soundbuf_size)
          audio_samples_discard(nsamples - soundbuf_size);
    }
-   raudio_callback(soundbuf, NULL, soundbuf_size << 2);
 
-   if (libretro_supports_midi_output && midi_cb.output_enabled())
-      midi_cb.flush();
+   raudio_callback(soundbuf, soundbuf_size << 2);
 
    audio_batch_cb((const int16_t *)soundbuf, soundbuf_size);
    video_cb(videoBuffer, retrow, retroh, FULLSCREEN_WIDTH << 1);
+
+   if (libretro_supports_midi_output && midi_cb.output_enabled())
+      midi_cb.flush();
 }

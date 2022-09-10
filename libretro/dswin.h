@@ -10,6 +10,7 @@ void FASTCALL DSound_Send0(long clock);
 
 int audio_samples_avail();
 void audio_samples_discard(int discard);
-void raudio_callback(void *userdata, unsigned char *stream, int len);
+
+void raudio_callback(void *userdata, int len);
 
 #endif /* _WINX68K_DSWIN_H */
