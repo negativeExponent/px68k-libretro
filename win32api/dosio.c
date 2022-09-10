@@ -36,9 +36,7 @@
 #include "common.h"
 #include "dosio.h"
 
-#ifdef __LIBRETRO__
 extern char slash;
-#endif
 
 static char	curpath[MAX_PATH+32] = "";
 static char *curfilep = curpath;
