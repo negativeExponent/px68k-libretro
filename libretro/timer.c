@@ -33,7 +33,7 @@ void Timer_Reset(void)
 	tick = timeGetUsec();
 }
 
-uint16_t Timer_GetCount(void)
+int Timer_GetCount(void)
 {
 	int64_t ticknow = timeGetUsec();
 	int64_t dif = ticknow-tick;

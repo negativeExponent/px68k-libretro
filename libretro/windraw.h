@@ -1,6 +1,8 @@
 #ifndef _WINX68K_WINDRAW_H
 #define _WINX68K_WINDRAW_H
 
+#include "winui.h"
+
 extern uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 
 int WinDraw_Init(void);
@@ -10,7 +12,7 @@ void WinDraw_DrawLine(void);
 void WinDraw_ChangeSize(void);
 
 int WinDraw_MenuInit(void);
-void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y);
+void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_y);
 
 extern struct menu_flist mfl;
 

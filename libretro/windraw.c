@@ -1031,7 +1031,7 @@ char menu_item_desc[][60] = {
 	"Change / Eject HDD 1"
 };
 
-void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y)
+void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_y)
 {
 	int i, drv;
 	char tmp[256];
