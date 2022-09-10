@@ -148,31 +148,19 @@ void WinUI_Init(void)
 		menu_hwjoy_print(i);
 	}
 
-#if defined(ANDROID)
-#define CUR_DIR_STR winx68k_dir
-#elif TARGET_OS_IPHONE && TARGET_IPHONE_SIMULATOR == 0
-#define CUR_DIR_STR "/var/mobile/px68k/"
-#else
-
-#ifdef __LIBRETRO__
-
 #ifdef _WIN32
 #define CUR_DIR_STR "c:\\"
 #else
 #define CUR_DIR_STR "/"
 #endif
-#else
-#define CUR_DIR_STR "./"
-#endif
-#endif
+
 	if (filepath[0] != 0)
 		strcpy(cur_dir_str, filepath);
 	else
 		strcpy(cur_dir_str, CUR_DIR_STR);
-#ifdef ANDROID
-	strcat(cur_dir_str, "/");
-#endif
+
 	cur_dir_slen = strlen(cur_dir_str);
+
 #ifdef DEBUG
 	p6logd("cur_dir_str %s %d\n", cur_dir_str, cur_dir_slen);
 #endif

@@ -94,13 +94,6 @@ struct internal_file {
         ptrtohandle(h)->type : (((struct internal_handle *)(h))->type))
 
 
-#ifdef	DEBUG
-#define DPRF(arg)		printf arg
-#else	/* !DEBUG */
-#define	DPRF(arg)
-#endif	/* DEBUG */
-
-
 uint32_t FAKE_GetTickCount(void)
 {
 	struct timeval tv;
@@ -374,7 +367,9 @@ uint32_t GetPrivateProfileString(const char *sect, const char *key, const char *
 		}
 	}
 notfound:
-	DPRF(("[%s]:%s not found\n", sect, key));
+#ifdef DEBUG
+	p6logd(("[%s]:%s not found\n", sect, key));
+#endif
 	fclose(fp);
 nofile:
 	strncpy(buf, defvalue, len);
