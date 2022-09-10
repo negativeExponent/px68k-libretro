@@ -197,7 +197,7 @@ float WinUI_get_vkscale(void)
 	return VKey_scale[n];
 }
 
-int menu_state = ms_key;
+static MenuState menu_state = ms_key;
 int mkey_y     = 0;
 int mkey_pos   = 0;
 

@@ -1,9 +1,8 @@
-#ifndef winx1_timer_h
-#define winx1_timer_h
+#ifndef _WINX68K_TIMER_H
+#define _WINX68K_TIMER_H
 
 void Timer_Init(void);
 void Timer_Reset(void);
-uint16_t Timer_GetCount(void);
-void Timer_SetCount(uint16_t);
+int Timer_GetCount(void);
 
-#endif //winx1_timer_h
+#endif /* _WINX68K_TIMER_H */
