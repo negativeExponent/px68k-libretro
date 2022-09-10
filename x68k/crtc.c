@@ -35,7 +35,7 @@ uint8_t VCReg2[2] = { 0, 0 };
 static uint8_t CRTC_RCFlag[2] = { 0, 0 };
 
 int HSYNC_CLK = 324;
-extern int VID_MODE, CHANGEAV_TIMING;
+extern int VID_MODE;
 
 /*
  *   らすたーこぴー
