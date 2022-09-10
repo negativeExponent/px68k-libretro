@@ -419,6 +419,7 @@ FLAGS   += $(INCFLAGS)
 WARNINGS := -Wall -Wno-strict-aliasing
 
 FLAGS    += -D__LIBRETRO__ $(ENDIANNESS_DEFINES) $(WARNINGS) $(fpic)
+FLAGS    += -DHAVE_NO_LANGEXTRA
 
 CXXFLAGS += $(FLAGS) $(CPU_FLAGS)
 CFLAGS   += $(FLAGS) -std=c99 $(CPU_FLAGS) -Werror-implicit-function-declaration

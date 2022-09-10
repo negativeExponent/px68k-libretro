@@ -67,7 +67,10 @@ int CHANGEAV        = 0;
 int CHANGEAV_TIMING = 0;         /* Separate change of geometry from change of refresh rate */
 int VID_MODE        = MODE_HIGH; /* what framerate we start in */
 static float FRAMERATE;
-uint32_t libretro_supports_input_bitmasks = 0;
+
+uint32_t libretro_supports_input_bitmasks      = 0;
+static int libretro_supports_option_categories = 0;
+
 int64_t total_usec                        = -1;
 
 static int16_t soundbuf[1024 * 2];
@@ -111,8 +114,6 @@ struct disk_control_interface_t
 static struct disk_control_interface_t disk;
 static struct retro_disk_control_callback dskcb;
 static struct retro_disk_control_ext_callback dskcb_ext;
-
-static void update_variables(int running);
 
 void Error(const char *s)
 {
@@ -889,7 +890,10 @@ void retro_set_environment(retro_environment_t cb)
    environ_cb = cb;
    cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void *)ports);
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &nocontent);
-   libretro_set_core_options(environ_cb);
+
+   libretro_supports_option_categories = 0;
+   libretro_set_core_options(cb,
+         &libretro_supports_option_categories);
 }
 
 static void update_variables(int running)
@@ -959,6 +963,8 @@ static void update_variables(int running)
          value = 2;
       else if (strcmp(var.value, "4MB") == 0)
          value = 4;
+      else if (strcmp(var.value, "4MB") == 0)
+         value = 6;
       else if (strcmp(var.value, "8MB") == 0)
          value = 8;
       else if (strcmp(var.value, "12MB") == 0)
@@ -1271,6 +1277,8 @@ bool retro_load_game(const struct retro_game_info *info)
    no_content = 1;
    RPATH[0]   = '\0';
 
+   update_variables(0);
+
    if (info && info->path)
    {
       const char *full_path = 0;
@@ -1358,11 +1366,9 @@ void retro_init(void)
 
    /* set sane defaults */
    Config.saveFDDPath = 1;
-   Config.cpuClock      = 10;
-   Config.joyType[0]   = 0;
-   Config.joyType[1]   = 0;
-
-   update_variables(0);
+   Config.cpuClock    = 10;
+   Config.joyType[0]  = 0;
+   Config.joyType[1]  = 0;
 
    memset(Core_Key_State, 0, 512);
    memset(Core_old_Key_State, 0, sizeof(Core_old_Key_State));
@@ -1374,8 +1380,10 @@ void retro_init(void)
 void retro_deinit(void)
 {
    end_loop_retro();
-   libretro_supports_input_bitmasks = 0;
-   libretro_supports_midi_output    = 0;
+
+   libretro_supports_input_bitmasks    = 0;
+   libretro_supports_midi_output       = 0;
+   libretro_supports_option_categories = 0;
 }
 
 void retro_reset(void)
