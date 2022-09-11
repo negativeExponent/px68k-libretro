@@ -852,10 +852,6 @@ static void update_variables(int running)
          Config.cpuClock = 66;
       else if (strcmp(var.value, "100Mhz (OC)") == 0)
          Config.cpuClock = 100;
-      else if (strcmp(var.value, "150Mhz (OC)") == 0)
-         Config.cpuClock = 150;
-      else if (strcmp(var.value, "200Mhz (OC)") == 0)
-         Config.cpuClock = 200;
    }
 
    var.key   = "px68k_ramsize";
