@@ -44,6 +44,7 @@ extern char slash;
 
 #define CFGLEN MAX_PATH
 
+#if 0
 static char *makeBOOL(uint8_t value)
 {
 	if (value)
@@ -85,6 +86,7 @@ static uint8_t solveBOOL(char *str)
 	}
 	return (0);
 }
+#endif
 
 int set_modulepath(char *path, size_t len)
 {

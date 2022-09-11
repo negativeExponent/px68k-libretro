@@ -904,11 +904,13 @@ static void set_mbcolor(uint16_t c)
 	p6m.mbcolor = c;
 }
 
+#if 0 /* unused for now, so just silence this */
 /* グラフィック座標 */
 static void set_mlocate(int x, int y)
 {
 	p6m.ml_x = x, p6m.ml_y = y;
 }
+#endif
 
 /* キャラクタ文字の座標 (横軸は1座標が半角文字幅になる) */
 static void set_mlocateC(int x, int y)
