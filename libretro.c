@@ -844,10 +844,16 @@ static void update_variables(int running)
          Config.cpuClock = 10;
       else if (strcmp(var.value, "16Mhz") == 0)
          Config.cpuClock = 16;
+      else if (strcmp(var.value, "20Mhz") == 0)
+         Config.cpuClock = 20;
       else if (strcmp(var.value, "25Mhz") == 0)
          Config.cpuClock = 25;
-      else if (strcmp(var.value, "33Mhz (OC)") == 0)
+      else if (strcmp(var.value, "33Mhz") == 0)
          Config.cpuClock = 33;
+      else if (strcmp(var.value, "40Mhz") == 0)
+         Config.cpuClock = 40;
+      else if (strcmp(var.value, "50Mhz") == 0)
+         Config.cpuClock = 50;
       else if (strcmp(var.value, "66Mhz (OC)") == 0)
          Config.cpuClock = 66;
       else if (strcmp(var.value, "100Mhz (OC)") == 0)
