@@ -33,7 +33,7 @@ bool FileIO::Open(const char* filename, uint flg)
 {
 	Close();
 
-	strncpy(path, filename, MAX_PATH);
+	strncpy(path, filename, sizeof(path) - 1);
 
 	uint32_t access = (flg & readonly ? 0 : GENERIC_WRITE) | GENERIC_READ;
 	uint32_t share = (flg & readonly) ? FILE_SHARE_READ : 0;
@@ -64,7 +64,7 @@ bool FileIO::CreateNew(const char* filename)
 {
 	Close();
 
-	strncpy(path, filename, MAX_PATH);
+	strncpy(path, filename, sizeof(path) - 1);
 
 	uint32_t access = GENERIC_WRITE | GENERIC_READ;
 	uint32_t share = 0;

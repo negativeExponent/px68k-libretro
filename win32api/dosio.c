@@ -38,7 +38,7 @@
 
 extern char slash;
 
-static char	curpath[MAX_PATH+32] = "";
+static char	curpath[MAX_PATH] = "";
 static char *curfilep = curpath;
 
 void dosio_init(void)
@@ -190,7 +190,7 @@ int16_t file_attr(char *filename)
 void file_setcd(char *exename)
 {
 
-	strncpy(curpath, exename, sizeof(curpath));
+	strncpy(curpath, exename, sizeof(curpath) - 1);
 	plusyen(curpath, sizeof(curpath));
 	curfilep = curpath + strlen(exename) + 1;
 	*curfilep = '\0';

@@ -31,6 +31,8 @@ char slash = '\\';
 char slash = '/';
 #endif
 
+#define SAMPLERATE (float)Config.SampleRate
+
 #define MODE_HIGH_ACTUAL 55.46 /* floor((10*100*1000^2 / VSYNC_HIGH)) / 100 */
 #define MODE_NORM_ACTUAL 61.46 /* floor((10*100*1000^2 / VSYNC_NORM)) / 100 */
 #define MODE_HIGH_COMPAT 55.5  /* 31.50 kHz - commonly used  */
@@ -44,15 +46,9 @@ const float framerates[][MODES] = {
    { MODE_NORM_COMPAT, MODE_HIGH_COMPAT }
 };
 
-#define SAMPLERATE (float)Config.SampleRate
-
-static char RPATH[512];
-static char RETRO_DIR[512];
-static const char *retro_save_directory;
-static const char *retro_system_directory;
-static const char *retro_content_directory;
-char retro_system_conf[1024];
-char base_dir[1024];
+static char RPATH[MAX_PATH * 2]; /* stores the full pathname of content file */
+char retro_system_conf[1024]; /* dir location for 'keropi' config file */
+char base_dir[1024]; /* dir where rom was loaded */
 
 char Core_Key_State[512];
 char Core_old_Key_State[512];
@@ -105,7 +101,7 @@ struct disk_control_interface_t
    unsigned index;                     /* currect disk index */
    disk_drive cur_drive;               /* current active drive */
    bool inserted[2];                   /* tray state for FDD0/FDD1, 0 = disk ejected, 1 = disk inserted */
-   char path[MAX_DISKS][MAX_PATH];     /* disk image paths */
+   char path[MAX_DISKS][3072];         /* disk image paths */
    char label[MAX_DISKS][MAX_PATH];    /* disk image base name w/o extension */
    unsigned g_initial_disc;            /* initial disk index */
    char g_initial_disc_path[MAX_PATH]; /* initial disk path */
@@ -437,11 +433,11 @@ void retro_set_input_poll(retro_input_poll_t cb) { input_poll_cb = cb; }
 void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb; }
 
 /* Args for experimental_cmdline */
-static char ARGUV[64][MAX_PATH];
+static char ARGUV[64][2048];
 static unsigned char ARGUC = 0;
 
 /* Args for Core */
-static char XARGV[64][1024];
+static char XARGV[64][2048];
 static const char *xargv_cmd[64];
 static int PARAMCOUNT = 0;
 
@@ -471,8 +467,8 @@ static int loadcmdfile(char *argv)
 static bool read_m3u(const char *file)
 {
    unsigned index = 0;
-   char line[2048];
-   char name[MAX_PATH];
+   char name[2048];
+   char line[1024];
    FILE *f = fopen(file, "r");
 
    if (!f)
@@ -501,12 +497,12 @@ static bool read_m3u(const char *file)
 
       if (line[0] != '\0')
       {
-         char image_label[4096];
+         char image_label[3072];
          char *custom_label;
          size_t len = 0;
 
          if (is_path_absolute(line))
-            strncpy(name, line, sizeof(name));
+            strncpy(name, line, sizeof(name) - 1);
          else
             snprintf(name, sizeof(name), "%s%c%s", base_dir, slash, line);
 
@@ -524,7 +520,7 @@ static bool read_m3u(const char *file)
          else
          {
             /* copy path */
-            strncpy(disk.path[index], name, sizeof(disk.path[index]));
+            strncpy(disk.path[index], name, sizeof(disk.path[index]) - 1);
 
             /* extract base name from path for labels */
             extract_basename(image_label, name, sizeof(image_label));
@@ -1295,8 +1291,6 @@ void retro_init(void)
    struct retro_log_callback log;
    struct retro_rumble_interface rumble;
    const char *system_dir  = NULL;
-   const char *content_dir = NULL;
-   const char *save_dir    = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
       log_cb = log.log;
@@ -1304,30 +1298,7 @@ void retro_init(void)
       log_cb = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
-   {
-      retro_system_directory = system_dir;
-   }
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_CONTENT_DIRECTORY, &content_dir) && content_dir)
-   {
-      retro_content_directory = content_dir;
-   }
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir)
-   {
-      retro_save_directory = *save_dir ? save_dir : retro_system_directory;
-   }
-   else
-   {
-      retro_save_directory = retro_system_directory;
-   }
-
-   if (retro_system_directory == NULL)
-      sprintf(RETRO_DIR, "%s", ".");
-   else
-      sprintf(RETRO_DIR, "%s", retro_system_directory);
-
-   sprintf(retro_system_conf, "%s%ckeropi", RETRO_DIR, slash);
+      snprintf(retro_system_conf, sizeof(retro_system_conf) - 1, "%s%ckeropi", system_dir, slash);
 
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
