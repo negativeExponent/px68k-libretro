@@ -36,6 +36,7 @@
 #include "prop.h"
 #include "status.h"
 #include "tvram.h"
+#include "x68kmemory.h"
 
 extern uint8_t Debug_Text, Debug_Grp, Debug_Sp;
 extern uint16_t *videoBuffer;

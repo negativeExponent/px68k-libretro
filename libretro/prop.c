@@ -96,7 +96,6 @@ int set_modulepath(char *path, size_t len)
 static void LoadDefaults(void)
 {
 	int i;
-	int j;
 
 	Config.menuSize = 0; // start with default normal menu size
 	Config.FrameRate = 1;

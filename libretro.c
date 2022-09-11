@@ -436,7 +436,20 @@ void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_c
 void retro_set_input_poll(retro_input_poll_t cb) { input_poll_cb = cb; }
 void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb; }
 
+/* Args for experimental_cmdline */
+static char ARGUV[64][MAX_PATH];
+static unsigned char ARGUC = 0;
+
+/* Args for Core */
+static char XARGV[64][1024];
+static const char *xargv_cmd[64];
+static int PARAMCOUNT = 0;
+
 static char CMDFILE[512];
+
+#ifdef DEBUG
+static int isM3U = 0;
+#endif
 
 static int loadcmdfile(char *argv)
 {
@@ -454,29 +467,6 @@ static int loadcmdfile(char *argv)
    return res;
 }
 
-static int HandleExtension(char *path, char *ext)
-{
-   int len = strlen(path);
-
-   if (len >= 4 && path[len - 4] == '.' && path[len - 3] == ext[0] && path[len - 2] == ext[1] &&
-       path[len - 1] == ext[2])
-   {
-      return 1;
-   }
-
-   return 0;
-}
-
-/* Args for experimental_cmdline */
-static char ARGUV[64][MAX_PATH];
-static unsigned char ARGUC = 0;
-
-/* Args for Core */
-static char XARGV[64][1024];
-static const char *xargv_cmd[64];
-static int PARAMCOUNT = 0;
-
-static void parse_cmdline(const char *argv);
 
 static bool read_m3u(const char *file)
 {
@@ -564,132 +554,11 @@ static void Add_Option(const char *option)
    sprintf(XARGV[PARAMCOUNT++], "%s", option);
 }
 
-static int isM3U = 0;
-
-static int load(const char *argv)
-{
-   if (strlen(argv) > strlen("cmd"))
-   {
-      int res = 0;
-      if (HandleExtension((char *)argv, "cmd") || HandleExtension((char *)argv, "CMD"))
-      {
-         res = loadcmdfile((char *)argv);
-         if (!res)
-         {
-            if (log_cb)
-               log_cb(RETRO_LOG_ERROR, "%s\n", "[libretro]: failed to read cmd file ...");
-            return false;
-         }
-
-         parse_cmdline(CMDFILE);
-      }
-      else if (HandleExtension((char *)argv, "m3u") || HandleExtension((char *)argv, "M3U"))
-      {
-         if (!read_m3u((char *)argv))
-         {
-            if (log_cb)
-               log_cb(RETRO_LOG_ERROR, "%s\n", "[libretro]: failed to read m3u file ...");
-            return false;
-         }
-
-         if (disk.total_images > 1)
-         {
-            sprintf((char *)argv, "%s \"%s\" \"%s\"", "px68k", disk.path[0], disk.path[1]);
-            disk.inserted[1] = true;
-         }
-         else
-            sprintf((char *)argv, "%s \"%s\"", "px68k", disk.path[0]);
-
-         disk.inserted[0] = true;
-         isM3U            = 1;
-
-         parse_cmdline(argv);
-      }
-   }
-
-   return 1;
-}
-
-static int pre_main(void)
-{
-   int i = 0;
-   int Only1Arg;
-
-   for (i = 0; i < 64; i++)
-      xargv_cmd[i] = NULL;
-
-   if (no_content)
-   {
-      PARAMCOUNT = 0;
-      goto run_pmain;
-   }
-
-   Only1Arg = (strcmp(ARGUV[0], "px68k") == 0) ? 0 : 1;
-
-   if (Only1Arg)
-   {
-      int cfgload = 0;
-
-      Add_Option("px68k");
-
-      if (strlen(RPATH) >= strlen("hdf"))
-      {
-         if (!strcasecmp(&RPATH[strlen(RPATH) - strlen("hdf")], "hdf"))
-         {
-            Add_Option("-h");
-            cfgload = 1;
-         }
-      }
-
-      if (cfgload == 0)
-      {
-         /* Add_Option("-verbose");
-         Add_Option(retro_system_tos);
-         Add_Option("-8"); */
-      }
-
-      Add_Option(RPATH);
-   }
-   else
-   {
-      /* Pass all cmdline args */
-      for (i = 0; i < ARGUC; i++)
-         Add_Option(ARGUV[i]);
-   }
-
-   for (i = 0; i < PARAMCOUNT; i++)
-   {
-      xargv_cmd[i] = (char *)(XARGV[i]);
-   }
-
-#ifdef DEBUG
-   /* Log successfully loaded paths when loading from m3u */
-   if (isM3U)
-   {
-      p6logd("%s\n", "Loading from an m3u file ...");
-      for (i = 0; i < disk.total_images; i++)
-         p6logd("index %d: %s\n", i + 1, disk.path[i]);
-   }
-
-   /* List arguments to be passed to core */
-   p6logd("%s\n", "Parsing arguments ...");
-   for (i = 0; i < PARAMCOUNT; i++)
-      p6logd("%d : %s\n", i, xargv_cmd[i]);
-#endif
-
-run_pmain:
-   pmain(PARAMCOUNT, (char **)xargv_cmd);
-
-   if (PARAMCOUNT)
-      xargv_cmd[PARAMCOUNT - 2] = NULL;
-
-   return 0;
-}
 
 static void parse_cmdline(const char *argv)
 {
-   char *p, *p2, *start_of_word;
-   int i, c, c2;
+   char *p, *p2, *start_of_word = 0;
+   int c, c2;
    static char buffer[512 * 4];
    enum states { DULL, IN_WORD, IN_STRING } state = DULL;
 
@@ -744,6 +613,21 @@ static void parse_cmdline(const char *argv)
          continue; /* either still IN_WORD or we handled the end above */
       }
    }
+}
+
+static int load_file_cmd(const char *argv)
+{
+   int i;
+   int res = loadcmdfile((char *)argv);
+
+   if (!res)
+   {
+      if (log_cb)
+         log_cb(RETRO_LOG_ERROR, "%s\n", "[libretro]: failed to read cmd file ...");
+      return 0;
+   }
+
+   parse_cmdline(CMDFILE);
 
    /* handle relative paths, append content dir if needed */
    for (i = 1; i < ARGUC; i++)
@@ -756,10 +640,39 @@ static void parse_cmdline(const char *argv)
          snprintf(ARGUV[i], sizeof(ARGUV[i]), "%s%c%s", base_dir, slash, tmp);
       }
    }
+
+   return 1;
+}
+
+static int load_file_m3u(const char *argv)
+{
+   if (!read_m3u((char *)argv))
+   {
+      if (log_cb)
+         log_cb(RETRO_LOG_ERROR, "%s\n", "[libretro]: failed to read m3u file ...");
+      return 0;
+   }
+
+   if (disk.total_images > 1)
+   {
+      sprintf((char *)RPATH, "%s \"%s\" \"%s\"", "px68k", disk.path[0], disk.path[1]);
+      disk.inserted[1] = true;
+   }
+   else
+      sprintf((char *)RPATH, "%s \"%s\"", "px68k", disk.path[0]);
+
+   disk.inserted[0] = true;
+
+#ifdef DEBUG
+   isM3U = 1;
+#endif
+
+   parse_cmdline(RPATH);
+
+   return 1;
 }
 
 static struct retro_input_descriptor inputDescriptors[64];
-
 static struct retro_input_descriptor inputDescriptorsP1[] = {
    { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A, "A" },
    { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B, "B" },
@@ -801,7 +714,6 @@ static struct retro_input_descriptor inputDescriptorsP2[] = {
 static struct retro_input_descriptor inputDescriptorsNull[] = {
    { 0, 0, 0, 0, NULL }
 };
-
 
 static void retro_set_controller_descriptors()
 {
@@ -1276,22 +1188,89 @@ static void update_timing(void)
 
 bool retro_load_game(const struct retro_game_info *info)
 {
+   const char *full_path = 0;
+
    no_content = 1;
    RPATH[0]   = '\0';
 
-   update_variables(0);
+   /* set sane defaults */
+   Config.saveFDDPath = 1;
+   Config.cpuClock    = 10;
+   Config.joyType[0]  = 0;
+   Config.joyType[1]  = 0;
 
-   if (info && info->path)
+   if (info && string_is_empty(info->path) == 0)
    {
-      const char *full_path = 0;
-      no_content            = 0;
-      full_path             = info->path;
+      int i = 0;
+      int Only1Arg = 0;
+      const char *file_ext;
+
+      no_content = 0;
+      full_path  = info->path;
       strcpy(RPATH, full_path);
       extract_directory(base_dir, info->path, sizeof(base_dir));
 
-      if (!load(RPATH))
+      if (strlen(RPATH) < 4)
          return false;
+
+      file_ext = strrchr(RPATH, '.');
+
+      if (strcasecmp(file_ext, ".cmd") == 0)
+         load_file_cmd(RPATH);
+      else if (strcasecmp(file_ext, ".m3u") == 0)
+         load_file_m3u(RPATH);
+
+      for (i = 0; i < 64; i++)
+         xargv_cmd[i] = NULL;
+
+      Only1Arg = (strcmp(ARGUV[0], "px68k") == 0) ? 0 : 1;
+
+      if (Only1Arg)
+      {
+         Add_Option("px68k");
+
+         if (strlen(RPATH) >= strlen("hdf"))
+         {
+            size_t len = strlen(RPATH);
+            if (!strcasecmp(&RPATH[len - strlen("hdf")], "hdf"))
+               Add_Option("-h");
+         }
+
+         Add_Option(RPATH);
+      }
+      else
+      {
+         /* Pass all cmdline args */
+         for (i = 0; i < ARGUC; i++)
+            Add_Option(ARGUV[i]);
+      }
+
+      for (i = 0; i < PARAMCOUNT; i++)
+         xargv_cmd[i] = (char *)(XARGV[i]);
+
+#ifdef DEBUG
+      /* Log successfully loaded paths when loading from m3u */
+      if (isM3U)
+      {
+         p6logd("%s\n", "Loading from an m3u file ...");
+         for (i = 0; i < disk.total_images; i++)
+            p6logd("index %d: %s\n", i + 1, disk.path[i]);
+      }
+
+      /* List arguments to be passed to core */
+      p6logd("%s\n", "Parsing arguments ...");
+      for (i = 0; i < PARAMCOUNT; i++)
+         p6logd("%d : %s\n", i, xargv_cmd[i]);
+#endif
    }
+
+   if (!pmain(PARAMCOUNT, (char **)xargv_cmd))
+      return false;
+
+   update_variables(0);
+
+   FRAMERATE = framerates[Config.AdjustFrameRates][VID_MODE];
+   setup_frame_time_cb();
 
    return true;
 }
@@ -1366,17 +1345,8 @@ void retro_init(void)
    disk_swap_interface_init();
    midi_interface_init();
 
-   /* set sane defaults */
-   Config.saveFDDPath = 1;
-   Config.cpuClock    = 10;
-   Config.joyType[0]  = 0;
-   Config.joyType[1]  = 0;
-
    memset(Core_Key_State, 0, 512);
    memset(Core_old_Key_State, 0, sizeof(Core_old_Key_State));
-
-   FRAMERATE = framerates[Config.AdjustFrameRates][VID_MODE];
-   setup_frame_time_cb();
 }
 
 void retro_deinit(void)
@@ -1419,20 +1389,10 @@ static void rumbleFrames(void)
    last_read_state = FDD_IsReading;
 }
 
-static int firstcall = 1;
-
 void retro_run(void)
 {
    bool updated = false;
    int soundbuf_size;
-
-   if (firstcall)
-   {
-      firstcall = 0;
-      pre_main();
-      update_variables(0);
-      return;
-   }
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       update_variables(1);
