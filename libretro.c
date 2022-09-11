@@ -65,7 +65,7 @@ int VID_MODE        = MODE_NORM; /* what framerate we start in */
 static float FRAMERATE;
 
 uint32_t libretro_supports_input_bitmasks      = 0;
-static int libretro_supports_option_categories = 0;
+static bool libretro_supports_option_categories = 0;
 
 int64_t total_usec                        = -1;
 
