@@ -753,7 +753,7 @@ int WinUI_Menu(int first)
 				}
 				else
 				{
-					strcat(mfl.dir[drv], mfl.name[y]);
+					strncat(mfl.dir[drv], mfl.name[y], sizeof(mfl.dir[drv]) - 1);
 #ifdef _WIN32
 					strcat(mfl.dir[drv], "\\");
 #else

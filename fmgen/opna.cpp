@@ -49,12 +49,12 @@ OPNBase::OPNBase()
 void OPNBase::SetParameter(Channel4* ch, uint addr, uint data)
 {
 	static const uint slottable[4] = { 0, 2, 1, 3 };
-	static const uint8 sltable[16] = 
+	static const uint8 sltable[16] =
 	{
 		  0,   4,   8,  12,  16,  20,  24,  28,
 		 32,  36,  40,  44,  48,  52,  56, 124,
 	};
-	
+
 	if ((addr & 3) < 3)
 	{
 		uint slot = slottable[(addr >> 2) & 3];
@@ -66,30 +66,30 @@ void OPNBase::SetParameter(Channel4* ch, uint addr, uint data)
 			op->SetDT((data >> 4) & 0x07);
 			op->SetMULTI(data & 0x0f);
 			break;
-			
+
 		case 4: // 40-4E TL
 			op->SetTL(data & 0x7f, (regtc & 0x80) && (csmch == ch));
 			break;
-			
+
 		case 5: // 50-5E KS/AR
 			op->SetKS((data >> 6) & 3);
 			op->SetAR((data & 0x1f) * 2);
 			break;
-			
+
 		case 6: // 60-6E DR/AMON
 			op->SetDR((data & 0x1f) * 2);
 			op->SetAMON((data & 0x80) != 0);
 			break;
-			
+
 		case 7: // 70-7E SR
 			op->SetSR((data & 0x1f) * 2);
 			break;
-			
+
 		case 8:	// 80-8E SL/RR
 			op->SetSL(sltable[(data >> 4) & 15]);
 			op->SetRR((data & 0x0f) * 4 + 2);
 			break;
-			
+
 		case 9: // 90-9E SSG-EC
 			op->SetSSGEC(data & 0x0f);
 			break;
@@ -116,11 +116,11 @@ void OPNBase::SetPrescaler(uint p)
 	{
 		prescale = p;
 		//assert(0 <= prescale && prescale < 3);
-		
+
 		uint fmclock = clock / table[p][0] / 12;
-		
+
 		rate = psgrate;
-		
+
 		// 合成周波数と出力周波数の比
 		assert(fmclock < (0x80000000 >> FM_RATIOBITS));
 		uint ratio = ((fmclock << FM_RATIOBITS) + rate/2) / rate;
@@ -192,7 +192,7 @@ bool OPN::Init(uint c, uint r, bool ip, const char*)
 {
 	if (!SetRate(c, r, ip))
 		return false;
-	
+
 	Reset();
 
 	SetVolumeFM(0);
@@ -239,7 +239,7 @@ void OPN::SetReg(uint addr, uint data)
 //	LOG2("reg[%.2x] <- %.2x\n", addr, data);
 	if (addr >= 0x100)
 		return;
-	
+
 	int c = addr & 3;
 	switch (addr)
 	{
@@ -259,7 +259,7 @@ void OPN::SetReg(uint addr, uint data)
 	case 0x27:
 		SetTimerControl(data);
 		break;
-	
+
 	case 0x28:		// Key On/Off
 		if ((data & 3) < 3)
 			ch[data & 3].KeyControl(data >> 4);
@@ -271,26 +271,26 @@ void OPN::SetReg(uint addr, uint data)
 
 	// F-Number
 	case 0xa0: case 0xa1: case 0xa2:
-		fnum[c] = data + fnum2[c] * 0x100; 
+		fnum[c] = data + fnum2[c] * 0x100;
 		break;
-	
+
 	case 0xa4: case 0xa5: case 0xa6:
 		fnum2[c] = uint8(data);
 		break;
 
 	case 0xa8: case 0xa9: case 0xaa:
-		fnum3[c] = data + fnum2[c+3] * 0x100; 
+		fnum3[c] = data + fnum2[c+3] * 0x100;
 		break;
-	
+
 	case 0xac: case 0xad: case 0xae:
 		fnum2[c+3] = uint8(data);
 		break;
-	
+
 	case 0xb0:	case 0xb1:  case 0xb2:
 		ch[c].SetFB((data >> 3) & 7);
 		ch[c].SetAlgorithm(data & 7);
 		break;
-		
+
 	default:
 		if (c < 3)
 		{
@@ -332,9 +332,9 @@ void OPN::SetChannelMask(uint mask)
 void OPN::Mix(Sample* buffer, int nsamples)
 {
 #define IStoSample(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume) >> 14)
-	
+
 	psg.Mix(buffer, nsamples);
-	
+
 	// Set F-Number
 	ch[0].SetFNum(fnum[0]);
 	ch[1].SetFNum(fnum[1]);
@@ -347,7 +347,7 @@ void OPN::Mix(Sample* buffer, int nsamples)
 		ch[2].op[2].SetFNum(fnum3[0]);
 		ch[2].op[3].SetFNum(fnum[2]);
 	}
-	
+
 	int actch = (((ch[2].Prepare() << 2) | ch[1].Prepare()) << 2) | ch[0].Prepare();
 	if (actch & 0x15)
 	{
@@ -412,7 +412,7 @@ bool OPNABase::Init(uint c, uint r, bool)
 	(void)r;
 
 	RebuildTimeTable();
-	
+
 	Reset();
 
 	SetVolumeFM(0);
@@ -443,7 +443,7 @@ void OPNABase::MakeTable2()
 void OPNABase::Reset()
 {
 	int i;
-	
+
 	OPNBase::Reset();
 	for (i=0x20; i<0x28; i++) SetReg(i, 0);
 	for (i=0x30; i<0xc0; i++) SetReg(i, 0);
@@ -455,7 +455,7 @@ void OPNABase::Reset()
 		pan[i] = 3;
 		ch[i].Reset();
 	}
-	
+
 	stmask = ~0x1c;
 	statusnext = 0;
 	memaddr = 0;
@@ -475,12 +475,12 @@ void OPNABase::Reset()
 bool OPNABase::SetRate(uint c, uint r, bool)
 {
 	c /= 2;		// 従来版との互換性を重視したけりゃコメントアウトしよう
-	
+
 	OPNBase::Init(c, r);
 
 	adplbase = int(8192. * (clock/72.) / r);
-	adpld = deltan * adplbase >> 16;      
-		
+	adpld = deltan * adplbase >> 16;
+
 	RebuildTimeTable();
 
 	lfodcount = reg22 & 0x08 ? lfotable[reg22 & 7] : 0;
@@ -537,12 +537,12 @@ void OPNABase::SetReg(uint addr, uint data)
 		reg29 = data;
 //		UpdateStatus(); //?
 		break;
-	
+
 	// Prescaler -------------------------------------------------------------
 	case 0x2d: case 0x2e: case 0x2f:
 		SetPrescaler(addr-0x2d);
 		break;
-	
+
 	// F-Number --------------------------------------------------------------
 	case 0x1a0:	case 0x1a1: case 0x1a2:
 		c += 3;
@@ -564,16 +564,16 @@ void OPNABase::SetReg(uint addr, uint data)
 	case 0xac : case 0xad: case 0xae:
 		fnum2[c+6] = uint8(data);
 		break;
-		
+
 	// Algorithm -------------------------------------------------------------
-	
+
 	case 0x1b0:	case 0x1b1:  case 0x1b2:
 		c += 3;
 	case 0xb0:	case 0xb1:  case 0xb2:
 		ch[c].SetFB((data >> 3) & 7);
 		ch[c].SetAlgorithm(data & 7);
 		break;
-	
+
 	case 0x1b4: case 0x1b5: case 0x1b6:
 		c += 3;
 	case 0xb4: case 0xb5: case 0xb6:
@@ -667,7 +667,7 @@ void OPNABase::SetADPCMBReg(uint addr, uint data)
 		break;
 
 	case 0x0b:		// Level Control
-		adpcmlevel = data; 
+		adpcmlevel = data;
 		adpcmvolume = (adpcmvol * adpcmlevel) >> 12;
 		break;
 
@@ -691,7 +691,7 @@ void OPNABase::SetADPCMBReg(uint addr, uint data)
 		}
 		break;
 	}
-}	
+}
 
 
 // ---------------------------------------------------------------------------
@@ -705,7 +705,7 @@ uint OPNA::GetReg(uint addr)
 	if (addr == 0x108)
 	{
 //		LOG1("%d:reg[108] ->   ", Diag::GetCPUTick());
-		
+
 		uint data = adpcmreadbuf & 0xff;
 		adpcmreadbuf >>= 8;
 		if ((control1 & 0x60) == 0x20)
@@ -716,10 +716,10 @@ uint OPNA::GetReg(uint addr)
 //		LOG0("%.2x\n");
 		return data;
 	}
-	
+
 	if (addr == 0xff)
 		return 1;
-	
+
 	return 0;
 }
 
@@ -870,7 +870,7 @@ inline int OPNABase::DecodeADPCMBSample(uint data)
 	adpcmx = Limit(adpcmx + table1[data] * adpcmd / 8, 32767, -32768);
 	adpcmd = Limit(adpcmd * table2[data] / 64, 24576, 127);
 	return adpcmx;
-}	
+}
 
 
 // ---------------------------------------------------------------------------
@@ -921,9 +921,9 @@ int OPNABase::ReadRAMN()
 			return DecodeADPCMBSample(data >> 4);
 		data &= 0x0f;
 	}
-	
+
 	DecodeADPCMBSample(data);
-	
+
 	// check
 	if (memaddr == stopaddr)
 	{
@@ -941,10 +941,10 @@ int OPNABase::ReadRAMN()
 			adpcmplay = false;
 		}
 	}
-	
+
 	if (memaddr == limitaddr)
 		memaddr = 0;
-	
+
 	return adpcmx;
 }
 
@@ -972,7 +972,7 @@ inline void OPNABase::DecodeADPCMB()
 
 // ---------------------------------------------------------------------------
 //	ADPCM 合成
-//	
+//
 void OPNABase::ADPCMBMix(Sample* dest, uint count)
 {
 	uint maskl = control2 & 0x80 ? -1 : 0;
@@ -981,7 +981,7 @@ void OPNABase::ADPCMBMix(Sample* dest, uint count)
 	{
 		maskl = maskr = 0;
 	}
- 	
+
 	if (adpcmplay)
 	{
 //		LOG2("ADPCM Play: %d   DeltaN: %d\n", adpld, deltan);
@@ -1066,7 +1066,7 @@ void OPNABase::FMMix(Sample* buffer, int nsamples)
 			csmch->op[0].SetFNum(fnum3[1]);	csmch->op[1].SetFNum(fnum3[2]);
 			csmch->op[2].SetFNum(fnum3[0]);	csmch->op[3].SetFNum(fnum[2]);
 		}
-		
+
 		int act = (((ch[2].Prepare() << 2) | ch[1].Prepare()) << 2) | ch[0].Prepare();
 		if (reg29 & 0x80)
 			act |= (ch[3].Prepare() | ((ch[4].Prepare() | (ch[5].Prepare() << 2)) << 2)) << 6;
@@ -1210,7 +1210,7 @@ bool OPNA::Init(uint c, uint r, bool ipflag, const char* path)
 {
 	rate = 8000;
 	LoadRhythmSample(path);
-	
+
 	if (!adpcmbuf)
 		adpcmbuf = new uint8[0x40000];
 	if (!adpcmbuf)
@@ -1220,7 +1220,7 @@ bool OPNA::Init(uint c, uint r, bool ipflag, const char* path)
 		return false;
 	if (!OPNABase::Init(c, r, ipflag))
 		return false;
-	
+
 	Reset();
 
 	SetVolumeADPCM(0);
@@ -1277,7 +1277,7 @@ bool OPNA::LoadRhythmSample(const char* path)
 		uint32 fsize;
 		char buf[MAX_PATH] = "";
 		if (path)
-			strncpy(buf, path, MAX_PATH);
+			strncpy(buf, path, sizeof(buf) - 1);
 		strncat(buf, "2608_", MAX_PATH - 1);
 		strncat(buf, rhythmname[i], MAX_PATH - 1);
 		strncat(buf, ".WAV", MAX_PATH - 1);
@@ -1292,7 +1292,7 @@ bool OPNA::LoadRhythmSample(const char* path)
 			if (!file.Open(buf, FileIO::readonly))
 				break;
 		}
-		
+
 		struct
 		{
 			uint32 chunksize;
@@ -1307,10 +1307,10 @@ bool OPNA::LoadRhythmSample(const char* path)
 
 		file.Seek(0x10, FileIO::begin);
 		file.Read(&whdr, sizeof(whdr));
-		
+
 		uint8 subchunkname[4];
 		fsize = 4 + whdr.chunksize - sizeof(whdr);
-		do 
+		do
 		{
 			file.Seek(fsize, FileIO::current);
 			file.Read(&subchunkname, 4);
@@ -1321,14 +1321,14 @@ bool OPNA::LoadRhythmSample(const char* path)
 		if (fsize >= 0x100000 || whdr.tag != 1 || whdr.nch != 1)
 			break;
 		fsize = Max(fsize, (1<<31)/1024);
-		
+
 		delete rhythm[i].sample;
 		rhythm[i].sample = new int16[fsize];
 		if (!rhythm[i].sample)
 			break;
-		
+
 		file.Read(rhythm[i].sample, fsize * 2);
-		
+
 		rhythm[i].rate = whdr.rate;
 		rhythm[i].step = rhythm[i].rate * 1024 / rate;
 		rhythm[i].pos = rhythm[i].size = fsize * 1024;
@@ -1360,7 +1360,7 @@ void OPNA::SetReg(uint addr, uint data)
 		reg29 = data;
 //		UpdateStatus(); //?
 		break;
-	
+
 	// Rhythm ----------------------------------------------------------------
 	case 0x10:			// DM/KEYON
 		if (!(data & 0x80))  // KEY ON
@@ -1433,7 +1433,7 @@ void OPNA::RhythmMix(Sample* buffer, uint count)
 				{
 					maskl = maskr = 0;
 				}
-				
+
 				for (Sample* dest = buffer; dest<limit && r.pos < r.size; dest+=2)
 				{
 					int sample = (r.sample[r.pos / 1024] * vol) >> 12;
@@ -1540,7 +1540,7 @@ bool OPNB::Init(uint c, uint r, bool ipflag,
 		return false;
 	if (!OPNABase::Init(c, r, ipflag))
 		return false;
-	
+
 	adpcmabuf = _adpcma;
 	adpcmasize = _adpcma_size;
 	adpcmbuf = _adpcmb;
@@ -1556,7 +1556,7 @@ bool OPNB::Init(uint c, uint r, bool ipflag,
 
 //	adpcmmask = _adpcmb_size - 1;
 	limitaddr = adpcmmask;
-	
+
 	Reset();
 
 	SetVolumeFM(0);
@@ -1575,12 +1575,12 @@ bool OPNB::Init(uint c, uint r, bool ipflag,
 void OPNB::Reset()
 {
 	OPNABase::Reset();
-	
+
 	stmask = ~0;
 	adpcmakey = 0;
 	reg29 = ~0;
-	
-	for (int i=0; i<6; i++) 
+
+	for (int i=0; i<6; i++)
 	{
 		adpcma[i].pan = 0;
 		adpcma[i].level = 0;
@@ -1620,13 +1620,13 @@ void OPNB::SetReg(uint addr, uint data)
 	case 0x29:
 	case 0x2d: case 0x2e: case 0x2f:
 		break;
-	
+
 	// ADPCM A ---------------------------------------------------------------
 	case 0x100:			// DM/KEYON
 		if (!(data & 0x80))  // KEY ON
 		{
 			adpcmakey |= data & 0x3f;
-			for (int c=0; c<6; c++) 
+			for (int c=0; c<6; c++)
 			{
 				if (data & (1<<c))
 				{
@@ -1650,7 +1650,7 @@ void OPNB::SetReg(uint addr, uint data)
 		adpcmatl = ~data & 63;
 		break;
 
-	case 0x108:	case 0x109:	case 0x10a:	
+	case 0x108:	case 0x109:	case 0x10a:
 	case 0x10b: case 0x10c:	case 0x10d:
 		adpcma[addr & 7].pan   = (data >> 6) & 3;
 		adpcma[addr & 7].level = ~data & 31;
@@ -1661,7 +1661,7 @@ void OPNB::SetReg(uint addr, uint data)
 	case 0x118: case 0x119: case 0x11a:	// START ADDRESS (H)
 	case 0x11b: case 0x11c: case 0x11d:
 		adpcmareg[addr - 0x110] = data;
-		adpcma[addr & 7].pos = adpcma[addr & 7].start = 
+		adpcma[addr & 7].pos = adpcma[addr & 7].start =
 			(adpcmareg[(addr&7)+8]*256+adpcmareg[addr&7]) << 9;
 		break;
 
@@ -1670,12 +1670,12 @@ void OPNB::SetReg(uint addr, uint data)
 	case 0x128: case 0x129: case 0x12a:	// END ADDRESS (H)
 	case 0x12b: case 0x12c: case 0x12d:
 		adpcmareg[addr - 0x110] = data;
-		adpcma[addr & 7].stop = 
+		adpcma[addr & 7].stop =
 			(adpcmareg[(addr&7)+24]*256+adpcmareg[(addr&7)+16] + 1) << 9;
 		break;
 
 	// ADPCMB -----------------------------------------------------------------
-	case 0x10: 
+	case 0x10:
 		if ((data & 0x80) && !adpcmplay)
 		{
 			adpcmplay = true;
@@ -1716,7 +1716,7 @@ void OPNB::SetReg(uint addr, uint data)
 		break;
 
 	case 0x1b:		// Level Control
-		adpcmlevel = data; 
+		adpcmlevel = data;
 		adpcmvolume = (adpcmvol * adpcmlevel) >> 12;
 		break;
 
@@ -1759,7 +1759,7 @@ int OPNB::jedi_table[(48+1)*16];
 
 void OPNB::InitADPCMATable()
 {
-	const static int8 table2[] = 
+	const static int8 table2[] =
 	{
 		 1,  3,  5,  7,  9, 11, 13, 15,
 		-1, -3, -5, -7, -9,-11,-13,-15,
@@ -1780,7 +1780,7 @@ void OPNB::InitADPCMATable()
 //
 void OPNB::ADPCMAMix(Sample* buffer, uint count)
 {
-	const static int decode_tableA1[16] = 
+	const static int decode_tableA1[16] =
 	{
 		-1*16, -1*16, -1*16, -1*16, 2*16, 5*16, 7*16, 9*16,
 		-1*16, -1*16, -1*16, -1*16, 2*16, 5*16, 7*16, 9*16
@@ -1803,22 +1803,22 @@ void OPNB::ADPCMAMix(Sample* buffer, uint count)
 
 				int db = Limit(adpcmatl+adpcmatvol+r.level+r.volume, 127, -31);
 				int vol = tltable[FM_TLPOS+(db << (FM_TLBITS-7))] >> 4;
-				
+
 				Sample* dest = buffer;
-				for ( ; dest<limit; dest+=2) 
+				for ( ; dest<limit; dest+=2)
 				{
 					r.step += adpcmastep;
-					if (r.pos >= r.stop) 
+					if (r.pos >= r.stop)
 					{
 						SetStatus(0x100 << i);
 						adpcmakey &= ~(1<<i);
 						break;
 					}
-					
+
 					for (; r.step > 0x10000; r.step -= 0x10000)
 					{
 						int data;
-						if (!(r.pos & 1)) 
+						if (!(r.pos & 1))
 						{
 							r.nibble = adpcmabuf[r.pos>>1];
 							data = r.nibble >> 4;
@@ -1926,7 +1926,7 @@ bool Y288::Init(uint c, uint r, bool ipflag, const char* path)
 		return false;
 	if (!OPNABase::Init(c, r, ipflag))
 		return false;
-	
+
 	Reset();
 
 	SetVolumeRhythmTotal(0);
@@ -1998,7 +1998,7 @@ bool Y288::LoadRhythmSample(const char* path)
 			if (!file.Open(buf, FileIO::readonly))
 				break;
 		}
-		
+
 		struct
 		{
 			uint32 chunksize;
@@ -2013,10 +2013,10 @@ bool Y288::LoadRhythmSample(const char* path)
 
 		file.Seek(0x10, FileIO::begin);
 		file.Read(&whdr, sizeof(whdr));
-		
+
 		uint8 subchunkname[4];
 		fsize = 4 + whdr.chunksize - sizeof(whdr);
-		do 
+		do
 		{
 			file.Seek(fsize, FileIO::current);
 			file.Read(&subchunkname, 4);
@@ -2027,14 +2027,14 @@ bool Y288::LoadRhythmSample(const char* path)
 		if (fsize >= 0x100000 || whdr.tag != 1 || whdr.nch != 1)
 			break;
 		fsize = Max(fsize, (1<<31)/1024);
-		
+
 		delete rhythm[i].sample;
 		rhythm[i].sample = new int16[fsize];
 		if (!rhythm[i].sample)
 			break;
-		
+
 		file.Read(rhythm[i].sample, fsize * 2);
-		
+
 		rhythm[i].rate = whdr.rate;
 		rhythm[i].step = rhythm[i].rate * 1024 / rate;
 		rhythm[i].pos = rhythm[i].size = fsize * 1024;
@@ -2135,7 +2135,7 @@ void Y288::RhythmMix(Sample* buffer, uint count)
 				int vol = tltable[FM_TLPOS + (db << (FM_TLBITS-7))] >> 4;
 				int maskl = -((r.pan >> 1) & 1);
 				int maskr = -(r.pan & 1);
-				
+
 				for (Sample* dest = buffer; dest<limit && r.pos < r.size; dest+=2)
 				{
 					int sample = (r.sample[r.pos / 1024] * vol) >> 12;
@@ -2175,7 +2175,7 @@ uint Y288::GetReg(uint addr)
 
 	if (addr == 0xff)
 		return ((mode288)?2:1);
-	
+
 	return 0;
 }
 
