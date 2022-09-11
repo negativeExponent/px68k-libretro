@@ -46,9 +46,11 @@ struct keyboard_key {
 	unsigned char c;
 };
 
+#if 0
 static struct keyboard_key kbd_key[] = {
 #include "keytbl.inc"
 };
+#endif
 
 void Keyboard_Init(void)
 {
@@ -195,6 +197,7 @@ static uint8_t KeyTable[KEYTABLE_MAX] = {
 	NC, NC, NC, NC, NC, NC, NC, 0x37
 };
 
+#if 0
 static uint8_t KeyTableMaster[KEYTABLE_MAX] = {
 	/*	    ,    ,    ,    ,    ,    ,    ,    		; 0x00 */
 	NC, NC, NC, NC, NC, NC, NC, NC,
@@ -328,6 +331,7 @@ static uint8_t KeyTableMaster[KEYTABLE_MAX] = {
 	/*	    ,    ,    ,    ,    ,    ,    , DEL		; 0xf8 */
 	NC, NC, NC, NC, NC, NC, NC, 0x37
 };
+#endif
 
 /* P6K: PX68K_KEYBOARD */
 #define P6K_UP   1
