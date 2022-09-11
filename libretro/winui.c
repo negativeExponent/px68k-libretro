@@ -498,6 +498,8 @@ int WinUI_Menu(int first)
 			}
 			mfile_redraw = 1;
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -544,6 +546,8 @@ int WinUI_Menu(int first)
 #endif
 			}
 			mfile_redraw = 1;
+			break;
+		default:
 			break;
 		}
 	}
@@ -594,6 +598,8 @@ int WinUI_Menu(int first)
 			}
 			mfile_redraw = 1;
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -639,6 +645,8 @@ int WinUI_Menu(int first)
 				}
 				mfile_redraw = 1;
 			}
+			break;
+		default:
 			break;
 		}
 	}
@@ -799,6 +807,8 @@ int WinUI_Menu(int first)
 				menu_redraw = 1;
 			}
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -825,6 +835,8 @@ int WinUI_Menu(int first)
 				menu_state  = ms_key;
 				menu_redraw = 1;
 			}
+			break;
+		default:
 			break;
 		}
 	}
