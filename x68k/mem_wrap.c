@@ -502,16 +502,16 @@ void cpu_setOPbase24(uint32_t addr)
 
 	case 0xc:
 	case 0xd:
-		OP_ROM = GVRAM - 0x00c00000;
+		OP_ROM = GVRAM + (addr - 0x00c00000);
 		break;
 
 	case 0xe:
 		if (addr < 0x00e80000)
-			OP_ROM = TVRAM - 0x00e00000;
+			OP_ROM = TVRAM + (addr - 0x00e00000);
 		else if ((addr >= 0x00ea0000) && (addr < 0x00ea2000))
-			OP_ROM = SCSIIPL - 0x00ea0000;
+			OP_ROM = SCSIIPL + (addr - 0x00ea0000);
 		else if ((addr >= 0x00ed0000) && (addr < 0x00ed4000))
-			OP_ROM = SRAM - 0x00ed0000;
+			OP_ROM = SRAM + (addr - 0x00ed0000);
 		else
 		{
 			BusErrFlag = 3;
@@ -522,8 +522,8 @@ void cpu_setOPbase24(uint32_t addr)
 		break;
 
 	case 0xf:
-		if (addr >= 0x00fe0000)
-			OP_ROM = IPL - 0x00fe0000;
+		if ((addr >= 0x00fc0000) && (addr < 0x01000000))
+			OP_ROM = IPL + (addr - 0x00fc0000);
 		else
 		{
 			BusErrFlag = 3;
