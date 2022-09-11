@@ -165,7 +165,7 @@ int WinX68k_LoadROMs(void)
 	return TRUE;
 }
 
-int WinX68k_Reset(void)
+void WinX68k_Reset(void)
 {
 	OPM_Reset();
 
@@ -216,8 +216,6 @@ int WinX68k_Reset(void)
 	DSound_Stop();
 	SRAM_VirusCheck();
 	DSound_Play();
-
-	return TRUE;
 }
 
 int WinX68k_Init(void)
@@ -496,7 +494,7 @@ int pmain(int argc, char *argv[])
 #endif
 
 	if (set_modulepath(winx68k_dir, sizeof(winx68k_dir)))
-		return 1;
+		return 0;
 
 	dosio_init();
 	file_setcd(winx68k_dir);
@@ -510,7 +508,7 @@ int pmain(int argc, char *argv[])
 	{
 		WinX68k_Cleanup();
 		WinDraw_Cleanup();
-		return 1;
+		return 0;
 	}
 
 	StatBar_Show(Config.WindowFDDStat);
@@ -522,14 +520,14 @@ int pmain(int argc, char *argv[])
 	{
 		WinX68k_Cleanup();
 		WinDraw_Cleanup();
-		return 1;
+		return 0;
 	}
 
 	if (!WinX68k_LoadROMs())
 	{
 		WinX68k_Cleanup();
 		WinDraw_Cleanup();
-		exit(1);
+		return 0;
 	}
 
 	Keyboard_Init(); /* before moving to WinDraw_Init() */
@@ -538,7 +536,7 @@ int pmain(int argc, char *argv[])
 	{
 		WinDraw_Cleanup();
 		Error("Error: Can't init screen.\n");
-		return 1;
+		return 0;
 	}
 
 	if (Config.SampleRate)
@@ -581,7 +579,7 @@ int pmain(int argc, char *argv[])
 #ifndef NO_MERCURY
 	Mcry_SetVolume((uint8_t)Config.MCR_VOL);
 #endif
-	DSound_Play();
+	DSound_Play(); /* Set PCM and OPM volumes */
 
 	/* apply defined command line settings */
 	if (argc == 3 && argv[1][0] == '-' && argv[1][1] == 'h')
