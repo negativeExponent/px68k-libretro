@@ -118,3 +118,11 @@ void FASTCALL SRAM_Write(uint32_t adr, uint8_t data)
 		SRAM[adr] = data;
 	}
 }
+
+void FASTCALL SRAM_UpdateBoot(void)
+{
+	cpu_writemem24(0xe8e00d, 0x31);                                    /* SRAM write permission */
+	cpu_writemem24_dword(0xed0040, cpu_readmem24_dword(0xed0040) + 1); /* Estimated operation time(min.) */
+	cpu_writemem24_dword(0xed0044, cpu_readmem24_dword(0xed0044) + 1); /* Estimated booting times */
+	cpu_writemem24(0xe8e00d, 0x00);
+}
