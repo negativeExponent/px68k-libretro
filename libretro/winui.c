@@ -196,14 +196,14 @@ static void menu_system(int v)
 	case 1:
 		IRQH_Int(7, NULL);
 		break;
-	case 3:
-		break;
 	case 2:
 		SRAM_Clear();
 		/* fall through */
 	case 0:
 		WinX68k_Reset();
 		break;
+	case 3: /* QUIT */
+		return;
 	}
 	mval_y[M_SYS] = 0;
 }

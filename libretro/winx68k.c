@@ -763,7 +763,7 @@ void handle_retrok()
 	KEYP(RETROK_RALT, 0x73);
 }
 
-void exec_app_retro()
+void exec_app_retro(void)
 {
 	int i;
 	int mouse_x, mouse_y, mouse_l, mouse_r;
@@ -853,7 +853,7 @@ void exec_app_retro()
 		}
 		else if (ret == WUM_EMU_QUIT)
 		{
-			/* application exit here */
+			shutdown_app_retro();
 		}
 	}
 }
