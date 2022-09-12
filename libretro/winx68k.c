@@ -860,9 +860,7 @@ void exec_app_retro()
 
 void end_loop_retro(void)
 {
-	cpu_writemem24(0xe8e00d, 0x31);                       /* SRAM write permission */
-	cpu_writemem24_dword(0xed0040, cpu_readmem24_dword(0xed0040) + 1); /* Estimated operation time(min.) */
-	cpu_writemem24_dword(0xed0044, cpu_readmem24_dword(0xed0044) + 1); /* Estimated booting times */
+	SRAM_UpdateBoot();
 
 	OPM_Cleanup();
 #ifndef NO_MERCURY
