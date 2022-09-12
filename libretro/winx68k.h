@@ -29,7 +29,8 @@ void WinX68k_Reset(void);
 
 int pmain(int argc, char *argv[]);
 void end_loop_retro(void);
-void exec_app_retro();
+void exec_app_retro(void);
+void shutdown_app_retro(void);
 
 #define NELEMENTS(array) ((int)(sizeof(array) / sizeof(array[0])))
 

@@ -1410,3 +1410,9 @@ void retro_run(void)
    if (libretro_supports_midi_output && midi_cb.output_enabled())
       midi_cb.flush();
 }
+
+void shutdown_app_retro(void)
+{
+   end_loop_retro();
+   environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
+}
