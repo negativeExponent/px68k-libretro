@@ -117,6 +117,52 @@ void Error(const char *s)
       log_cb(RETRO_LOG_ERROR, "%s", s);
 }
 
+static bool file_exists(const char *path)
+{
+   FILE *dummy;
+
+   if (!path || !*path)
+      return false;
+   dummy = fopen(path, "rb");
+   if (!dummy)
+      return false;
+   fclose(dummy);
+   return true;
+}
+
+static bool file_has_valid_extension(const char *path)
+{
+   char *file_ext = strrchr(path, '.');
+
+   if ((strcasecmp(file_ext, ".d88") == 0) || (strcasecmp(file_ext, ".88d") == 0) ||
+       (strcasecmp(file_ext, ".hdm") == 0) || (strcasecmp(file_ext, ".dup") == 0) ||
+       (strcasecmp(file_ext, ".2hd") == 0) || (strcasecmp(file_ext, ".dim") == 0) ||
+       (strcasecmp(file_ext, ".xdf") == 0) || (strcasecmp(file_ext, ".img") == 0))
+      return true;
+   return false;
+}
+
+static bool file_is_valid(const char *path)
+{
+   if (string_is_empty(path))
+      return false;
+
+   if (!file_exists(path))
+   {
+      log_cb(RETRO_LOG_ERROR, "File not found '%s'.\n", path);
+      return false;
+   }
+
+   if (!file_has_valid_extension(path))
+   {
+      log_cb(RETRO_LOG_ERROR, "File has unsupported file extension '%s'\n", path);
+      return false;
+   }
+
+   return true;
+}
+
+
 void p6logd(const char *fmt, ...)
 {
    va_list args;
@@ -470,6 +516,7 @@ static bool read_m3u(const char *file)
    char name[2048];
    char line[1024];
    FILE *f = fopen(file, "r");
+   int i;
 
    if (!f)
       return false;
@@ -533,6 +580,13 @@ static bool read_m3u(const char *file)
 
    disk.total_images = index;
    fclose(f);
+
+   for (i = 0; i < index; i++)
+   {
+      /* verify that file exists */
+      if (!file_is_valid(disk.path[i]))
+         return false;
+   }
 
    return (disk.total_images != 0);
 }
@@ -635,6 +689,10 @@ static int load_file_cmd(const char *argv)
          ARGUV[i][0] = '\0';
          snprintf(ARGUV[i], sizeof(ARGUV[i]), "%s%c%s", base_dir, slash, tmp);
       }
+
+      /* verify that file exists */
+      if (!file_is_valid(ARGUV[i]))
+         return 0;
    }
 
    return 1;
@@ -1214,9 +1272,15 @@ bool retro_load_game(const struct retro_game_info *info)
       file_ext = strrchr(RPATH, '.');
 
       if (strcasecmp(file_ext, ".cmd") == 0)
-         load_file_cmd(RPATH);
+      {
+         if (!load_file_cmd(RPATH))
+            return false;
+      }
       else if (strcasecmp(file_ext, ".m3u") == 0)
-         load_file_m3u(RPATH);
+      {
+         if (!load_file_m3u(RPATH))
+            return false;
+      }
 
       for (i = 0; i < 64; i++)
          xargv_cmd[i] = NULL;
