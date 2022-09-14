@@ -41,7 +41,7 @@ char slash = '/';
                      * fps when vsync is used since most monitors are only capable
                      * of upto 60Hz refresh rate. */
 enum { MODES_ACTUAL, MODES_COMPAT, MODE_NORM = 0, MODE_HIGH, MODES };
-const float framerates[][MODES] = {
+const float fps_table[][MODES] = {
    { MODE_NORM_ACTUAL, MODE_HIGH_ACTUAL },
    { MODE_NORM_COMPAT, MODE_HIGH_COMPAT }
 };
@@ -61,7 +61,7 @@ int retrow          = FULLSCREEN_WIDTH;
 int retroh          = FULLSCREEN_HEIGHT;
 int CHANGEAV        = 0;
 int CHANGEAV_TIMING = 0;         /* Separate change of geometry from change of refresh rate */
-int VID_MODE        = MODE_NORM; /* what framerate we start in */
+int VID_MODE        = MODE_HIGH; /* what framerate we start in */
 static float FRAMERATE;
 
 uint32_t libretro_supports_input_bitmasks      = 0;
@@ -1211,34 +1211,17 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-   /* FIXME handle PAL/NTSC */
-   struct retro_game_geometry geom   = { retrow, retroh, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 4.0 / 3.0 };
-   struct retro_system_timing timing = { FRAMERATE, SAMPLERATE };
+   FRAMERATE = fps_table[Config.AdjustFrameRates][VID_MODE];
 
-   info->geometry = geom;
-   info->timing   = timing;
-}
+   info->geometry.base_width = retrow;
+   info->geometry.base_height = retroh;
+   info->geometry.max_width = FULLSCREEN_WIDTH;
+   info->geometry.max_height = FULLSCREEN_HEIGHT;
+   info->geometry.aspect_ratio = 4.0 / 3.0;
 
-static void update_geometry(void)
-{
-   struct retro_system_av_info system_av_info;
+   info->timing.fps = FRAMERATE;
+   info->timing.sample_rate = SAMPLERATE;
 
-   system_av_info.geometry.base_width   = retrow;
-   system_av_info.geometry.base_height  = retroh;
-   system_av_info.geometry.aspect_ratio = (float)4.0 / 3.0;
-
-   environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &system_av_info);
-}
-
-static void update_timing(void)
-{
-   struct retro_system_av_info system_av_info;
-
-   retro_get_system_av_info(&system_av_info);
-   FRAMERATE = framerates[Config.AdjustFrameRates][VID_MODE];
-   system_av_info.timing.fps = FRAMERATE;
-
-   environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &system_av_info);
    setup_frame_time_cb();
 }
 
@@ -1330,9 +1313,6 @@ bool retro_load_game(const struct retro_game_info *info)
       return false;
 
    update_variables(0);
-
-   FRAMERATE = framerates[Config.AdjustFrameRates][VID_MODE];
-   setup_frame_time_cb();
 
    return true;
 }
@@ -1434,28 +1414,22 @@ void retro_run(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       update_variables(1);
 
-   if (CHANGEAV || CHANGEAV_TIMING)
-   {
-      if (CHANGEAV_TIMING)
-      {
-         update_timing();
-         CHANGEAV = 0;
-         CHANGEAV_TIMING = 0;
-      }
-
-      if (CHANGEAV)
-      {
-         update_geometry();
-         CHANGEAV = 0;
-         CHANGEAV_TIMING = 0;
-      }
-   }
-
    FDD_IsReading = 0;
-
    input_poll_cb();
    rumbleFrames();
    exec_app_retro();
+
+   if (CHANGEAV || CHANGEAV_TIMING)
+   {
+      struct retro_system_av_info system_av_info;
+      retro_get_system_av_info(&system_av_info);
+      if (CHANGEAV_TIMING)
+         environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &system_av_info);
+      else
+         environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &system_av_info);
+      CHANGEAV = 0;
+      CHANGEAV_TIMING = 0;
+   }
 
    soundbuf_size = (int)round(SAMPLERATE / FRAMERATE);
 
