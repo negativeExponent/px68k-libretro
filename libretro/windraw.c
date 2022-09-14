@@ -78,7 +78,9 @@ void WinDraw_Cleanup(void)
 void FASTCALL WinDraw_Draw(void)
 {
 	static int oldtextx = -1, oldtexty = -1;
-	static int oldvidmode = -1;
+	/* set initial value based on initial value for VID_MODE.
+	 * This avoids extra screen reinit on startup */
+	static int oldvidmode = 1;
 
 	if (oldtextx != TextDotX)
 	{
