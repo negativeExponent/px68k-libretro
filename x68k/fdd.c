@@ -32,8 +32,6 @@ static int (*ReadDiag[4])(int, FDCID *, FDCID *, uint8_t *) = { 0, XDF_ReadDiag,
 static int (*Write[4])(int, FDCID *, uint8_t *, int)        = { 0, XDF_Write, D88_Write, DIM_Write };
 static int (*GetCurrentID[4])(int, FDCID *) = { 0, XDF_GetCurrentID, D88_GetCurrentID, DIM_GetCurrentID };
 
-int FDD_IsReading = 0;
-
 static void ConvertCapital(unsigned char *buf)
 {
 	for (; *buf; buf++)
@@ -254,10 +252,7 @@ int FDD_Read(int drv, FDCID *id, uint8_t *buf)
 		return FALSE;
 	type = fdd.Types[drv];
 	if (Read[type])
-	{
-		FDD_IsReading = 1;
 		return Read[type](drv, id, buf);
-	}
 	else
 		return FALSE;
 }

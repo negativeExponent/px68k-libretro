@@ -85,6 +85,8 @@ retro_input_state_t input_state_cb;
 static unsigned no_content;
 static int opt_rumble_enabled = 1;
 
+int FDD_IsReading = 0;
+
 #define MAX_DISKS 10
 
 typedef enum
@@ -1414,10 +1416,9 @@ void retro_run(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       update_variables(1);
 
-   FDD_IsReading = 0;
    input_poll_cb();
-   rumbleFrames();
    exec_app_retro();
+   rumbleFrames();
 
    if (CHANGEAV || CHANGEAV_TIMING)
    {
