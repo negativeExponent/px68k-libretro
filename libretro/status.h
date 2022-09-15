@@ -7,11 +7,40 @@ extern "C" {
 
 #if 1
 
+/* Misc: Used to trigger rumble when FDD is reading data.
+ * Reset at every frame */
+extern int FDD_IsReading;
+
 #define	StatBar_Show(s)
 #define	StatBar_UpdateTimer()
 #define	StatBar_SetFDD(d,f)
-#define	StatBar_ParamFDD(d,a,i,b)
 #define	StatBar_HDD(s)
+
+INLINE void StatBar_ParamFDD(int drv, int access, int insert, int blink)
+{
+	static int fdd_access[2], fdd_insert[2], fdd_blink[2];
+	int update;
+
+	if ((drv < 0) || (drv > 1))
+		return;
+
+	update = 0;
+	if (fdd_access[drv] != access) {
+		fdd_access[drv] = access;
+		update = 1;
+	}
+	if (fdd_insert[drv] != insert) {
+		fdd_insert[drv] = insert;
+		update = 1;
+	}
+	if (fdd_blink[drv] != blink) {
+		fdd_blink[drv] = blink;
+		update = 1;
+	}
+
+	if (update)
+		FDD_IsReading = ((fdd_insert[0] && fdd_access[0] == 2) || (fdd_insert[1] && fdd_access[1] == 2)) ? 1 : 0;
+}
 
 #else
 
