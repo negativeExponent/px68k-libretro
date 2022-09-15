@@ -1311,10 +1311,10 @@ bool retro_load_game(const struct retro_game_info *info)
 #endif
    }
 
+   update_variables(0);
+
    if (!pmain(PARAMCOUNT, (char **)xargv_cmd))
       return false;
-
-   update_variables(0);
 
    return true;
 }
