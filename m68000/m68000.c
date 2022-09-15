@@ -371,7 +371,7 @@ void m68000_set_reg(int regnum, uint32_t val)
 
 		default: break;
 	}
-#elif defined (HAVE_M68K_C68k)
+#elif defined (HAVE_M68000)
 	switch (regnum)
 	{
 	case M68K_PC:  C68k_Set_Reg(&C68K, C68K_PC, val); break;
