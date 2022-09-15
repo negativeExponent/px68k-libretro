@@ -932,7 +932,7 @@ static void update_variables(int running)
          value = 2;
       else if (strcmp(var.value, "4MB") == 0)
          value = 4;
-      else if (strcmp(var.value, "4MB") == 0)
+      else if (strcmp(var.value, "6MB") == 0)
          value = 6;
       else if (strcmp(var.value, "8MB") == 0)
          value = 8;
