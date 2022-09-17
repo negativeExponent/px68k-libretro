@@ -165,7 +165,7 @@ int WinX68k_LoadROMs(void)
 	return TRUE;
 }
 
-void WinX68k_Reset(void)
+void WinX68k_Reset(int softReset)
 {
 	OPM_Reset();
 
@@ -216,6 +216,14 @@ void WinX68k_Reset(void)
 	DSound_Stop();
 	SRAM_VirusCheck();
 	DSound_Play();
+
+	if (softReset)
+	{
+		if (Config.FDDImage[0][0] != '\0')
+			FDD_SetFD(0, Config.FDDImage[0], 0);
+		if (Config.FDDImage[1][0] != '\0')
+			FDD_SetFD(1, Config.FDDImage[1], 0);
+	}
 }
 
 int WinX68k_Init(void)
@@ -562,7 +570,7 @@ int pmain(int argc, char *argv[])
 	Joystick_Init();
 	SRAM_Init();
 	/* FIXME: actually, this set initial register values rather than suppose to set soft-reset values */
-	WinX68k_Reset();
+	WinX68k_Reset(0);
 	Timer_Init();
 
 	MIDI_Init();

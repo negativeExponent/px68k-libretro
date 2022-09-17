@@ -25,7 +25,7 @@ extern uint32_t vline;
 extern char winx68k_dir[2048];
 extern char winx68k_ini[2048];
 
-void WinX68k_Reset(void);
+void WinX68k_Reset(int softReset);
 
 int pmain(int argc, char *argv[]);
 void end_loop_retro(void);

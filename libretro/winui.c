@@ -200,7 +200,7 @@ static void menu_system(int v)
 		SRAM_Clear();
 		/* fall through */
 	case 0:
-		WinX68k_Reset();
+		WinX68k_Reset(1);
 		break;
 	case 3: /* QUIT */
 		return;
