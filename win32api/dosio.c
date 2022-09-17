@@ -105,15 +105,6 @@ uint32_t file_lwrite(void *handle, void *data, uint32_t length)
 	return writesize;
 }
 
-uint16_t file_read(void *handle, void *data, uint16_t length)
-{
-	uint32_t	readsize;
-
-	if (ReadFile(handle, data, length, &readsize, NULL) == 0)
-		return 0;
-	return (uint16_t)readsize;
-}
-
 uint32_t file_zeroclr(void *handle, uint32_t length)
 {
 	char	buf[256];
@@ -135,15 +126,6 @@ uint32_t file_zeroclr(void *handle, uint32_t length)
 		length -= wsize;
 	}
 	return ret;
-}
-
-uint16_t file_write(void *handle, void *data, uint16_t length)
-{
-	uint32_t	writesize;
-
-	if (WriteFile(handle, data, length, &writesize, NULL) == 0)
-		return 0;
-	return (uint16_t)writesize;
 }
 
 uint16_t file_lineread(void *handle, void *data, uint16_t length)

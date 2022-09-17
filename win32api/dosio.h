@@ -49,8 +49,6 @@ extern "C"
 	uint32_t file_seek(void *handle, long pointer, int16_t mode);
 	uint32_t file_lread(void *handle, void *data, uint32_t length);
 	uint32_t file_lwrite(void *handle, void *data, uint32_t length);
-	uint16_t file_read(void *handle, void *data, uint16_t length);
-	uint16_t file_write(void *handle, void *data, uint16_t length);
 	uint32_t file_zeroclr(void *handle, uint32_t length);
 	uint16_t file_lineread(void *handle, void *data, uint16_t length);
 	int16_t file_close(void *handle);
