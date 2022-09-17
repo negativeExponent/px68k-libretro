@@ -14,25 +14,46 @@ static char SRAMFILE[] = "sram.dat";
 
 void SRAM_SetRAMSize(int size)
 {
-	if ((cpu_readmem24(0xed0009) >> 4) == size)
+	if ((SRAM[0x09 ^ 1] >> 4) == size)
 		return;
 
-	cpu_writemem24(0xe8e00d, 0x31); /* SRAM Write permission */
-	cpu_writemem24(0xed0008, 0x00);
-	cpu_writemem24(0xed0009, ((size << 4) & 0xf0));
-	cpu_writemem24(0xed000a, 0x00);
-	cpu_writemem24(0xed000b, 0x00);
-	cpu_writemem24(0xe8e00d, 0x00);
+	SRAM[0x08 ^ 1] = 0x00;
+	SRAM[0x09 ^ 1] = (size << 4) & 0xf0;
+	SRAM[0x0a ^ 1] = 0x00;
+	SRAM[0x0b ^ 1] = 0x00;
 }
 
 void SRAM_Clear(void)
 {
-	int i;
+	memset(SRAM, 0xff, 0x4000);
+}
 
-	cpu_writemem24(0xe8e00d, 0x31); /* SRAM Write permission */
-	for (i = 0; i < 0x4000; i++)
-		cpu_writemem24(0xed0000 + i, 0xff);
-	cpu_writemem24(0xe8e00d, 0x00);
+void SRAM_UpdateBoot(void)
+{
+	uint16_t *tmp;
+	/* Estimated operation time(min.) */
+	tmp = (uint16_t *)&SRAM[0x40];
+	if (tmp[1] != 0xffff)
+	{
+		tmp[1] = tmp[1] + 1;
+	}
+	else
+	{
+		tmp[1] = 0x0000;
+		tmp[0] = tmp[0] + 1;
+	}
+
+	/* Estimated booting times */
+	tmp = (uint16_t *)&SRAM[0x44];
+	if (tmp[1] != 0xffff)
+	{
+		tmp[1] = tmp[1] + 1;
+	}
+	else
+	{
+		tmp[1] = 0x0000;
+		tmp[0] = tmp[0] + 1;
+	}
 }
 
 void SRAM_VirusCheck(void)
@@ -54,8 +75,7 @@ void SRAM_Init(void)
 	uint8_t tmp;
 	void *fp;
 
-	for (i = 0; i < 0x4000; i++)
-		SRAM[i] = 0xFF;
+	SRAM_Clear();
 
 	fp = file_open_c(SRAMFILE);
 	if (fp)
@@ -105,7 +125,10 @@ uint8_t FASTCALL SRAM_Read(uint32_t adr)
 
 void FASTCALL SRAM_Write(uint32_t adr, uint8_t data)
 {
-	if ((SysPort[5] == 0x31) && (adr < 0xed4000))
+	if (SysPort[5] != 0x31) /* write enabled? */
+		return;
+
+	if (adr < 0xed4000)
 	{
 		if ((adr == 0xed0018) && (data == 0xb0)) /* SRAM起動への切り替え（簡単なウィルス対策） */
 		{
@@ -117,12 +140,4 @@ void FASTCALL SRAM_Write(uint32_t adr, uint8_t data)
 		adr ^= 1;
 		SRAM[adr] = data;
 	}
-}
-
-void FASTCALL SRAM_UpdateBoot(void)
-{
-	cpu_writemem24(0xe8e00d, 0x31);                                    /* SRAM write permission */
-	cpu_writemem24_dword(0xed0040, cpu_readmem24_dword(0xed0040) + 1); /* Estimated operation time(min.) */
-	cpu_writemem24_dword(0xed0044, cpu_readmem24_dword(0xed0044) + 1); /* Estimated booting times */
-	cpu_writemem24(0xe8e00d, 0x00);
 }
