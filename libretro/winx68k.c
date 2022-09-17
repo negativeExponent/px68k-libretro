@@ -136,7 +136,7 @@ int WinX68k_LoadROMs(void)
 		return FALSE;
 	}
 
-	file_lread(fp, &IPL[0x20000], 0x20000);
+	file_read(fp, &IPL[0x20000], 0x20000);
 	file_close(fp);
 
 	WinX68k_SCSICheck(); /* if SCSI IPL, SCSI BIOS is established around $fc0000 */
@@ -159,7 +159,7 @@ int WinX68k_LoadROMs(void)
 			return FALSE;
 		}
 	}
-	file_lread(fp, FONT, 0xc0000);
+	file_read(fp, FONT, 0xc0000);
 	file_close(fp);
 
 	return TRUE;

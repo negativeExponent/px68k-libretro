@@ -860,7 +860,7 @@ static int file_readline(void *fh, char *buf, int len)
 	{
 		return -1;
 	}
-	readsize = file_lread(fh, buf, len - 1);
+	readsize = file_read(fh, buf, len - 1);
 	if (readsize == (uint32_t)-1)
 	{
 		return -1;

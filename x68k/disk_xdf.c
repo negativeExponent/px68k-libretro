@@ -48,7 +48,7 @@ int XDF_SetFD(int drv, char *filename)
 		return FALSE;
 	}
 	file_seek(fp, 0, FSEEK_SET);
-	file_lread(fp, XDFImg[drv], 1261568);
+	file_read(fp, XDFImg[drv], 1261568);
 	file_close(fp);
 	return TRUE;
 }
@@ -68,7 +68,7 @@ int XDF_Eject(int drv)
 		if (!fp)
 			goto xdf_eject_error;
 		file_seek(fp, 0, FSEEK_SET);
-		if (file_lwrite(fp, XDFImg[drv], 1261568) != 1261568)
+		if (file_write(fp, XDFImg[drv], 1261568) != 1261568)
 			goto xdf_eject_error;
 		file_close(fp);
 	}

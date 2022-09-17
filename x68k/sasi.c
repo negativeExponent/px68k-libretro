@@ -84,7 +84,7 @@ int16_t SASI_Seek(void)
 		file_close(fp);
 		return 0;
 	}
-	if (file_lread(fp, SASI_Buf, 256) != 256)
+	if (file_read(fp, SASI_Buf, 256) != 256)
 	{
 		file_close(fp);
 		return 0;
@@ -109,7 +109,7 @@ int16_t SASI_Flush(void)
 		file_close(fp);
 		return 0;
 	}
-	if (file_lwrite(fp, SASI_Buf, 256) != 256)
+	if (file_write(fp, SASI_Buf, 256) != 256)
 	{
 		file_close(fp);
 		return 0;

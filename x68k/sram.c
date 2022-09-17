@@ -80,7 +80,7 @@ void SRAM_Init(void)
 	fp = file_open_c(SRAMFILE);
 	if (fp)
 	{
-		file_lread(fp, SRAM, 0x4000);
+		file_read(fp, SRAM, 0x4000);
 		file_close(fp);
 		for (i = 0; i < 0x4000; i += 2)
 		{
@@ -109,7 +109,7 @@ void SRAM_Cleanup(void)
 		fp = file_create_c(SRAMFILE, FTYPE_SRAM);
 	if (fp)
 	{
-		file_lwrite(fp, SRAM, 0x4000);
+		file_write(fp, SRAM, 0x4000);
 		file_close(fp);
 	}
 }
