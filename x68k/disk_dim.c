@@ -77,7 +77,7 @@ int DIM_SetFD(int drv, char *filename)
 	}
 
 	file_seek(fp, 0, FSEEK_SET);
-	if (file_lread(fp, DIMImg[drv], sizeof(DIM_HEADER)) != sizeof(DIM_HEADER))
+	if (file_read(fp, DIMImg[drv], sizeof(DIM_HEADER)) != sizeof(DIM_HEADER))
 		goto dim_set_error;
 	dh = (DIM_HEADER *)DIMImg[drv];
 	if (dh->type > 9)
@@ -90,7 +90,7 @@ int DIM_SetFD(int drv, char *filename)
 	{
 		if (dh->trkflag[i])
 		{
-			if (file_lread(fp, p, len) != len)
+			if (file_read(fp, p, len) != len)
 				goto dim_set_error;
 		}
 		p += len;
@@ -127,13 +127,13 @@ int DIM_Eject(int drv)
 		if (!fp)
 			goto dim_eject_error;
 		file_seek(fp, 0, FSEEK_SET);
-		if (file_lwrite(fp, DIMImg[drv], sizeof(DIM_HEADER)) != sizeof(DIM_HEADER))
+		if (file_write(fp, DIMImg[drv], sizeof(DIM_HEADER)) != sizeof(DIM_HEADER))
 			goto dim_eject_error;
 		for (i = 0; i < 170; i++)
 		{
 			if (dh->trkflag[i])
 			{
-				if (file_lwrite(fp, p, len) != len)
+				if (file_write(fp, p, len) != len)
 					goto dim_eject_error;
 			}
 			p += len;

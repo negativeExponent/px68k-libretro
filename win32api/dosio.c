@@ -87,7 +87,7 @@ uint32_t file_seek(void *handle, long pointer, int16_t mode)
 	return SetFilePointer(handle, pointer, 0, mode);
 }
 
-uint32_t file_lread(void *handle, void *data, uint32_t length)
+uint32_t file_read(void *handle, void *data, uint32_t length)
 {
 	uint32_t	readsize;
 
@@ -96,7 +96,7 @@ uint32_t file_lread(void *handle, void *data, uint32_t length)
 	return readsize;
 }
 
-uint32_t file_lwrite(void *handle, void *data, uint32_t length)
+uint32_t file_write(void *handle, void *data, uint32_t length)
 {
 	uint32_t	writesize;
 
@@ -116,7 +116,7 @@ uint32_t file_zeroclr(void *handle, uint32_t length)
 	while (length > 0) {
 		wsize = (length >= sizeof(buf)) ? sizeof(buf) : length;
 
-		size = file_lwrite(handle, buf, wsize);
+		size = file_write(handle, buf, wsize);
 		if (size == (uint32_t)-1)
 			return -1;
 
