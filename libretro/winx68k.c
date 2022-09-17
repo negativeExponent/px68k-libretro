@@ -167,8 +167,6 @@ int WinX68k_LoadROMs(void)
 
 void WinX68k_Reset(int softReset)
 {
-	OPM_Reset();
-
 #if defined(HAVE_CYCLONE)
 	m68000_reset();
 	m68000_set_reg(M68K_A7, (IPL[0x30001] << 24) | (IPL[0x30000] << 16) | (IPL[0x30003] << 8) | IPL[0x30002]);
@@ -187,6 +185,7 @@ void WinX68k_Reset(int softReset)
 	m68k_set_reg(M68K_REG_PC, (IPL[0x30005] << 24) | (IPL[0x30004] << 16) | (IPL[0x30007] << 8) | IPL[0x30006]);
 #endif
 
+	OPM_Reset();
 	Memory_Init();
 	CRTC_Init();
 	DMA_Init();
@@ -205,7 +204,7 @@ void WinX68k_Reset(int softReset)
 	Pal_Init();
 	IRQH_Init();
 	MIDI_Init();
-	/* WinDrv_Init(); */
+	Keyboard_Init();
 
 #if defined(HAVE_M68000)
 	C68K.ICount = 0;
