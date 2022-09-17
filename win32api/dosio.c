@@ -69,11 +69,9 @@ void *file_open(char *filename)
 	return ret;
 }
 
-void *file_create(char *filename, int ftype)
+void *file_create(char *filename)
 {
 	void *ret;
-
-	(void)ftype;
 
 	ret = CreateFile(filename, GENERIC_READ | GENERIC_WRITE,
 	    0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -190,10 +188,10 @@ void *file_open_c(char *filename)
 	return file_open(curpath);
 }
 
-void *file_create_c(char *filename, int ftype)
+void *file_create_c(char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
-	return file_create(curpath, ftype);
+	return file_create(curpath);
 }
 
 int16_t file_attr_c(char *filename)
@@ -205,7 +203,7 @@ int16_t file_attr_c(char *filename)
 int file_getftype(char *filename)
 {
 	(void)filename;
-	return FTYPE_NONE;
+	return 0;
 }
 
 char *getFileName(char *filename)
