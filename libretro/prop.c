@@ -95,7 +95,7 @@ int set_modulepath(char *path, size_t len)
 	return 0;
 }
 
-static void LoadDefaults(void)
+void SetConfigDefaults(void)
 {
 	int i;
 
@@ -133,6 +133,7 @@ static void LoadDefaults(void)
 	Config.AdjustFrameRates = 1;
 	Config.AudioDesyncHack = 0;
 	Config.cpuClock = 10;
+	Config.ramSize = 2;
 
 	for (i = 0; i < 2; i++)
 		Config.FDDImage[i][0] = '\0';
@@ -147,12 +148,6 @@ void LoadConfig(void)
 {
 	int i;
 	char buf[CFGLEN];
-
-	/* Because we are not loading defauts for most items from a config file,
-	 * irectly set default config at first call
-	 */
-	if (!initialized)
-		LoadDefaults();
 
 	GetPrivateProfileString(ini_title, "StartDir", "", buf, MAX_PATH, winx68k_ini);
 	if (buf[0] != 0)

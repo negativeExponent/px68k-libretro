@@ -3,6 +3,8 @@
 #include "common.h"
 #include "../m68000/m68000.h"
 
+#include "../libretro/prop.h"
+
 #include "adpcm.h"
 #include "bg.h"
 #include "crtc.h"
@@ -137,6 +139,8 @@ uint32_t BusErrFlag     = 0;
 uint32_t BusErrHandling = 0;
 uint32_t BusErrAdr;
 uint32_t MemByteAccess = 0;
+
+static int ram_size = 0;
 
 /*
  * write function
@@ -491,6 +495,12 @@ void Memory_Init(void)
 #elif defined(HAVE_MUSASHI)
 	cpu_setOPbase24((uint32_t)m68k_get_reg(NULL, M68K_REG_PC));
 #endif
+
+	if (ram_size != Config.ramSize)
+	{
+		ram_size = Config.ramSize;
+		SRAM_SetRAMSize(ram_size);
+	}
 }
 
 void cpu_setOPbase24(uint32_t addr)
