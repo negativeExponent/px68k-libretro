@@ -31,8 +31,6 @@
 #ifndef __NP2_DOSIO_H__
 #define __NP2_DOSIO_H__
 
-#include "appftype.h"
-
 #define FSEEK_SET 0
 #define FSEEK_CUR 1
 #define FSEEK_END 2
@@ -45,7 +43,7 @@ extern "C"
 	void dosio_term(void);
 
 	void *file_open(char *filename);
-	void *file_create(char *filename, int ftype);
+	void *file_create(char *filename);
 	uint32_t file_seek(void *handle, long pointer, int16_t mode);
 	uint32_t file_read(void *handle, void *data, uint32_t length);
 	uint32_t file_write(void *handle, void *data, uint32_t length);
@@ -57,7 +55,7 @@ extern "C"
 	void file_setcd(char *exename);
 	char *file_getcd(char *filename);
 	void *file_open_c(char *filename);
-	void *file_create_c(char *filename, int ftype);
+	void *file_create_c(char *filename);
 	int16_t file_attr_c(char *filename);
 
 	int file_getftype(char *filename);

@@ -106,7 +106,7 @@ void SRAM_Cleanup(void)
 
 	fp = file_open_c(SRAMFILE);
 	if (!fp)
-		fp = file_create_c(SRAMFILE, FTYPE_SRAM);
+		fp = file_create_c(SRAMFILE);
 	if (fp)
 	{
 		file_write(fp, SRAM, 0x4000);
