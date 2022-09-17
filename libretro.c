@@ -925,21 +925,18 @@ static void update_variables(int running)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      int value = 0;
       if (strcmp(var.value, "1MB") == 0)
-         value = 1;
+         Config.ramSize = 1;
       else if (strcmp(var.value, "2MB") == 0)
-         value = 2;
+         Config.ramSize = 2;
       else if (strcmp(var.value, "4MB") == 0)
-         value = 4;
+         Config.ramSize = 4;
       else if (strcmp(var.value, "6MB") == 0)
-         value = 6;
+         Config.ramSize = 6;
       else if (strcmp(var.value, "8MB") == 0)
-         value = 8;
+         Config.ramSize = 8;
       else if (strcmp(var.value, "12MB") == 0)
-         value = 12;
-
-      SRAM_SetRAMSize(value);
+         Config.ramSize = 12;
    }
 
    var.key   = "px68k_analog";
@@ -1311,6 +1308,7 @@ bool retro_load_game(const struct retro_game_info *info)
 #endif
    }
 
+   SetConfigDefaults();
    update_variables(0);
 
    if (!pmain(PARAMCOUNT, (char **)xargv_cmd))

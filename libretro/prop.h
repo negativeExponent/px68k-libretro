@@ -40,6 +40,7 @@ typedef struct
 	int P1SelectMap; /* assigne a keyboard map to Player 1's Select button */
 	int saveFDDPath;
 	int saveHDDPath;
+	int ramSize; /* ram size in MB */
 	int cpuClock; /* Cpu clock in MHz */
 	/* Set controller type for each player to use
 	 * 0 = Standard 2-buttons gamepad
@@ -50,6 +51,8 @@ typedef struct
 
 extern Win68Conf Config;
 
+/* Load this before pmain */
+void SetConfigDefaults(void);
 void LoadConfig(void);
 void SaveConfig(void);
 
