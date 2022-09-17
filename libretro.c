@@ -1377,7 +1377,7 @@ void retro_deinit(void)
 
 void retro_reset(void)
 {
-   WinX68k_Reset();
+   WinX68k_Reset(1);
    if (Config.MIDI_SW && Config.MIDI_Reset)
       MIDI_Reset();
 }
