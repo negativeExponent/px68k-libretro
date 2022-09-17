@@ -12,6 +12,7 @@
 #include <string.h>
 #include "c68k.h"
 
+int m68000_ICountBk;
 
 /******************************************************************************
 	¥Þ¥¯¥í
@@ -89,7 +90,8 @@ void C68k_Init(c68k_struc *CPU)
 
 void C68k_Reset(c68k_struc *CPU)
 {
-	memset(CPU, 0, (uintptr_t)&CPU->BasePC - (uintptr_t)CPU);
+	memset(CPU, 0, (uint8_t*)&CPU->BasePC - (uint8_t*)&CPU->D[0]);
+	m68000_ICountBk = 0;
 
 	CPU->flag_I = 7;
 	CPU->flag_S = C68K_SR_S;

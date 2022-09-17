@@ -6,12 +6,12 @@
 #include "../m68000/m68000.h"
 #include "irqh.h"
 
-#if defined(HAVE_CYCLONE)
-extern struct Cyclone m68k;
-#endif
-
 static uint8_t IRQH_IRQ[8];
-int32_t (*IRQH_CallBack[8])(int32_t);
+static int32_t (*IRQH_CallBack[8])(int32_t);
+
+#ifndef HOLD_LINE
+#define HOLD_LINE 2/* not significant for new C68K and Musashi cpu cores */
+#endif
 
 void IRQH_Init(void)
 {
@@ -29,35 +29,14 @@ void IRQH_IRQCallBack(uint8_t irq)
 	int i;
 
 	IRQH_IRQ[irq & 7] = 0;
-#if defined(HAVE_CYCLONE)
-	m68k.irq = 0;
-#elif defined(HAVE_M68000)
-	C68k_Set_IRQ(&C68K, 0, 0);
-#elif defined(HAVE_C68K)
-	C68k_Set_IRQ(&C68K, 0);
-#elif defined(HAVE_MUSASHI)
-	m68k_set_irq(0);
-#endif
+	m68000_set_irq_line(0, 0);
 
 	for (i = 7; i > 0; i--)
 	{
 		if (IRQH_IRQ[i])
 		{
-#if defined(HAVE_CYCLONE)
-			m68k.irq = i;
-#elif defined(HAVE_M68000)
-			C68k_Set_IRQ_Callback(&C68K, IRQH_CallBack[i]);
-			C68k_Set_IRQ(&C68K, i, HOLD_LINE); /* xxx */
-			if (C68K.ICount)
-			{                                   /* 多重割り込み時（CARAT）*/
-				m68000_ICountBk += C68K.ICount; /* 強制的に割り込みチェックをさせる */
-				C68K.ICount = 0;                /* 苦肉の策 ^^; */
-			}
-#elif defined(HAVE_C68K)
-			C68k_Set_IRQ(&C68K, i);
-#elif defined(HAVE_MUSASHI)
-			m68k_set_irq(i);
-#endif
+			m68000_set_irq_callback(IRQH_CallBack[i]);
+			m68000_set_irq_line(i, HOLD_LINE);
 			return;
 		}
 	}
@@ -76,21 +55,8 @@ void IRQH_Int(uint8_t irq, int32_t (*handler)(int32_t))
 	{
 		if (IRQH_IRQ[i])
 		{
-#if defined(HAVE_CYCLONE)
-			m68k.irq = i;
-#elif defined(HAVE_M68000)
-			C68k_Set_IRQ_Callback(&C68K, IRQH_CallBack[i]);
-			C68k_Set_IRQ(&C68K, i, HOLD_LINE); /* xxx */
-			if (C68K.ICount)
-			{                                   /* 多重割り込み時（CARAT） */
-				m68000_ICountBk += C68K.ICount; /* 強制的に割り込みチェックをさせる */
-				C68K.ICount = 0;                /* 苦肉の策 ^^; */
-			}
-#elif defined(HAVE_C68K)
-			C68k_Set_IRQ(&C68K, i);
-#elif defined(HAVE_MUSASHI)
-			m68k_set_irq(i);
-#endif
+			m68000_set_irq_callback(IRQH_CallBack[i]);
+			m68000_set_irq_line(i, HOLD_LINE);
 			return;
 		}
 	}
@@ -106,13 +72,7 @@ int32_t my_irqh_callback(int32_t level)
 	{
 		if (IRQH_IRQ[i])
 		{
-#if defined(HAVE_CYCLONE)
-			m68k.irq = i;
-#elif defined(HAVE_C68K)
-			C68k_Set_IRQ(&C68K, i);
-#elif defined(HAVE_MUSASHI)
-			m68k_set_irq(i);
-#endif
+			m68000_set_irq_line(i, HOLD_LINE);
 			break;
 		}
 	}

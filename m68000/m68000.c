@@ -8,22 +8,8 @@
 
 #include "common.h"
 #include "../m68000/m68000.h"
-
-#if defined (HAVE_CYCLONE)
-struct Cyclone m68k;
-typedef signed int s32;
-#elif defined (HAVE_M68000)
-#include "c68k.h"
-#elif defined (HAVE_C68K)
-#include "c68k/c68k.h"
-#elif defined (HAVE_MUSASHI)
-#include "musashi/m68k.h"
-#include "musashi/m68kcpu.h"
-#endif
-
 #include "../x68k/x68kmemory.h"
 
-int m68000_ICountBk;
 int ICount;
 
 #if defined (HAVE_CYCLONE)
@@ -89,10 +75,11 @@ void m68k_write_memory_32(uint32_t address, uint32_t data)
 	M68000インタフェース関数
 ******************************************************************************/
 
+signed int my_irqh_callback(signed int level);
+
 /*--------------------------------------------------------
 	CPU初期化
 --------------------------------------------------------*/
-signed int my_irqh_callback(signed int level);
 
 void m68000_init(void)
 {
@@ -148,7 +135,6 @@ void m68000_init(void)
 #endif
 }
 
-
 /*--------------------------------------------------------
 	CPUリセット
 --------------------------------------------------------*/
@@ -159,13 +145,16 @@ void m68000_reset(void)
 	CycloneReset(&m68k);
 	m68k.state_flags = 0; /* Go to default state (not stopped, halted, etc.) */
 	m68k.srh = 0x27; /* Set supervisor mode */
-#elif defined (HAVE_M68000) || defined (HAVE_C68K)
+#elif defined (HAVE_M68000)
+	C68k_Reset(&C68K);
+	C68K.ICount = 0;
+	m68000_ICountBk = 0;
+#elif defined (HAVE_C68K)
 	C68k_Reset(&C68K);
 #elif defined (HAVE_MUSASHI)
 	m68k_pulse_reset();
 #endif
 }
-
 
 /*--------------------------------------------------------
 	CPU停止
@@ -175,25 +164,31 @@ void m68000_exit(void)
 {
 }
 
-
 /*--------------------------------------------------------
 	CPU実行
 --------------------------------------------------------*/
 
 int m68000_execute(int cycles)
 {
-#if defined (HAVE_CYCLONE)
+	int ret = cycles;
+
+#if defined(HAVE_CYCLONE)
 	m68k.cycles = cycles;
 	CycloneRun(&m68k);
-	return m68k.cycles ;
-#elif defined (HAVE_M68000) || defined (HAVE_C68K)
-	return C68k_Exec(&C68K, cycles);
-#elif defined (HAVE_MUSASHI)
-        return m68k_execute(cycles);
+	return m68k.cycles;
+#elif defined(HAVE_M68000)
+	C68K.ICount = cycles;
+	C68k_Exec(&C68K, cycles);
+	ret = cycles - C68K.ICount - m68000_ICountBk;
+	m68000_ICountBk = 0;
+	C68K.ICount = 0;
+#elif defined(HAVE_C68K)
+	C68k_Exec(&C68K, cycles);
+#elif defined(HAVE_MUSASHI)
+	m68k_execute(cycles);
 #endif
+	return ret;
 }
-
-
 
 /*--------------------------------------------------------
 	割り込み処理
@@ -201,30 +196,32 @@ int m68000_execute(int cycles)
 
 void m68000_set_irq_line(int irqline, int state)
 {
-#if defined (HAVE_CYCLONE)
+#if defined(HAVE_CYCLONE)
 	m68k.irq = irqline;
-#elif defined (HAVE_M68000)
-	if (irqline == IRQ_LINE_NMI)
-		irqline = 7;
-
-	C68k_Set_IRQ(&C68K, irqline, state);
-#elif defined (HAVE_C68K)
+#elif defined(HAVE_M68000)
+	C68k_Set_IRQ(&C68K, irqline, state); /* xxx */
+	if (C68K.ICount)
+	{                                   /* 多重割り込み時（CARAT）*/
+		m68000_ICountBk += C68K.ICount; /* 強制的に割り込みチェックをさせる */
+		C68K.ICount = 0;                /* 苦肉の策 ^^; */
+	}
+#elif defined(HAVE_C68K)
 	C68k_Set_IRQ(&C68K, irqline);
-#elif defined (HAVE_MUSASHI)
+#elif defined(HAVE_MUSASHI)
 	m68k_set_irq(irqline);
 #endif
 }
-
 
 /*--------------------------------------------------------
 	割り込みコールバック関数設定
 --------------------------------------------------------*/
 
-void m68000_set_irq_callback(int (*callback)(int line))
+void m68000_set_irq_callback(int32_t (*callback)(int32_t line))
 {
-/* C68k_Set_IRQ_Callback(&C68K, callback); */
+#if defined(HAVE_M68000)
+	C68k_Set_IRQ_Callback(&C68K, callback);
+#endif
 }
-
 
 /*--------------------------------------------------------
 	レジスタ取得
