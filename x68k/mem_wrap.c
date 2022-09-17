@@ -47,83 +47,85 @@ void cpu_setOPbase24(uint32_t addr);
 void Memory_ErrTrace(void);
 
 uint8_t (*MemReadTable[])(uint32_t) = {
-	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
-	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
-	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
-	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
-	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
-	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
-	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
-	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
-	CRTC_Read, rm_e82, DMA_Read, rm_nop, MFP_Read, RTC_Read, rm_nop, SysPort_Read,
-	rm_opm, ADPCM_Read, FDC_Read, SASI_Read, SCC_Read, PIA_Read, IOC_Read, rm_nop,
-	SCSI_Read, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, MIDI_Read,
-	BG_Read, BG_Read, BG_Read, BG_Read, BG_Read, BG_Read, BG_Read, BG_Read,
+/*	$0000		$2000		$4000		$6000		$8000		$a000		$c000		$e000 */
+	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e00000 */
+	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e10000 */
+	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e20000 */
+	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e30000 */
+	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e40000 */
+	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e50000 */
+	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e60000 */
+	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e70000 */
+	CRTC_Read,	rm_e82,		DMA_Read,	rm_nop,		MFP_Read,	RTC_Read,	rm_nop,		SysPort_Read,	/* $e80000 */
+	rm_opm,		ADPCM_Read,	FDC_Read,	SASI_Read,	SCC_Read,	PIA_Read,	IOC_Read,	rm_nop,		/* $e90000 */
+	SCSI_Read,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	MIDI_Read,	/* $ea0000 */
+	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	/* $eb0000 */
 #ifndef	NO_MERCURY
-	rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, Mcry_Read, rm_buserr,
+	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	Mcry_Read,	rm_buserr,	/* $ec0000 */
 #else
-	rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr,
+	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	/* $ec0000 */
 #endif
-	SRAM_Read, SRAM_Read, SRAM_Read, SRAM_Read, SRAM_Read, SRAM_Read, SRAM_Read, SRAM_Read,
-	rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr,
-	rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr, rm_buserr,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-	rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font, rm_font,
-/* SCSI の場合は rm_buserr になる？ */
-	rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl,
-	rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl,
-	rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl,
-	rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl,
+	SRAM_Read,	SRAM_Read,	SRAM_Read,	SRAM_Read,	SRAM_Read,	SRAM_Read,	SRAM_Read,	SRAM_Read,	/* $ed0000 */
+	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	/* $ee0000 */
+	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	/* $ef0000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f00000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f10000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f20000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f30000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f40000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f50000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f60000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f70000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f80000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f90000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $fa0000 */
+	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $fb0000 */
+	/* for SCSO will it be rm_buserr？ */
+	rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		/* $fc0000 */
+	rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		/* $fd0000 */
+	rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		/* $fe0000 */
+	rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		/* $ff0000 */
 };
 
 void (*MemWriteTable[])(uint32_t, uint8_t) = {
-	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
-	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
-	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
-	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
-	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
-	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
-	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
-	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
-	CRTC_Write, wm_e82, DMA_Write, wm_nop, MFP_Write, RTC_Write, wm_nop, SysPort_Write,
-	wm_opm, ADPCM_Write, FDC_Write, SASI_Write, SCC_Write, PIA_Write, IOC_Write, wm_nop,
-	SCSI_Write, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, MIDI_Write,
-	BG_Write, BG_Write, BG_Write, BG_Write, BG_Write, BG_Write, BG_Write, BG_Write,
+/*	$0000			$2000			$4000			$6000			$8000			$a000			$c000			$e000 */
+	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e00000 */
+	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e10000 */
+	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e20000 */
+	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e30000 */
+	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e40000 */
+	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e50000 */
+	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e60000 */
+	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e70000 */
+	CRTC_Write,		wm_e82,			DMA_Write,		wm_nop,			MFP_Write,		RTC_Write,		wm_nop,			SysPort_Write,	/* $e80000 */
+	wm_opm,			ADPCM_Write,	FDC_Write,		SASI_Write,		SCC_Write,		PIA_Write,		IOC_Write,		wm_nop,			/* $e90000 */
+	SCSI_Write,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		MIDI_Write,		/* $ea0000 */
+	BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		/* $eb0000 */
 #ifndef	NO_MERCURY
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, Mcry_Write, wm_buserr,
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		Mcry_Write,		wm_buserr,		/* $ec0000 */
 #else
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $ec0000 */
 #endif
-	SRAM_Write, SRAM_Write, SRAM_Write, SRAM_Write, SRAM_Write, SRAM_Write, SRAM_Write, SRAM_Write,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-/* ROMエリアへの書きこみは全てバスエラー */
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
-	wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr, wm_buserr,
+	SRAM_Write,		SRAM_Write,		SRAM_Write,		SRAM_Write,		SRAM_Write,		SRAM_Write,		SRAM_Write,		SRAM_Write,		/* $ed0000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $ee0000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $ef0000 */
+	/* Any write to the ROM area is a bus error */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f00000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f10000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f20000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f30000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f40000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f50000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f60000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f70000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f80000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f90000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $fa0000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $fb0000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $fc0000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $fd0000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $fe0000 */
+	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $ff0000 */
 };
 
 uint8_t *IPL;
