@@ -495,8 +495,8 @@ void Memory_Init(void)
 #elif defined(HAVE_MUSASHI)
 	cpu_setOPbase24((uint32_t)m68k_get_reg(NULL, M68K_REG_PC));
 #endif
-
-	if (ram_size != Config.ramSize)
+	ram_size = SRAM[0x09 ^ 1] >> 4;
+	if (ram_size  != Config.ramSize)
 	{
 		ram_size = Config.ramSize;
 		SRAM_SetRAMSize(ram_size);
