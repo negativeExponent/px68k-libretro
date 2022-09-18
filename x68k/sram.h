@@ -8,8 +8,9 @@ void SRAM_Cleanup(void);
 void SRAM_VirusCheck(void);
 
 void SRAM_Clear(void);
-void SRAM_SetRAMSize(int);
 
+/* Sets the system RAM size (MiB) */
+void SRAM_SetRAMSize(int);
 void SRAM_UpdateBoot(void);
 
 uint8_t FASTCALL SRAM_Read(uint32_t adr);

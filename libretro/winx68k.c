@@ -62,6 +62,7 @@ static int oldrw = 0, oldrh = 0;
 
 enum { menu_out, menu_enter, menu_in };
 static int menu_mode = menu_out;
+static int ram_size_override = 0;
 
 void WinX68k_SCSICheck(void)
 {
@@ -171,6 +172,9 @@ void WinX68k_Reset(int softReset)
 	m68000_set_reg(M68K_A7, (IPL[0x30001] << 24) | (IPL[0x30000] << 16) | (IPL[0x30003] << 8) | IPL[0x30002]);
 	m68000_set_reg(M68K_PC, (IPL[0x30005] << 24) | (IPL[0x30004] << 16) | (IPL[0x30007] << 8) | IPL[0x30006]);
 
+	if (ram_size_override)
+		Config.ramSize = ram_size_override;
+
 	OPM_Reset();
 	Memory_Init();
 	CRTC_Init();
@@ -209,11 +213,23 @@ void WinX68k_Reset(int softReset)
 
 int WinX68k_Init(void)
 {
-#define MEM_SIZE 0xc00000
+	int MEM_SIZE = 0xc00000;
+
+	ram_size_override = 0;
 
 	IPL  = (uint8_t *)malloc(0x40000);
-	MEM  = (uint8_t *)malloc(MEM_SIZE);
 	FONT = (uint8_t *)malloc(0xc0000);
+	MEM  = (uint8_t *)malloc(MEM_SIZE);
+
+	if (!MEM)
+	{
+		/* try to provide a minimum ram size (2MB) */
+		ram_size_override = Config.ramSize;
+		Config.ramSize    = ram_size_override;
+
+		MEM_SIZE = Config.ramSize * 0x100000;
+		MEM      = (uint8_t *)malloc(Config.ramSize * MEM_SIZE);
+	}
 
 	if (MEM)
 		memset(MEM, 0, MEM_SIZE);
