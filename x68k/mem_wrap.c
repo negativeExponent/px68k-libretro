@@ -355,7 +355,7 @@ uint32_t dma_readmem24_dword(uint32_t addr)
 
 uint32_t cpu_readmem24(uint32_t addr)
 {
-	uint8_t v;
+	uint32_t v;
 
 	v = rm_main(addr);
 	if (BusErrFlag & 1)
@@ -364,12 +364,12 @@ uint32_t cpu_readmem24(uint32_t addr)
 		Memory_ErrTrace();
 		BusError(addr, 0);
 	}
-	return (uint32_t)v;
+	return v;
 }
 
 uint32_t cpu_readmem24_word(uint32_t addr)
 {
-	uint16_t v;
+	uint32_t v;
 
 	if (addr & 1)
 	{
@@ -387,7 +387,7 @@ uint32_t cpu_readmem24_word(uint32_t addr)
 		Memory_ErrTrace();
 		BusError(addr, 0);
 	}
-	return (uint32_t)v;
+	return v;
 }
 
 uint32_t cpu_readmem24_dword(uint32_t addr)

@@ -2,7 +2,7 @@
 
 	c68kmacro.h
 
-	C68K ³Æ¼ï¥Þ¥¯¥í
+	C68K ï¿½Æ¼ï¿½Þ¥ï¿½ï¿½ï¿½
 
 ******************************************************************************/
 
@@ -65,8 +65,8 @@
 #define READSX_IMM_16()			(int32_t)(*(int16_t *)PC)
 #define READSX_IMM_32()			MAKE_INT_32(READ_IMM_32())
 
-#define READ_MEM_8(A)			CPU->Read_Byte(A)
-#define READ_MEM_16(A)			CPU->Read_Word(A)
+#define READ_MEM_8(A)			(CPU->Read_Byte(A) & 0xff)
+#define READ_MEM_16(A)			(CPU->Read_Word(A) & 0xffff)
 #ifdef C68K_BIG_ENDIAN
 #define READ_MEM_32(A)			(READ_MEM_16(A) | (READ_MEM_16((A) + 2) << 16))
 #else
@@ -77,8 +77,8 @@
 #define READSX_MEM_16(A)		MAKE_INT_16(READ_MEM_16(A))
 #define READSX_MEM_32(A)		MAKE_INT_32(READ_MEM_32(A))
 
-#define READ_PCREL_8(A)			CPU->Read_Byte_PC_Relative(A)
-#define READ_PCREL_16(A)		CPU->Read_Word_PC_Relative(A)
+#define READ_PCREL_8(A)			(CPU->Read_Byte_PC_Relative(A) & 0xff)
+#define READ_PCREL_16(A)		(CPU->Read_Word_PC_Relative(A) & 0xffff)
 #ifdef C68K_BIG_ENDIAN
 #define READ_PCREL_32(A)		(READ_PCREL_16(A) | (READ_PCREL_16((A) + 2) << 16))
 #else
@@ -206,7 +206,7 @@
 	}
 
 /******************************************************************************
-	c68k_opÍÑ¥Þ¥¯¥í
+	c68k_opï¿½Ñ¥Þ¥ï¿½ï¿½ï¿½
 ******************************************************************************/
 
 /*------------------------------- opcode macros -----------------------------*/
