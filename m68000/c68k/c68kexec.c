@@ -139,7 +139,7 @@ extern int img_display;
 #include "../q68/q68.h"
 static c68k_struc *TRACE_CPU;
 static uint32_t readw(uint32_t address) {
-    return TRACE_CPU->Read_Word(address);
+    return TRACE_CPU->Read_Word(address) & 0xFFFF;
 }
 /* Make our own version of the structure to avoid the overhead of dozens of
  * function calls every instruction */
@@ -211,7 +211,7 @@ s32 FASTCALL C68k_Exec(c68k_struc *cpu, s32 cycle)
     }
 
     if (cycle <= 0) return -cycle;
-    
+
     CPU->CycleToDo = CCnt = cycle;
 
 #ifndef C68K_DEBUG
@@ -315,7 +315,7 @@ C68k_Exec_End:
 C68k_Exec_Really_End:
     CPU->Status &= ~C68K_RUNNING;
     CPU->PC = PC;
-    
+
     return (CPU->CycleToDo - CCnt);
 
 #ifndef C68K_CONST_JUMP_TABLE
@@ -325,10 +325,10 @@ C68k_Init:
         u32 i, j;
 
         #include "c68k_ini.inc"
-        
+
         C68k_Initialised = 1;
     }
-    
+
     return 0;
 #endif
 #endif

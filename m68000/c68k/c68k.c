@@ -80,14 +80,14 @@ void C68k_Init(c68k_struc *cpu, C68K_INT_CALLBACK *int_cb)
     // used to init JumpTable
     cpu->Status |= C68K_DISABLE;
     C68k_Exec(cpu, 0);
-    
+
     cpu->Status &= ~C68K_DISABLE;
 }
 
 s32 FASTCALL C68k_Reset(c68k_struc *cpu)
 {
     memset(cpu, 0, ((u8 *)&(cpu->dirty1)) - ((u8 *)&(cpu->D[0])));
-    
+
     cpu->flag_notZ = 1;
     cpu->flag_I = 7;
     cpu->flag_S = C68K_SR_S;
@@ -116,7 +116,7 @@ void FASTCALL C68k_Set_IRQ(c68k_struc *cpu, s32 level)
 s32 FASTCALL C68k_Get_CycleToDo(c68k_struc *cpu)
 {
     if (!(cpu->Status & C68K_RUNNING)) return -1;
-    
+
     return cpu->CycleToDo;
 }
 
@@ -173,20 +173,20 @@ void FASTCALL C68k_Reset_Dummy(void)
 
 u32 C68k_Read_Byte(c68k_struc *cpu, u32 adr)
 {
-    return cpu->Read_Byte(adr);
+    return cpu->Read_Byte(adr) & 0xFF;
 }
 
 u32 C68k_Read_Word(c68k_struc *cpu, u32 adr)
 {
-    return cpu->Read_Word(adr);
+    return cpu->Read_Word(adr) & 0xFFFF;
 }
 
 u32 C68k_Read_Long(c68k_struc *cpu, u32 adr)
 {
 #ifdef C68K_BIG_ENDIAN
-    return (cpu->Read_Word(adr) << 16) | (cpu->Read_Word(adr + 2) & 0xFFFF);
+    return ((cpu->Read_Word(adr) & 0xFFFF) << 16) | (cpu->Read_Word(adr + 2) & 0xFFFF);
 #else
-    return (cpu->Read_Word(adr) << 16) | (cpu->Read_Word(adr + 2) & 0xFFFF);
+    return ((cpu->Read_Word(adr) & 0xFFFF) << 16) | (cpu->Read_Word(adr + 2) & 0xFFFF);
 #endif
 }
 
