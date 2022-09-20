@@ -9,7 +9,6 @@ void FASTCALL Mcry_PreUpdate(uint32_t clock);
 void FASTCALL Mcry_Write(uint32_t adr, uint8_t data);
 uint8_t FASTCALL Mcry_Read(uint32_t adr);
 
-void Mcry_SetClock(void);
 void Mcry_SetVolume(uint8_t vol);
 
 void Mcry_Init(uint32_t samplerate, const char* path);

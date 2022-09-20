@@ -64,7 +64,8 @@ uint8_t FASTCALL SysPort_Read(uint32_t adr)
 	case 0xe8e007:
 		ret = SysPort[4];
 		break;
-	case 0xe8e00b: /* 10MHz:0xff、16MHz:0xfe、030(25MHz):0xdcをそれぞれ返すらしい */
+	case 0xe8e00b:
+		/* 10MHz:0xff、16MHz:0xfe、030(25MHz):0xdcをそれぞれ返すらしい */
 		switch (Config.XVIMode)
 		{
 		case 1: /* XVI or RedZone */

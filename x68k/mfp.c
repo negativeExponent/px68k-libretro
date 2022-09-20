@@ -1,6 +1,4 @@
-/*
- *  MFP.C - MFP (Multi-Function Periferal)
- */
+/* MFP.C - MFP (Multi-Function Periferal) */
 
 #include "common.h"
 #include "../m68000/m68000.h"
@@ -18,9 +16,7 @@ static uint8_t Timer_Reload[4]      = { 0, 0, 0, 0 };
 static int Timer_Tick[4]            = { 0, 0, 0, 0 };
 static const int Timer_Prescaler[8] = { 1, 10, 25, 40, 125, 160, 250, 500 };
 
-/*
- *   優先割り込みのチェックをし、該当ベクタを返す
- */
+/* 優先割り込みのチェックをし、該当ベクタを返す */
 static int32_t FASTCALL MFP_IntCallback(int32_t irq)
 {
 	uint8_t flag;
@@ -72,10 +68,8 @@ static int32_t FASTCALL MFP_IntCallback(int32_t irq)
 	return vect;
 }
 
-/*
- *   割り込みが取り消しになってないか調べます
- */
-void MFP_RecheckInt(void)
+/* 割り込みが取り消しになってないか調べます */
+static void MFP_RecheckInt(void)
 {
 	uint8_t flag;
 	IRQH_IRQCallBack(6);
@@ -94,12 +88,14 @@ void MFP_RecheckInt(void)
 	}
 }
 
-/*
- *   割り込み発生
- */
-void MFP_Int(int irq) /* 'irq' は 0が最優先（HSYNC/GPIP7）、15が最下位（ALARM） */
-{                     /* ベクタとは番号の振り方が逆になるので注意~ */
+/* 割り込み発生 */
+void MFP_Int(int irq)
+{
 	uint8_t flag = 0x80;
+
+	/* 'irq' は 0が最優先（HSYNC/GPIP7）、15が最下位（ALARM）*/
+	/* ベクタとは番号の振り方が逆になるので注意~ */
+
 	if (irq < 8)
 	{
 		flag >>= irq;
@@ -127,25 +123,22 @@ void MFP_Int(int irq) /* 'irq' は 0が最優先（HSYNC/GPIP7）、15が最下位（ALARM） 
 	}
 }
 
-/*
- *   初期化
- */
+/* 初期化 */
 void MFP_Init(void)
 {
-	int i;
 	static const uint8_t initregs[24] = {
 		0x7b, 0x06, 0x00, 0x18, 0x3e, 0x00, 0x00, 0x00,
 		0x00, 0x18, 0x3e, 0x40, 0x08, 0x01, 0x77, 0x01,
 		0x0d, 0xc8, 0x14, 0x00, 0x88, 0x01, 0x81, 0x00
 	};
+	int i;
+
 	memcpy(MFP, initregs, 24);
 	for (i = 0; i < 4; i++)
 		Timer_Tick[i] = 0;
 }
 
-/*
- *   I/O Read
- */
+/* I/O Read */
 uint8_t FASTCALL MFP_Read(uint32_t adr)
 {
 	uint8_t reg;
@@ -189,16 +182,14 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 		}
 		return ret;
 	}
-	else
-		return 0xff;
+	return 0xff;
 }
 
-/*
- *   I/O Write
- */
+/* I/O Write */
 void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t reg;
+
 	if (adr > 0xe8802f)
 		return;
 	if (adr & 1)
@@ -259,9 +250,7 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-/*
- *    たいまの時間を進める（も少し奇麗に書き直そう……）
- */
+/* たいまの時間を進める（も少し奇麗に書き直そう……） */
 void FASTCALL MFP_Timer(long clock)
 {
 	if ((!(MFP[MFP_TACR] & 8)) && (MFP[MFP_TACR] & 7))

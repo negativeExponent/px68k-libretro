@@ -5,7 +5,9 @@
 //  - opna.cppにYMF288用のクラス追加してます。OPNAそのまんまだけどね（ほんとは正しくないがまあいいや）
 //  - 多分他は弄ってないはず……
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 #include "common.h"
 #include "winx68k.h"
@@ -20,6 +22,10 @@ extern "C" {
 #include "opm.h"
 #include "opna.h"
 
+#ifdef __cplusplus
+}
+#endif
+
 /* DUMMY CALLBACKS */
 #define	juliet_load()
 #define	juliet_unload()
@@ -28,7 +34,6 @@ extern "C" {
 #define	juliet_YM2151IsEnable()	FALSE
 #define	juliet_YM2151W(r,d)
 
-
 #define RMBUFSIZE (256*1024)
 
 typedef struct {
@@ -36,8 +41,6 @@ typedef struct {
 	int reg;
 	uint8_t data;
 } RMDATA;
-
-};
 
 static RMDATA RMData[RMBUFSIZE];
 static int RMPtrW;

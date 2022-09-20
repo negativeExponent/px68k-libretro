@@ -6,7 +6,6 @@ extern uint8_t TextDirtyLine[1024];
 extern uint8_t Text_TrFlag[1024];
 
 void TVRAM_SetAllDirty(void);
-
 void TVRAM_Init(void);
 void TVRAM_Cleanup(void);
 

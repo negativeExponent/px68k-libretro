@@ -38,7 +38,7 @@ static int DMA_DummyIsReady(void)
 	return 0;
 }
 
-void DMA_SetReadyCB(int ch, int (*func)(void))
+static void DMA_SetReadyCB(int ch, int (*func)(void))
 {
 	if ((ch >= 0) && (ch <= 3))
 		IsReady[ch] = func;

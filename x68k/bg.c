@@ -10,32 +10,30 @@
 #include "tvram.h"
 #include "windraw.h"
 
-static uint8_t BG[0x8000];
-static uint8_t Sprite_Regs[0x800];
+static uint8_t  BG[0x8000];
+static uint8_t  Sprite_Regs[0x800];
 static uint16_t BG_CHREND  = 0;
 static uint16_t BG_BG0TOP  = 0;
 static uint16_t BG_BG0END  = 0;
 static uint16_t BG_BG1TOP  = 0;
 static uint16_t BG_BG1END  = 0;
-static uint8_t BG_CHRSIZE  = 16;
+static uint8_t  BG_CHRSIZE  = 16;
 static uint32_t BG_AdrMask = 511;
 static uint32_t BG0ScrollX = 0, BG0ScrollY = 0;
 static uint32_t BG1ScrollX = 0, BG1ScrollY = 0;
 
-static uint8_t BGCHR8[8 * 8 * 256];
-static uint8_t BGCHR16[16 * 16 * 256];
+static uint8_t  BGCHR8[8 * 8 * 256];
+static uint8_t  BGCHR16[16 * 16 * 256];
 static uint16_t BG_PriBuf[1600];
 
-uint8_t BG_Regs[0x12];
+uint8_t  BG_Regs[0x12];
 uint16_t BG_LineBuf[1600];
+
 long BG_HAdjust = 0;
 long BG_VLINE   = 0;
 
 uint32_t VLINEBG = 0;
 
-/*
- *   初期化
- */
 void BG_Init(void)
 {
 	int i;
@@ -59,16 +57,27 @@ uint8_t FASTCALL BG_Read(uint32_t adr)
 		return Sprite_Regs[adr];
 	}
 	else if ((adr >= 0xeb0800) && (adr < 0xeb0812))
+	{
 		return BG_Regs[adr - 0xeb0800];
+	}
 	else if ((adr >= 0xeb8000) && (adr < 0xec0000))
+	{
 		return BG[adr - 0xeb8000];
+	}
 
 	return 0xff;
 }
 
-/*
- *   I/O Write
- */
+#define UPDATE_TDL(t)                               \
+	{                                               \
+		int i;                                      \
+		for (i = 0; i < 16; i++)                    \
+		{                                           \
+			TextDirtyLine[(t)] = 1;                 \
+			(t) = ((t) + 1) & 0x3ff;                \
+		}                                           \
+	}
+
 void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 {
 	uint32_t bg16chr;
@@ -78,7 +87,9 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 	s2 = (((CRTC_Regs[0x29] & 4) ? 2 : 1) - ((CRTC_Regs[0x29] & 16) ? 1 : 0));
 
 	if (!(BG_Regs[0x11] & 16))
+	{
 		v = ((BG_Regs[0x0f] >> s1) - (CRTC_Regs[0x0d] >> s2));
+	}
 	if ((adr >= 0xeb0000) && (adr < 0xeb0400))
 	{
 		adr &= 0x3ff;
@@ -90,16 +101,6 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 			v = BG_VLINE - 16 - v;
 			/* get YPOS pointer (Sprite_Regs[] is little endian) */
 			pw = (uint16_t *)(Sprite_Regs + (adr & 0x3f8) + 2);
-
-#define UPDATE_TDL(t)                               \
-	{                                               \
-		int i;                                      \
-		for (i = 0; i < 16; i++)                    \
-		{                                           \
-			TextDirtyLine[(t)] = 1;                 \
-			(t)                = ((t) + 1) & 0x3ff; \
-		}                                           \
-	}
 
 			t = t0 = (*pw + v) & 0x3ff;
 			UPDATE_TDL(t);
@@ -252,9 +253,6 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-/*
- *   1ライン分の描画
- */
 struct SPRITECTRLTBL {
 	uint16_t sprite_posx;
 	uint16_t sprite_posy;
@@ -264,6 +262,7 @@ struct SPRITECTRLTBL {
 } __attribute__((packed));
 typedef struct SPRITECTRLTBL SPRITECTRLTBL_T;
 
+/* 1ライン分の描画 */
 INLINE void Sprite_DrawLineMcr(int pri)
 {
 	SPRITECTRLTBL_T *sct = (SPRITECTRLTBL_T *)Sprite_Regs;

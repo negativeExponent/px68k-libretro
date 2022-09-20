@@ -31,6 +31,7 @@ void SRAM_Clear(void)
 void SRAM_UpdateBoot(void)
 {
 	uint16_t *tmp;
+
 	/* Estimated operation time(min.) */
 	tmp = (uint16_t *)&SRAM[0x40];
 	if (tmp[1] != 0xffff)

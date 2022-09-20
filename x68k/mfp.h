@@ -28,7 +28,6 @@ extern	uint8_t MFP[24];
 #define MFP_TSR		22
 #define MFP_UDR		23
 
-extern long Timer_Count[4];
 extern uint8_t LastKey;
 
 void MFP_Init(void);
