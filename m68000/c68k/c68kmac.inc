@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 */
 
-// internals core macros
-/////////////////////////
+/* internals core macros */
+/*************************/
 
 #define LSL(A, C)       ((A) << (C))
 #define LSR(A, C)       ((A) >> (C))
@@ -103,10 +103,10 @@ extern void TRACE(int,c68k_struc*,int,int);
 #endif
 
 #define READSX_BYTE_F(A, D)             \
-    D = (s32)(s8)CPU->Read_Byte(A);
+    D = (int32_t)(int8_t)CPU->Read_Byte(A);
 
 #define READSX_WORD_F(A, D)             \
-    D = (s32)(s16)CPU->Read_Word(A);
+    D = (int32_t)(int16_t)CPU->Read_Word(A);
 
 #ifdef C68K_BIG_ENDIAN
     #define READSX_LONG_F(A, D)                \
@@ -154,7 +154,7 @@ extern void TRACE(int,c68k_struc*,int,int);
     CPU->Write_Word(CPU->A[7] -= 2, D); \
 
 #define POP_16_F(D)                     \
-    D = (u16)CPU->Read_Word(CPU->A[7]); \
+    D = (uint16_t)CPU->Read_Word(CPU->A[7]); \
     CPU->A[7] += 2;
 
 #ifdef C68K_BIG_ENDIAN
@@ -180,59 +180,65 @@ extern void TRACE(int,c68k_struc*,int,int);
 #endif
 
 #define FETCH_BYTE          \
-((*(u16*)PC) & 0xFF)
+((*(uint16_t*)PC) & 0xFF)
 
 #define FETCH_WORD          \
-(*(u16*)PC)
+(*(uint16_t*)PC)
 
 
 #define FETCH_LONG          \
-(*(u32*)PC)
+(*(uint32_t*)PC)
 
 #define DECODE_EXT_WORD     \
 {                           \
-    u32 ext;                \
+    uint32_t ext;                \
                             \
-    ext = (*(u16*)PC);      \
+    ext = (*(uint16_t*)PC);      \
     PC += 2;                \
                             \
-    adr += (s32)((s8)(ext));                            \
-    if (ext & 0x0800) adr += (s32) CPU->D[ext >> 12];   \
-    else adr += (s32)((s16)(CPU->D[ext >> 12]));        \
+    adr += (int32_t)((int8_t)(ext));                            \
+    if (ext & 0x0800) adr += (int32_t) CPU->D[ext >> 12];   \
+    else adr += (int32_t)((int16_t)(CPU->D[ext >> 12]));        \
 }
 
 #ifndef C68K_BIG_ENDIAN
 #ifdef C68K_BYTE_SWAP_OPT
     #undef FETCH_LONG
     #define FETCH_LONG          \
-    ((((u32)(*(u16*)PC)) << 16) | ((u32)(*(u16*)(PC + 2))))
-//    ((((u32)(*(u8*)(PC + 2))) | (((u32)(*(u8*)(PC + 3))) << 8) | (((u32)(*(u8*)PC)) << 16) | (((u32)(*(u8*)(PC + 1))) << 24)))
+    ((((uint32_t)(*(uint16_t*)PC)) << 16) | ((uint32_t)(*(uint16_t*)(PC + 2))))
+#if 0
+    ((((uint32_t)(*(uint8_t*)(PC + 2))) | (((uint32_t)(*(uint8_t*)(PC + 3))) << 8) | (((uint32_t)(*(uint8_t*)PC)) << 16) | (((uint32_t)(*(uint8_t*)(PC + 1))) << 24)))
+#endif
 #else
     #undef FETCH_BYTE
     #define FETCH_BYTE          \
-    (*(u16*)PC) >> 8)
+    (*(uint16_t*)PC) >> 8)
 
     #undef FETCH_WORD
     #define FETCH_WORD          \
-    ((((u16)(*(u8*)PC)) << 8) | ((u16)(*(u8*)(PC + 1))))
-//    ((((u16)(*(u8*)(PC + 1))) | (((u16)(*(u8*)PC)) << 8)))
+    ((((uint16_t)(*(uint8_t*)PC)) << 8) | ((uint16_t)(*(uint8_t*)(PC + 1))))
+#if 0
+    ((((uint16_t)(*(uint8_t*)(PC + 1))) | (((uint16_t)(*(uint8_t*)PC)) << 8)))
+#endif
 
     #undef FETCH_LONG
     #define FETCH_LONG          \
-    ((((u32)(*(u8*)PC)) << 24) | (((u32)(*(u8*)(PC + 1))) << 16) | (((u32)(*(u8*)(PC + 2))) << 8) | ((u32)(*(u8*)(PC + 3))))
-//    ((((u32)(*(u8*)(PC + 3))) | (((u32)(*(u8*)(PC + 2))) << 8) | (((u32)(*(u8*)(PC + 1))) << 16) | (((u32)(*(u8*)PC)) << 24)))
+    ((((uint32_t)(*(uint8_t*)PC)) << 24) | (((uint32_t)(*(uint8_t*)(PC + 1))) << 16) | (((uint32_t)(*(uint8_t*)(PC + 2))) << 8) | ((uint32_t)(*(uint8_t*)(PC + 3))))
+#if 0
+    ((((uint32_t)(*(uint8_t*)(PC + 3))) | (((uint32_t)(*(uint8_t*)(PC + 2))) << 8) | (((uint32_t)(*(uint8_t*)(PC + 1))) << 16) | (((uint32_t)(*(uint8_t*)PC)) << 24)))
+#endif
 
     #undef DECODE_EXT_WORD
     #define DECODE_EXT_WORD     \
     {                           \
-        u32 ext;                \
+        uint32_t ext;                \
                                 \
-        ext = (*(u16*)PC);      \
+        ext = (*(uint16_t*)PC);      \
         PC += 2;                \
                                 \
-        adr += (s32)((s8)(ext >> 8));                                   \
-        if (ext & 0x0008) adr += (s32) CPU->D[(ext >> 4) & 0x000F];     \
-        else adr += (s32)((s16)(CPU->D[(ext >> 4) & 0x000F]));          \
+        adr += (int32_t)((int8_t)(ext >> 8));                                   \
+        if (ext & 0x0008) adr += (int32_t) CPU->D[(ext >> 4) & 0x000F];     \
+        else adr += (int32_t)((int16_t)(CPU->D[(ext >> 4) & 0x000F]));          \
     }
 #endif
 #endif
@@ -263,11 +269,11 @@ extern void TRACE(int,c68k_struc*,int,int);
 
 #define CHECK_INT                                     \
     {                                                 \
-        s32 line, vect;                               \
+        int32_t line, vect;                               \
                                                       \
         line = CPU->IRQLine;                          \
                                                       \
-        if ((line == 7) || (line > (s32)CPU->flag_I)) \
+        if ((line == 7) || (line > (int32_t)CPU->flag_I)) \
         {                                             \
             /* get vector */                                        \
             CPU->IRQLine = 0;                                       \
@@ -281,7 +287,7 @@ extern void TRACE(int,c68k_struc*,int,int);
             /* swap A7 and USP */              \
             if (!CPU->flag_S)                  \
             {                                  \
-                u32 tmpSP;                     \
+                uint32_t tmpSP;                     \
                                                \
                 tmpSP = CPU->USP;              \
                 CPU->USP = CPU->A[7];          \
@@ -291,7 +297,7 @@ extern void TRACE(int,c68k_struc*,int,int);
             PRE_IO                             \
                                                \
             /* push PC and SR */               \
-            PUSH_32_F((u32)(PC - CPU->BasePC)) \
+            PUSH_32_F((uint32_t)(PC - CPU->BasePC)) \
             PUSH_16_F(GET_SR)                  \
                                                \
             /* adjust SR */                    \

@@ -39,23 +39,23 @@ extern "C" {
 ////////////////////////
 
 typedef struct {
-	u32 name;
-	u32 mask;
-	u32 match;
+    uint32_t    name;
+    uint32_t    mask;
+    uint32_t    match;
 } c68k_ea_info_struc;
 
 typedef struct __c68k_op_info_struc {
-    s8  op_name[8 + 1];
-	u16 op_base;
-	u16 op_mask;
-    s8  size_type;
-    s8  size_sft;
-    s8  eam_sft;
-    s8  reg_sft;
-    s8  eam2_sft;
-    s8  reg2_sft;
-    s8  ea_supported[12 + 1];
-    s8  ea2_supported[12 + 1];
+    int8_t      op_name[8 + 1];
+    uint16_t    op_base;
+    uint16_t    op_mask;
+    int8_t      size_type;
+    int8_t      size_sft;
+    int8_t      eam_sft;
+    int8_t      reg_sft;
+    int8_t      eam2_sft;
+    int8_t      reg2_sft;
+    int8_t      ea_supported[12 + 1];
+    int8_t      ea2_supported[12 + 1];
     void (*genfunc)(void);
 } c68k_op_info_struc;
 

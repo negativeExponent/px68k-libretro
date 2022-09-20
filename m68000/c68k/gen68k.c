@@ -102,7 +102,7 @@ static void GenLogicISR(char op)
 {
     // generate jump table & opcode declaration
     start_all(GEN_RES);
-    
+
     wf_op("\tif (CPU->flag_S)\n");
     wf_op("\t{\n");
     wf_op("\t\tres = FETCH_WORD & C68K_SR_MASK;\n");
@@ -211,14 +211,14 @@ static void GenArithI(char op)
     if (op == ' ')
     {
         // op
-        wf_op("\tres = (u32)(dst - src);\n");
+        wf_op("\tres = (uint32_t)(dst - src);\n");
         // flag calculation
         set_cmp_flag();
     }
     else
     {
         // op
-        wf_op("\tres = (u32)(dst %c src);\n", op);
+        wf_op("\tres = (uint32_t)(dst %c src);\n", op);
         // flag calculation
         if (op == '+') set_add_flag();
         else set_sub_flag();
@@ -244,7 +244,7 @@ static void GenCMPI()
     GenArithI(' ');
 }
 
-static void GenBitsOp(char op, u32 dyn)
+static void GenBitsOp(char op, uint32_t dyn)
 {
     // generate jump table & opcode declaration
     if (dyn) current_ea2 = EA_DREG;
@@ -252,14 +252,14 @@ static void GenBitsOp(char op, u32 dyn)
         start_all(GEN_RES | GEN_SRC);
     else
         start_all(GEN_ADR | GEN_RES | GEN_SRC);
-    
+
     if (current_ea == EA_DREG)
     {
         set_current_size(SIZE_LONG);
         if ((op == 'c') || (op == ' ')) current_cycle += 2;
     }
     else set_current_size(SIZE_BYTE);
-    
+
     // get shift value in src
     if (dyn)
     {
@@ -272,8 +272,8 @@ static void GenBitsOp(char op, u32 dyn)
         wf_op("\tPC += 2;\n");
         current_cycle += 4;
     }
-    wf_op("\tsrc = (u32)(1 << (src & %d));\n", current_sft_mask);
-    
+    wf_op("\tsrc = (uint32_t)(1 << (src & %d));\n", current_sft_mask);
+
     // read
     _ea_calc(current_ea, current_op->reg_sft);
     _ea_read(current_ea, current_op->reg_sft);
@@ -357,7 +357,7 @@ static void GenMOVEPWaD()
     mem_op("\tREAD_BYTE_F(adr + 0, res)\n");
     mem_op("\tREAD_BYTE_F(adr + 2, src)\n");
     // write
-    wf_op("\t*(u16*)(&CPU->D[(Opcode >> %d) & 7]) = (res << 8) | (u16)src;\n", current_op->reg2_sft);
+    wf_op("\t*(uint16_t*)(&CPU->D[(Opcode >> %d) & 7]) = (res << 8) | (uint16_t)src;\n", current_op->reg2_sft);
 
     terminate_op(16);
 }
@@ -383,7 +383,7 @@ static void GenMOVEPLaD()
     wf_op("\tadr += 2;\n");
     mem_op("\tREAD_BYTE_F(adr, src)\n");
     // write
-    wf_op("\tCPU->D[(Opcode >> %d) & 7] = res | (u32)src;\n", current_op->reg2_sft);
+    wf_op("\tCPU->D[(Opcode >> %d) & 7] = res | (uint32_t)src;\n", current_op->reg2_sft);
 
     terminate_op(24);
 }
@@ -433,17 +433,17 @@ static void GenMOVEPLDa()
     terminate_op(24);
 }
 
-static void GenMOVE(u32 size)
+static void GenMOVE(uint32_t size)
 {
     set_current_size(size);
-    
+
     // generate jump table & opcode declaration
     if (((current_ea == EA_AREG) || (current_ea == EA_DREG) || (current_ea == EA_IMM)) &&
         ((current_ea2 == EA_AREG) || (current_ea2 == EA_DREG) || (current_ea2 == EA_IMM)))
         start_all(GEN_RES);
     else
         start_all(GEN_ADR | GEN_RES);
-    
+
     // read
     _ea_calc(current_ea, current_op->reg_sft);
     _ea_read(current_ea, current_op->reg_sft);
@@ -472,7 +472,7 @@ static void GenMOVEL()
     GenMOVE(SIZE_LONG);
 }
 
-static void GenMOVEA(u32 size)
+static void GenMOVEA(uint32_t size)
 {
     set_current_size(size);
 
@@ -505,7 +505,7 @@ static void GenMOVEAL()
 
 static void GenMOVEQ()
 {
-    u32 base = get_current_opcode_base();
+    uint32_t base = get_current_opcode_base();
 
     // generate jump table
     current_ea = EA_DREG;
@@ -516,10 +516,10 @@ static void GenMOVEQ()
 
     // read
     set_current_size(SIZE_BYTE);
-	wf_op("\tres = (s32)(s8)Opcode;\n");
+    wf_op("\tres = (int32_t)(int8_t)Opcode;\n");
     // fast flag calculation for moveQ
-	wf_op("\tCPU->flag_C = CPU->flag_V = 0;\n");
-	wf_op("\tCPU->flag_N = CPU->flag_notZ = res;\n");
+    wf_op("\tCPU->flag_C = CPU->flag_V = 0;\n");
+    wf_op("\tCPU->flag_N = CPU->flag_notZ = res;\n");
     // write
     set_current_size(SIZE_LONG);
     _ea_calc(current_ea, current_op->reg_sft);
@@ -546,7 +546,7 @@ static void GenSingle(char op)
     if (current_size == SIZE_LONG) current_cycle = 6;
     else current_cycle= 4;
     if (is_ea_memory(current_ea)) current_cycle *= 2;
-    
+
     // read
     _ea_calc(current_ea, current_op->reg_sft);
     if (op != 'c') _ea_read_src(current_ea, current_op->reg_sft);
@@ -554,15 +554,15 @@ static void GenSingle(char op)
     switch (op)
     {
         case 'x':   // negx
-            wf_op("\tres = -(u32)src - ((CPU->flag_X >> 8) & 1);\n");
+            wf_op("\tres = -(uint32_t)src - ((CPU->flag_X >> 8) & 1);\n");
             break;
-            
+
         case 'g':   // neg
-            wf_op("\tres = -(u32)src;\n");
+            wf_op("\tres = -(uint32_t)src;\n");
             break;
 
         case 'n':   // not
-            wf_op("\tres = ~(u32)src;\n");
+            wf_op("\tres = ~(uint32_t)src;\n");
             break;
 
         case 'c':   // clr
@@ -708,7 +708,7 @@ static void GenMOVEAUSP()
 static void GenMOVEUSPA()
 {
     current_ea = EA_AREG;
-    
+
     // generate jump table & opcode declaration
     start_all(GEN_RES);
 
@@ -736,10 +736,10 @@ static void GenPEA()
         start_all(0);
     else
         start_all(GEN_ADR);
-    
+
     _ea_calc_free(current_ea, current_op->reg_sft);
     mem_op("\tPUSH_32_F(adr)\n");
-    
+
     terminate_op(lea_pea_cycle_table[current_ea] + 12);
 }
 
@@ -767,7 +767,7 @@ static void GenMOVEMaR()
 {
     // generate jump table & opcode declaration
     start_all(GEN_ALL);
-    
+
     // get register mask
     wf_op("\tres = FETCH_WORD;\n");
     wf_op("\tPC += 2;\n");
@@ -775,11 +775,11 @@ static void GenMOVEMaR()
     if (current_ea == EA_AINC) wf_op("\tadr = CPU->A[(Opcode >> %d) & 7];\n", current_op->reg_sft);
     else if (current_ea == EA_AINC7) wf_op("\tadr = CPU->A[7];\n");
     else _ea_calc(current_ea, current_op->reg_sft);
-    wf_op("\tsrc = (pointer)(&CPU->D[0]);\n");
+    wf_op("\tsrc = (uintptr_t)(&CPU->D[0]);\n");
 
     wf_op("\tdst = adr;\n");
     do_pre_io();
-    
+
     wf_op("\tdo\n");
     wf_op("\t{\n");
     wf_op("\t\tif (res & 1)\n");
@@ -787,12 +787,12 @@ static void GenMOVEMaR()
 
     if (current_size == SIZE_WORD)
     {
-        wf_op("\t\t\tREADSX_WORD_F(adr, *(s32*)src)\n");
+        wf_op("\t\t\tREADSX_WORD_F(adr, *(int32_t*)src)\n");
         wf_op("\t\t\tadr += 2;\n");
     }
     else
     {
-        wf_op("\t\t\tREAD_LONG_F(adr, *(u32*)src)\n");
+        wf_op("\t\t\tREAD_LONG_F(adr, *(uint32_t*)src)\n");
         wf_op("\t\t\tadr += 4;\n");
     }
     wf_op("\t\t}\n");
@@ -801,7 +801,7 @@ static void GenMOVEMaR()
 
     if (current_ea == EA_AINC) wf_op("\tCPU->A[(Opcode >> %d) & 7] = adr;\n", current_op->reg_sft);
     else if (current_ea == EA_AINC7) wf_op("\tCPU->A[7] = adr;\n");
-    adds_CCnt("(adr - (u32)dst) * 2");
+    adds_CCnt("(adr - (uint32_t)dst) * 2");
 
     terminate_op(movem_cycle_table[current_ea] + 12);
 }
@@ -818,12 +818,12 @@ static void GenMOVEMRa()
     if (current_ea == EA_ADEC) wf_op("\tadr = CPU->A[(Opcode >> %d) & 7];\n", current_op->reg_sft);
     else if (current_ea == EA_ADEC7) wf_op("\tadr = CPU->A[7];\n");
     else _ea_calc(current_ea, current_op->reg_sft);
-    if ((current_ea == EA_ADEC) || (current_ea == EA_ADEC7)) wf_op("\tsrc = (pointer)(&CPU->A[7]);\n");
-    else wf_op("\tsrc = (pointer)(&CPU->D[0]);\n");
+    if ((current_ea == EA_ADEC) || (current_ea == EA_ADEC7)) wf_op("\tsrc = (uintptr_t)(&CPU->A[7]);\n");
+    else wf_op("\tsrc = (uintptr_t)(&CPU->D[0]);\n");
 
     wf_op("\tdst = adr;\n");
     do_pre_io();
-    
+
     wf_op("\tdo\n");
     wf_op("\t{\n");
     wf_op("\t\tif (res & 1)\n");
@@ -832,7 +832,7 @@ static void GenMOVEMRa()
     if (current_size == SIZE_WORD)
     {
         if ((current_ea == EA_ADEC) || (current_ea == EA_ADEC7)) wf_op("\t\t\tadr -= 2;\n");
-        wf_op("\t\t\tWRITE_WORD_F(adr, *(u16*)src)\n");
+        wf_op("\t\t\tWRITE_WORD_F(adr, *(uint16_t*)src)\n");
         if (!((current_ea == EA_ADEC) || (current_ea == EA_ADEC7))) wf_op("\t\t\tadr += 2;\n");
     }
     else
@@ -840,11 +840,11 @@ static void GenMOVEMRa()
         if ((current_ea == EA_ADEC) || (current_ea == EA_ADEC7))
         {
             wf_op("\t\t\tadr -= 4;\n");
-            wf_op("\t\t\tWRITE_LONG_DEC_F(adr, *(u32*)src)\n");
+            wf_op("\t\t\tWRITE_LONG_DEC_F(adr, *(uint32_t*)src)\n");
         }
         else
         {
-            wf_op("\t\t\tWRITE_LONG_F(adr, *(u32*)src)\n");
+            wf_op("\t\t\tWRITE_LONG_F(adr, *(uint32_t*)src)\n");
             wf_op("\t\t\tadr += 4;\n");
         }
     }
@@ -855,8 +855,8 @@ static void GenMOVEMRa()
 
     if (current_ea == EA_ADEC) wf_op("\tCPU->A[(Opcode >> %d) & 7] = adr;\n", current_op->reg_sft);
     else if (current_ea == EA_ADEC7) wf_op("\tCPU->A[7] = adr;\n");
-    if ((current_ea == EA_ADEC) || (current_ea == EA_ADEC7)) adds_CCnt("((u32)dst - adr) * 2");
-    else adds_CCnt("(adr - (u32)dst) * 2");
+    if ((current_ea == EA_ADEC) || (current_ea == EA_ADEC7)) adds_CCnt("((uint32_t)dst - adr) * 2");
+    else adds_CCnt("(adr - (uint32_t)dst) * 2");
 
     terminate_op(movem_cycle_table[current_ea] + 8);
 }
@@ -876,7 +876,7 @@ static void GenEXT()
     // write
     set_current_size(current_size + 1);
     _ea_write(current_ea, current_op->reg_sft);
-    
+
     terminate_op(4);
 }
 
@@ -900,7 +900,7 @@ static void GenTST()
 static void GenTAS()
 {
     set_current_size(SIZE_BYTE);
-    
+
     if (is_ea_memory(current_ea)) current_cycle += 6;
 
     // generate jump table & opcode declaration
@@ -931,7 +931,7 @@ static void GenTAS()
 
 static void GenTRAP()
 {
-    u32 base;
+    uint32_t base;
 
     base = get_current_opcode_base();
 
@@ -975,7 +975,7 @@ static void GenLINK()
     // write
     _ea_write(current_ea, current_op->reg_sft);
     // update SP
-    wf_op("\tCPU->A[7] += (s32)(s16)FETCH_WORD;\n");
+    wf_op("\tCPU->A[7] += (int32_t)(int16_t)FETCH_WORD;\n");
     wf_op("\tPC += 2;\n");
 
     terminate_op(16);
@@ -992,7 +992,7 @@ static void GenLINKA7()
     wf_op("\tCPU->A[7] -= 4;\n");
     mem_op("\tWRITE_LONG_DEC_F(CPU->A[7], CPU->A[7])\n");
     // update A7
-    wf_op("\tCPU->A[7] += (s32)(s16)FETCH_WORD;\n");
+    wf_op("\tCPU->A[7] += (int32_t)(int16_t)FETCH_WORD;\n");
     wf_op("\tPC += 2;\n");
 
     terminate_op(16);
@@ -1004,13 +1004,13 @@ static void GenULNK()
     set_current_size(SIZE_LONG);
     // generate jump table & opcode declaration
     start_all(GEN_RES | GEN_SRC);
-    
+
     // read
     _ea_calc(current_ea, current_op->reg_sft);
     _ea_read_src(current_ea, current_op->reg_sft);
     // pop
-    wf_op("\tCPU->A[7] = (u32)src + 4;\n");
-    mem_op("\tREAD_LONG_F((u32)src, res)\n");
+    wf_op("\tCPU->A[7] = (uint32_t)src + 4;\n");
+    mem_op("\tREAD_LONG_F((uint32_t)src, res)\n");
     // write
     _ea_write(current_ea, current_op->reg_sft);
 
@@ -1025,7 +1025,7 @@ static void GenULNKA7()
     start_all(0);
 
     mem_op("\tREAD_LONG_F(CPU->A[7], CPU->A[7])\n");
-    
+
     terminate_op(12);
 }
 
@@ -1039,7 +1039,7 @@ static void GenRESET()
         gen_privilege_exception("\t\t");
         quick_terminate_op(4);
     wf_op("\t}\n");
-    
+
     // Reset callback function
     mem_op("\tCPU->Reset_CallBack();\n");
 
@@ -1073,7 +1073,7 @@ static void GenILLEGAL()
     start_all(GEN_RES);
 
     gen_exception("\t\t", "C68K_ILLEGAL_INSTRUCTION_EX");
-    
+
     terminate_op(4);
 }
 
@@ -1094,7 +1094,7 @@ static void GenCHK()
     _ea_calc(current_ea2, current_op->reg2_sft);
     _ea_read(current_ea2, current_op->reg2_sft);
 
-	wf_op("\tif (((s32)res < 0) || (res > src))\n");
+    wf_op("\tif (((int32_t)res < 0) || (res > src))\n");
     wf_op("\t{\n");
         wf_op("\t\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
         gen_exception("\t\t", "C68K_CHK_EX");
@@ -1120,7 +1120,7 @@ static void GenSTOP()
     wf_op("\tPC += 2;\n");
     wf_op("\tSET_SR(res)\n");
 
-    // if S flag not set --> we swap stack pointer
+    // if S flag not set --> we swap stack uintptr_t
     wf_op("\tif (!CPU->flag_S)\n");
     wf_op("\t{\n");
         wf_op("\t\tres = CPU->A[7];\n");
@@ -1130,7 +1130,7 @@ static void GenSTOP()
 
     wf_op("\tCPU->Status |= C68K_HALTED;\n");
     wf_op("\tCCnt = 0;\n");
-    
+
     // force end execution
     fterminate_op(4);
 }
@@ -1151,7 +1151,7 @@ static void GenRTE()
     mem_op("\tPOP_32_F(res)\n");
     wf_op("\tSET_PC(res)\n");
 
-    // if S flag not set --> we swap stack pointer
+    // if S flag not set --> we swap stack uintptr_t
     wf_op("\tif (!CPU->flag_S)\n");
     wf_op("\t{\n");
         wf_op("\t\tres = CPU->A[7];\n");
@@ -1188,12 +1188,12 @@ static void GenRTR()
 static void GenJSR()
 {
     start_all(GEN_ADR);
-    
+
     // get adr
     _ea_calc_free(current_ea, current_op->reg_sft);
-    mem_op("\tPUSH_32_F((u32)(PC - CPU->BasePC))\n");
+    mem_op("\tPUSH_32_F((uint32_t)(PC - CPU->BasePC))\n");
     wf_op("\tSET_PC(adr)\n");
-    
+
     terminate_op(jmp_jsr_cycle_table[current_ea] + 12);
 }
 
@@ -1210,10 +1210,10 @@ static void GenJMP()
 
 static void GenSTCC()
 {
-    u32 base, cond;
-    
+    uint32_t base, cond;
+
     base = get_current_opcode_base();
-    
+
     for(cond = 0; cond < 0x10; cond++)
     {
         // generate jump table
@@ -1223,11 +1223,11 @@ static void GenSTCC()
             start_op(base + (cond << 8), GEN_RES);
         else
             start_op(base + (cond << 8), GEN_ADR | GEN_RES);
-        
+
         set_current_size(SIZE_BYTE);
 
         if (is_ea_memory(current_ea)) current_cycle += 4;
-        
+
         // op
         _ea_calc(current_ea, current_op->reg_sft);
         if ((cond != COND_TR) && (cond != COND_FA))
@@ -1261,10 +1261,10 @@ static void GenSTCC()
 
 static void GenDBCC()
 {
-    u32 base, cond;
+    uint32_t base, cond;
 
     base = get_current_opcode_base();
-    
+
     current_ea = EA_DREG;
     set_current_size(SIZE_WORD);
 
@@ -1274,7 +1274,7 @@ static void GenDBCC()
         gen_opjumptable(base + (cond << 8));
         // generate label & declarations
         start_op(base + (cond << 8), cond==COND_TR ? 0 : GEN_RES);
-        
+
         if (cond != COND_TR)
         {
             if (cond != COND_FA)
@@ -1282,7 +1282,7 @@ static void GenDBCC()
                 wf_op("\tif %s\n", get_cond_as_cond(cond, 1));
                 wf_op("\t{\n");
             }
-            
+
             // read Dx
             _ea_calc(current_ea, current_op->reg_sft);
             _ea_read(current_ea, current_op->reg_sft);
@@ -1290,9 +1290,9 @@ static void GenDBCC()
             wf_op("\tres--;\n");
             // write Dx
             _ea_write(current_ea, current_op->reg_sft);
-            wf_op("\tif ((s32)res != -1)\n");
+            wf_op("\tif ((int32_t)res != -1)\n");
             wf_op("\t{\n");
-                wf_op("\t\tPC += (s32)(s16)FETCH_WORD;\n");
+                wf_op("\t\tPC += (int32_t)(int16_t)FETCH_WORD;\n");
                 // unbase PC
                 wf_op("\t\tPC -= CPU->BasePC;\n");
                 // rebase PC
@@ -1310,9 +1310,9 @@ static void GenDBCC()
                 wf_op("\t}\n");
             }
         }
-        
+
         wf_op("\tPC += 2;\n");
-        
+
         if (cond == COND_TR) terminate_op(12);
         else terminate_op(14);
     }
@@ -1320,10 +1320,10 @@ static void GenDBCC()
 
 static void GenBCC()
 {
-    u32 base, cond;
+    uint32_t base, cond;
 
     base = get_current_opcode_base();
-    
+
     for(cond = 2; cond < 0x10; cond++)
     {
         // generate jump table
@@ -1334,7 +1334,7 @@ static void GenBCC()
         // op
         wf_op("\tif %s\n", get_cond_as_cond(cond, 0));
         wf_op("\t{\n");
-            wf_op("\t\tPC += (s32)(s8)Opcode;\n");     // no rebase needed for 8 bits deplacement
+            wf_op("\t\tPC += (int32_t)(int8_t)Opcode;\n");     // no rebase needed for 8 bits deplacement
             add_CCnt(2);
         wf_op("\t}\n");
 
@@ -1344,7 +1344,7 @@ static void GenBCC()
 
 static void GenBCC16()
 {
-    u32 base, cond;
+    uint32_t base, cond;
 
     base = get_current_opcode_base();
 
@@ -1358,14 +1358,14 @@ static void GenBCC16()
         // op
         wf_op("\tif %s\n", get_cond_as_cond(cond, 0));
         wf_op("\t{\n");
-            wf_op("\t\tPC += (s32)(s16)FETCH_WORD;\n");
+            wf_op("\t\tPC += (int32_t)(int16_t)FETCH_WORD;\n");
             // unbase PC
             wf_op("\t\tPC -= CPU->BasePC;\n");
             // rebase PC
             wf_op("\t\tSET_PC(PC);\n");
             quick_terminate_op(10);
         wf_op("\t}\n");
-        
+
         wf_op("\tPC += 2;\n");
 
         terminate_op(12);
@@ -1374,28 +1374,28 @@ static void GenBCC16()
 
 static void GenBRA()
 {
-    u32 base = get_current_opcode_base();
+    uint32_t base = get_current_opcode_base();
 
     // generate jump table
     gen_opjumptable_ext(base, 0x01, 0xFF, 1, base + 0x01);
     // generate label & declarations
     start_op(base + 0x01, 0);
 
-    wf_op("\tPC += (s32)(s8)Opcode;\n");     // no rebase needed for 8 bits deplacement
+    wf_op("\tPC += (int32_t)(int8_t)Opcode;\n");     // no rebase needed for 8 bits deplacement
 
     terminate_op(10);
 }
 
 static void GenBRA16()
 {
-    u32 base = get_current_opcode_base();
+    uint32_t base = get_current_opcode_base();
 
     // generate jump table
     gen_opjumptable(base + 0x00);
     // generate label & declarations
     start_op(base + 0x00, 0);
 
-    wf_op("\tPC += (s32)(s16)FETCH_WORD;\n");
+    wf_op("\tPC += (int32_t)(int16_t)FETCH_WORD;\n");
     // unbase PC
     wf_op("\tPC -= CPU->BasePC;\n");
     // rebase PC
@@ -1406,33 +1406,33 @@ static void GenBRA16()
 
 static void GenBSR()
 {
-    u32 base = get_current_opcode_base();
+    uint32_t base = get_current_opcode_base();
 
     // generate jump table
     gen_opjumptable_ext(base, 0x01, 0xFF, 1, base + 0x01);
     // generate label & declarations
     start_op(base + 0x01, 0);
 
-    mem_op("\tPUSH_32_F((u32)(PC - CPU->BasePC))\n");
-    wf_op("\tPC += (s32)(s8)Opcode;\n");     // no rebase needed for 8 bits deplacement
+    mem_op("\tPUSH_32_F((uint32_t)(PC - CPU->BasePC))\n");
+    wf_op("\tPC += (int32_t)(int8_t)Opcode;\n");     // no rebase needed for 8 bits deplacement
 
     terminate_op(18);
 }
 
 static void GenBSR16()
 {
-    u32 base = get_current_opcode_base();
+    uint32_t base = get_current_opcode_base();
 
     // generate jump table
     gen_opjumptable(base + 0x00);
     // generate label & declarations
     start_op(base + 0x00, GEN_RES);
 
-    wf_op("\tres = (s32)(s16)FETCH_WORD;\n");
+    wf_op("\tres = (int32_t)(int16_t)FETCH_WORD;\n");
     // unbase PC
     wf_op("\tPC -= CPU->BasePC;\n");
-    mem_op("\tPUSH_32_F((u32)PC + 2)\n");
-    wf_op("\tPC += (s32) res;\n");
+    mem_op("\tPUSH_32_F((uint32_t)PC + 2)\n");
+    wf_op("\tPC += (int32_t) res;\n");
     // rebase PC for 16 bits deplacement
     wf_op("\tSET_PC(PC);\n");
 
@@ -1441,12 +1441,12 @@ static void GenBSR16()
 
 static void GenArithQ(char op)
 {
-    u32 base;
+    uint32_t base;
 
     if ((current_ea == EA_AREG) && (current_size == SIZE_BYTE)) return;
 
     base = get_current_opcode_base();
-    
+
     // generate jump table
     gen_opjumptable_ext(base, (0 << 9), (7 << 9), (1 << 9), base);
 
@@ -1462,12 +1462,12 @@ static void GenArithQ(char op)
     if (current_size == SIZE_LONG) current_cycle += 4;
 
     // read src
-	wf_op("\tsrc = (((Opcode >> 9) - 1) & 7) + 1;\n");
+    wf_op("\tsrc = (((Opcode >> 9) - 1) & 7) + 1;\n");
     // read dst
     _ea_calc(current_ea, current_op->reg_sft);
     _ea_read_dst(current_ea, current_op->reg_sft);
     // op
-    wf_op("\tres = (u32)(dst %c src);\n", op);
+    wf_op("\tres = (uint32_t)(dst %c src);\n", op);
     // flag calculation
     if (current_ea != EA_AREG)
     {
@@ -1589,8 +1589,8 @@ static void GenNBCD()
     // read
     _ea_calc(current_ea, current_op->reg_sft);
     _ea_read(current_ea, current_op->reg_sft);
-    
-	// op
+
+    // op
     wf_op("\tres = 0x9a - res - ((CPU->flag_X >> C68K_SR_X_SFT) & 1);\n");
     wf_op("\n");
     wf_op("\tif (res != 0x9a)\n");
@@ -1602,12 +1602,12 @@ static void GenNBCD()
         _ea_write(current_ea, current_op->reg_sft);
 
         // flag calculation
-       	wf_op("\t\tCPU->flag_notZ |= res;\n");
+        wf_op("\t\tCPU->flag_notZ |= res;\n");
         wf_op("\t\tCPU->flag_X = CPU->flag_C = C68K_SR_C;\n");
 
     wf_op("\t}\n");
     wf_op("\telse CPU->flag_X = CPU->flag_C = 0;\n");
-   	wf_op("\tCPU->flag_N = res;\n");
+    wf_op("\tCPU->flag_N = res;\n");
 
     terminate_op(6);
 }
@@ -1635,8 +1635,8 @@ static void GenBCD(char op)
         wf_op("\t\tCPU->flag_X = CPU->flag_C = C68K_SR_C;\n");
     wf_op("\t}\n");
     wf_op("\telse CPU->flag_X = CPU->flag_C = 0;\n");
-   	wf_op("\tCPU->flag_notZ |= res & 0xFF;\n");
-   	wf_op("\tCPU->flag_N = res;\n");
+    wf_op("\tCPU->flag_notZ |= res & 0xFF;\n");
+    wf_op("\tCPU->flag_N = res;\n");
 }
 
 static void GenxBCD(char op)
@@ -1654,7 +1654,7 @@ static void GenxBCD(char op)
     // read dst (Dx)
     _ea_calc(current_ea2, current_op->reg2_sft);
     _ea_read_dst(current_ea2, current_op->reg2_sft);
-    
+
     // op & flag calculation
     GenBCD(op);
 
@@ -1679,7 +1679,7 @@ static void GenxBCDM(char op)
     // read dst (ADEC)
     _ea_calc(current_ea2, current_op->reg2_sft);
     _ea_read_dst(current_ea2, current_op->reg2_sft);
-    
+
     // op & flag calculation
     GenBCD(op);
 
@@ -1824,18 +1824,18 @@ static void GenDIVU()
         start_all(GEN_ALL);
 
     set_current_size(SIZE_WORD);
-    
+
     // read src
     _ea_calc(current_ea, current_op->reg_sft);
     _ea_read_src(current_ea, current_op->reg_sft);
-    
+
     // division by zero
     wf_op("\tif (src == 0)\n");
     wf_op("\t{\n");
         gen_exception("\t\t", "C68K_ZERO_DIVIDE_EX");
         quick_terminate_op(10);
     wf_op("\t}\n");
-    
+
     set_current_size(SIZE_LONG);
 
     // read dst (Dx)
@@ -1843,19 +1843,19 @@ static void GenDIVU()
     _ea_read_dst(current_ea2, current_op->reg2_sft);
 
     wf_op("\t{\n");
-        wf_op("\t\tu32 q, r;\n");
+        wf_op("\t\tuint32_t q, r;\n");
         wf_op("\n");
-        wf_op("\t\tq = (u32)dst / (u32)src;\n");
-        wf_op("\t\tr = (u32)dst %% (u32)src;\n");
+        wf_op("\t\tq = (uint32_t)dst / (uint32_t)src;\n");
+        wf_op("\t\tr = (uint32_t)dst %% (uint32_t)src;\n");
         wf_op("\n");
-        
+
         wf_op("\t\tif (q & 0xFFFF0000)\n");
         wf_op("\t\t{\n");
             // overflow occured
             wf_op("\t\t\tCPU->flag_V = C68K_SR_V;\n");
             quick_terminate_op(70);
         wf_op("\t\t}\n");
-        
+
         // quotient size = word
         set_current_size(SIZE_WORD);
 
@@ -1865,7 +1865,7 @@ static void GenDIVU()
         wf_op("\t\tCPU->flag_V = CPU->flag_C = 0;\n");
 
         wf_op("\t\tres = q | (r << 16);\n");
-        
+
         set_current_size(SIZE_LONG);
 
         // write dst (Dx)
@@ -1918,10 +1918,10 @@ static void GenDIVS()
     wf_op("\t}\n");
 
     wf_op("\t{\n");
-        wf_op("\t\ts32 q, r;\n");
+        wf_op("\t\tint32_t q, r;\n");
         wf_op("\n");
-        wf_op("\t\tq = (s32)dst / (s32)src;\n");
-        wf_op("\t\tr = (s32)dst %% (s32)src;\n");
+        wf_op("\t\tq = (int32_t)dst / (int32_t)src;\n");
+        wf_op("\t\tr = (int32_t)dst %% (int32_t)src;\n");
         wf_op("\n");
 
         wf_op("\t\tif ((q > 0x7FFF) || (q < -0x8000))\n");
@@ -1933,7 +1933,7 @@ static void GenDIVS()
 
         // quotient size = word
         set_current_size(SIZE_WORD);
-        
+
         wf_op("\t\tq &= 0x%.8X;\n", current_bits_mask);
         wf_op("\t\tCPU->flag_notZ = q;\n");
         wf_op("\t\tCPU->flag_N = q >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
@@ -1971,11 +1971,11 @@ static void GenMULU()
 
     set_current_size(SIZE_LONG);
     // op
-    wf_op("\tres *= (u32)src;\n");
+    wf_op("\tres *= (uint32_t)src;\n");
 
     // flag calculation
-   	wf_op("\tCPU->flag_N = res >> 24;\n");
-   	wf_op("\tCPU->flag_notZ = res;\n");
+    wf_op("\tCPU->flag_N = res >> 24;\n");
+    wf_op("\tCPU->flag_notZ = res;\n");
     wf_op("\tCPU->flag_V = CPU->flag_C = 0;\n");
 
     // write dst (Dx)
@@ -2001,17 +2001,17 @@ static void GenMULS()
     // read dst signed (Dx)
     _ea_calc(current_ea2, current_op->reg2_sft);
     _ea_read_sx(current_ea2, current_op->reg2_sft);
-    
+
     set_current_size(SIZE_LONG);
     // op
-    //wf_op("\t(s32)res *= (s32)src;\n");
-    wf_op("\tres *= (s32)src;\n"); // antime fix
-    
+    //wf_op("\t(int32_t)res *= (int32_t)src;\n");
+    wf_op("\tres *= (int32_t)src;\n"); // antime fix
+
     // flag calculation
-   	wf_op("\tCPU->flag_N = res >> 24;\n");
-   	wf_op("\tCPU->flag_notZ = res;\n");
+    wf_op("\tCPU->flag_N = res >> 24;\n");
+    wf_op("\tCPU->flag_notZ = res;\n");
     wf_op("\tCPU->flag_V = CPU->flag_C = 0;\n");
-    
+
     // write dst (Dx)
     _ea_write(current_ea2, current_op->reg2_sft);
 
@@ -2043,14 +2043,14 @@ static void GenArithaD(char op)
     if (op == ' ')
     {
         // op
-        wf_op("\tres = (u32)(dst - src);\n");
+        wf_op("\tres = (uint32_t)(dst - src);\n");
         // flag calculation
         set_cmp_flag();
     }
     else
     {
         // op
-        wf_op("\tres = (u32)(dst %c src);\n", op);
+        wf_op("\tres = (uint32_t)(dst %c src);\n", op);
         // flag calculation
         if (op == '+') set_add_flag();
         else set_sub_flag();
@@ -2076,7 +2076,7 @@ static void GenArithDa(char op)
     _ea_calc(current_ea, current_op->reg_sft);
     _ea_read_dst(current_ea, current_op->reg_sft);
     // op
-    wf_op("\tres = (u32)(dst %c src);\n", op);
+    wf_op("\tres = (uint32_t)(dst %c src);\n", op);
     // flag calculation
     if (op == '+') set_add_flag();
     else set_sub_flag();
@@ -2108,14 +2108,14 @@ static void GenArithA(char op)
     if (op == ' ')
     {
         // op
-        wf_op("\tres = (u32)(dst - src);\n");
+        wf_op("\tres = (uint32_t)(dst - src);\n");
         // flag calculation
         set_cmp_flag();
     }
     else
     {
         // op
-        wf_op("\tres = (u32)(dst %c src);\n", op);
+        wf_op("\tres = (uint32_t)(dst %c src);\n", op);
         // write dst (Ax)
         _ea_write(current_ea2, current_op->reg2_sft);
     }
@@ -2142,7 +2142,7 @@ static void GenArithX(char op)
     _ea_calc(current_ea2, current_op->reg2_sft);
     _ea_read_dst(current_ea2, current_op->reg2_sft);
     // op
-    wf_op("\tres = (u32)dst %c (u32)src %c ((CPU->flag_X >> 8) & 1);\n", op, op);
+    wf_op("\tres = (uint32_t)dst %c (uint32_t)src %c ((CPU->flag_X >> 8) & 1);\n", op, op);
     // flag calculation
     if (op == '+') set_addx_flag();
     else set_subx_flag();
@@ -2168,7 +2168,7 @@ static void GenArithXM(char op)
     _ea_calc(current_ea2, current_op->reg2_sft);
     _ea_read_dst(current_ea2, current_op->reg2_sft);
     // op
-    wf_op("\tres = (u32)dst %c (u32)src %c ((CPU->flag_X >> 8) & 1);\n", op, op);
+    wf_op("\tres = (uint32_t)dst %c (uint32_t)src %c ((CPU->flag_X >> 8) & 1);\n", op, op);
     // flag calculation
     if (op == '+') set_addx_flag();
     else set_subx_flag();
@@ -2194,7 +2194,7 @@ static void GenArithX7M(char op)
     _ea_calc(current_ea2, current_op->reg2_sft);
     _ea_read_dst(current_ea2, current_op->reg2_sft);
     // op
-    wf_op("\tres = (u32)dst %c (u32)src %c ((CPU->flag_X >> 8) & 1);\n", op, op);
+    wf_op("\tres = (uint32_t)dst %c (uint32_t)src %c ((CPU->flag_X >> 8) & 1);\n", op, op);
     // flag calculation
     if (op == '+') set_addx_flag();
     else set_subx_flag();
@@ -2220,7 +2220,7 @@ static void GenArithXM7(char op)
     _ea_calc(current_ea2, 0);
     _ea_read_dst(current_ea2, 0);
     // op
-    wf_op("\tres = (u32)dst %c (u32)src %c ((CPU->flag_X >> 8) & 1);\n", op, op);
+    wf_op("\tres = (uint32_t)dst %c (uint32_t)src %c ((CPU->flag_X >> 8) & 1);\n", op, op);
     // flag calculation
     if (op == '+') set_addx_flag();
     else set_subx_flag();
@@ -2246,7 +2246,7 @@ static void GenArithX7M7(char op)
     _ea_calc(current_ea2, 0);
     _ea_read_dst(current_ea2, 0);
     // op
-    wf_op("\tres = (u32)dst %c (u32)src %c ((CPU->flag_X >> 8) & 1);\n", op, op);
+    wf_op("\tres = (uint32_t)dst %c (uint32_t)src %c ((CPU->flag_X >> 8) & 1);\n", op, op);
     // flag calculation
     if (op == '+') set_addx_flag();
     else set_subx_flag();
@@ -2360,7 +2360,7 @@ static void GenCMPM()
     _ea_calc(current_ea2, current_op->reg2_sft);
     _ea_read_dst(current_ea2, current_op->reg2_sft);
     // op
-    wf_op("\tres = (u32)(dst - src);\n");
+    wf_op("\tres = (uint32_t)(dst - src);\n");
     // flag calculation
     set_cmp_flag();
 
@@ -2382,7 +2382,7 @@ static void GenCMP7M()
     _ea_calc(current_ea2, current_op->reg2_sft);
     _ea_read_dst(current_ea2, current_op->reg2_sft);
     // op
-    wf_op("\tres = (u32)(dst - src);\n");
+    wf_op("\tres = (uint32_t)(dst - src);\n");
     // flag calculation
     set_cmp_flag();
 
@@ -2404,7 +2404,7 @@ static void GenCMPM7()
     _ea_calc(current_ea2, 0);
     _ea_read_dst(current_ea2, 0);
     // op
-    wf_op("\tres = (u32)(dst - src);\n");
+    wf_op("\tres = (uint32_t)(dst - src);\n");
     // flag calculation
     set_cmp_flag();
 
@@ -2426,7 +2426,7 @@ static void GenCMP7M7()
     _ea_calc(current_ea2, 0);
     _ea_read_dst(current_ea2, 0);
     // op
-    wf_op("\tres = (u32)(dst - src);\n");
+    wf_op("\tres = (uint32_t)(dst - src);\n");
     // flag calculation
     set_cmp_flag();
 
@@ -2441,7 +2441,7 @@ static void GenEXGDD()
     current_ea = EA_DREG;
     current_ea2 = EA_DREG;
     start_all(GEN_RES | GEN_SRC);
-    
+
     // read R1
     _ea_calc(current_ea, current_op->reg_sft);
     _ea_read(current_ea, current_op->reg_sft);
@@ -2450,7 +2450,7 @@ static void GenEXGDD()
     _ea_read_src(current_ea2, current_op->reg2_sft);
     // write R1
     _ea_write(current_ea2, current_op->reg2_sft);
-    wf_op("\tres = (u32)src;\n");
+    wf_op("\tres = (uint32_t)src;\n");
     // write R2
     _ea_write(current_ea, current_op->reg_sft);
 
@@ -2473,7 +2473,7 @@ static void GenEXGAA()
     _ea_read_src(current_ea2, current_op->reg2_sft);
     // write R1
     _ea_write(current_ea2, current_op->reg2_sft);
-    wf_op("\tres = (u32)src;\n");
+    wf_op("\tres = (uint32_t)src;\n");
     // write R2
     _ea_write(current_ea, current_op->reg_sft);
 
@@ -2496,7 +2496,7 @@ static void GenEXGAD()
     _ea_read_src(current_ea2, current_op->reg2_sft);
     // write R1
     _ea_write(current_ea2, current_op->reg2_sft);
-    wf_op("\tres = (u32)src;\n");
+    wf_op("\tres = (uint32_t)src;\n");
     // write R2
     _ea_write(current_ea, current_op->reg_sft);
 
@@ -2505,8 +2505,8 @@ static void GenEXGAD()
 
 static void GenASRk()
 {
-    u32 base;
-    
+    uint32_t base;
+
     current_ea = EA_DREG;               // dst = Dx
 
     base = get_current_opcode_base();
@@ -2517,7 +2517,7 @@ static void GenASRk()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = (((Opcode >> 9) - 1) & 7) + 1;\n");
     adds_CCnt("sft * 2");
@@ -2528,11 +2528,11 @@ static void GenASRk()
 
     // op & flag calculation
     wf_op("\tCPU->flag_V = 0;\n");
-    wf_op("\tCPU->flag_X = CPU->flag_C = (u32)src << ((C68K_SR_C_SFT + 1) - sft);\n");
-    wf_op("\tres = ((s32)src) >> sft;\n");
+    wf_op("\tCPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);\n");
+    wf_op("\tres = ((int32_t)src) >> sft;\n");
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     wf_op("\tCPU->flag_notZ = res;\n");
-    
+
     // write
     _ea_write(current_ea, current_op->reg_sft);
 
@@ -2541,7 +2541,7 @@ static void GenASRk()
 
 static void GenLSRk()
 {
-    u32 base;
+    uint32_t base;
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -2553,7 +2553,7 @@ static void GenLSRk()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = (((Opcode >> 9) - 1) & 7) + 1;\n");
     adds_CCnt("sft * 2");
@@ -2564,8 +2564,8 @@ static void GenLSRk()
 
     // op & flag calculation
     wf_op("\tCPU->flag_N = CPU->flag_V = 0;\n");
-    wf_op("\tCPU->flag_X = CPU->flag_C = (u32)src << ((C68K_SR_C_SFT + 1) - sft);\n");
-    wf_op("\tres = (u32)src >> sft;\n");
+    wf_op("\tCPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);\n");
+    wf_op("\tres = (uint32_t)src >> sft;\n");
     wf_op("\tCPU->flag_notZ = res;\n");
 
     // write
@@ -2576,7 +2576,7 @@ static void GenLSRk()
 
 static void GenROXRk()
 {
-    u32 base;
+    uint32_t base;
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -2588,7 +2588,7 @@ static void GenROXRk()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = (((Opcode >> 9) - 1) & 7) + 1;\n");
     adds_CCnt("sft * 2");
@@ -2601,14 +2601,14 @@ static void GenROXRk()
     if (current_size != SIZE_LONG)
     {
         wf_op("\tsrc |= (CPU->flag_X & C68K_SR_X) << %d;\n", (current_sft_mask + 1) - C68K_SR_X_SFT);
-        wf_op("\tres = ((u32)src >> sft) | ((u32)src << (%d - sft));\n", current_sft_mask + 2);
+        wf_op("\tres = ((uint32_t)src >> sft) | ((uint32_t)src << (%d - sft));\n", current_sft_mask + 2);
         wf_op("\tCPU->flag_X = CPU->flag_C = res >> %d;\n", (current_sft_mask + 1) - C68K_SR_X_SFT);
     }
     else
     {
-        wf_op("\tCPU->flag_C = (u32)src << ((C68K_SR_C_SFT + 1) - sft);\n");
-        wf_op("\tif (sft == 1) res = ((u32)src >> 1) | ((CPU->flag_X & C68K_SR_X) << (32 - (C68K_SR_X_SFT + 1)));\n");
-        wf_op("\telse res = ((u32)src >> sft) | ((u32)src << (33 - sft)) | ((CPU->flag_X & C68K_SR_X) << (32 - (C68K_SR_X_SFT + sft)));\n");
+        wf_op("\tCPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);\n");
+        wf_op("\tif (sft == 1) res = ((uint32_t)src >> 1) | ((CPU->flag_X & C68K_SR_X) << (32 - (C68K_SR_X_SFT + 1)));\n");
+        wf_op("\telse res = ((uint32_t)src >> sft) | ((uint32_t)src << (33 - sft)) | ((CPU->flag_X & C68K_SR_X) << (32 - (C68K_SR_X_SFT + sft)));\n");
         wf_op("\tCPU->flag_X = CPU->flag_C;\n");
     }
 
@@ -2626,7 +2626,7 @@ static void GenROXRk()
 
 static void GenRORk()
 {
-    u32 base;
+    uint32_t base;
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -2638,7 +2638,7 @@ static void GenRORk()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = (((Opcode >> 9) - 1) & 7) + 1;\n");
     adds_CCnt("sft * 2");
@@ -2649,8 +2649,8 @@ static void GenRORk()
 
     // op & flag calculation
     wf_op("\tCPU->flag_V = 0;\n");
-    wf_op("\tCPU->flag_C = (u32)src << ((C68K_SR_C_SFT + 1) - sft);\n");
-    wf_op("\tres = ((u32)src >> sft) | ((u32)src << (%d - sft));\n", current_sft_mask + 1);
+    wf_op("\tCPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);\n");
+    wf_op("\tres = ((uint32_t)src >> sft) | ((uint32_t)src << (%d - sft));\n", current_sft_mask + 1);
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     if (current_size == SIZE_LONG) wf_op("\tCPU->flag_notZ = res;\n");
     else wf_op("\tCPU->flag_notZ = res & 0x%.8X;\n", current_bits_mask);
@@ -2663,19 +2663,19 @@ static void GenRORk()
 
 static void GenASLk()
 {
-    u32 base;
+    uint32_t base;
 
     current_ea = EA_DREG;               // dst = Dx
-    
+
     base = get_current_opcode_base();
     // generate jump table
     gen_opjumptable_ext(base, 0x0000, 0x0E00, 0x0200, base);
     // generate label & declarations
     start_op(base, GEN_RES | GEN_SRC);
-    
+
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = (((Opcode >> 9) - 1) & 7) + 1;\n");
     adds_CCnt("sft * 2");
@@ -2693,9 +2693,9 @@ static void GenASLk()
 
         // op & flag X, C, N, Z calculation
         if (((current_sft_mask + 1) - C68K_SR_C_SFT) < 8)
-            wf_op("\t\tCPU->flag_X = CPU->flag_C = (u32)src << (%d + sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
-        else wf_op("\t\tCPU->flag_X = CPU->flag_C = (u32)src >> (%d - sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
-        wf_op("\t\tres = (u32)src << sft;\n");
+            wf_op("\t\tCPU->flag_X = CPU->flag_C = (uint32_t)src << (%d + sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
+        else wf_op("\t\tCPU->flag_X = CPU->flag_C = (uint32_t)src >> (%d - sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
+        wf_op("\t\tres = (uint32_t)src << sft;\n");
         wf_op("\t\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
         wf_op("\t\tCPU->flag_notZ = res & 0x%.8X;\n", current_bits_mask);
 
@@ -2710,21 +2710,21 @@ static void GenASLk()
             wf_op("\t\telse\n");
             }
         wf_op("\t\t{\n");
-            wf_op("\t\t\tu32 msk = (((s32)0x80000000) >> (sft + %d)) & 0x%.8X;\n", 31 - current_sft_mask, current_bits_mask);
+            wf_op("\t\t\tuint32_t msk = (((int32_t)0x80000000) >> (sft + %d)) & 0x%.8X;\n", 31 - current_sft_mask, current_bits_mask);
             wf_op("\t\t\tsrc &= msk;\n");
             wf_op("\t\t\tif ((src) && (src != msk)) CPU->flag_V = C68K_SR_V;\n");
         wf_op("\t\t}\n");
-        
+
     if (current_size == SIZE_BYTE)
     {
         quick_terminate_op(6);
         wf_op("\t}\n");
         wf_op("\n");
-    
+
         // special case of shift == size op (sft = 8 for byte operation)
         wf_op("\tif (src) CPU->flag_V = C68K_SR_V;\n");
         wf_op("\telse CPU->flag_V = 0;\n");
-        wf_op("\tCPU->flag_X = CPU->flag_C = (u32)src << C68K_SR_C_SFT;\n");
+        wf_op("\tCPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;\n");
 
         // write
         wf_op("\tres = 0;\n");
@@ -2734,13 +2734,13 @@ static void GenASLk()
         wf_op("\tCPU->flag_N = 0;\n");
         wf_op("\tCPU->flag_notZ = 0;\n");
     }
-    
+
     terminate_op(6);
 }
 
 static void GenLSLk()
 {
-    u32 base;
+    uint32_t base;
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -2752,7 +2752,7 @@ static void GenLSLk()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = (((Opcode >> 9) - 1) & 7) + 1;\n");
     adds_CCnt("sft * 2");
@@ -2764,9 +2764,9 @@ static void GenLSLk()
     // op & flag calculation
     wf_op("\tCPU->flag_V = 0;\n");
     if (((current_sft_mask + 1) - C68K_SR_C_SFT) < 8)
-        wf_op("\tCPU->flag_X = CPU->flag_C = (u32)src << (%d + sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
-    else wf_op("\tCPU->flag_X = CPU->flag_C = (u32)src >> (%d - sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
-    wf_op("\tres = (u32)src << sft;\n");
+        wf_op("\tCPU->flag_X = CPU->flag_C = (uint32_t)src << (%d + sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
+    else wf_op("\tCPU->flag_X = CPU->flag_C = (uint32_t)src >> (%d - sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
+    wf_op("\tres = (uint32_t)src << sft;\n");
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     wf_op("\tCPU->flag_notZ = res & 0x%.8X;\n", current_bits_mask);
 
@@ -2778,7 +2778,7 @@ static void GenLSLk()
 
 static void GenROXLk()
 {
-    u32 base;
+    uint32_t base;
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -2790,7 +2790,7 @@ static void GenROXLk()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = (((Opcode >> 9) - 1) & 7) + 1;\n");
     adds_CCnt("sft * 2");
@@ -2803,14 +2803,14 @@ static void GenROXLk()
     if (current_size != SIZE_LONG)
     {
         wf_op("\tsrc |= (CPU->flag_X & C68K_SR_X) << %d;\n", (current_sft_mask + 1) - C68K_SR_X_SFT);
-        wf_op("\tres = ((u32)src << sft) | ((u32)src >> (%d - sft));\n", current_sft_mask + 2);
+        wf_op("\tres = ((uint32_t)src << sft) | ((uint32_t)src >> (%d - sft));\n", current_sft_mask + 2);
         wf_op("\tCPU->flag_X = CPU->flag_C = res >> %d;\n", (current_sft_mask + 1) - C68K_SR_X_SFT);
     }
     else
     {
-        wf_op("\tCPU->flag_C = (u32)src >> ((32 - C68K_SR_C_SFT) - sft);\n");
-        wf_op("\tif (sft == 1) res = ((u32)src << 1) | ((CPU->flag_X & C68K_SR_X) >> ((C68K_SR_X_SFT + 1) - 1));\n");
-        wf_op("\telse res = ((u32)src << sft) | ((u32)src >> (33 - sft)) | ((CPU->flag_X & C68K_SR_X) >> ((C68K_SR_X_SFT + 1) - sft));\n");
+        wf_op("\tCPU->flag_C = (uint32_t)src >> ((32 - C68K_SR_C_SFT) - sft);\n");
+        wf_op("\tif (sft == 1) res = ((uint32_t)src << 1) | ((CPU->flag_X & C68K_SR_X) >> ((C68K_SR_X_SFT + 1) - 1));\n");
+        wf_op("\telse res = ((uint32_t)src << sft) | ((uint32_t)src >> (33 - sft)) | ((CPU->flag_X & C68K_SR_X) >> ((C68K_SR_X_SFT + 1) - sft));\n");
         wf_op("\tCPU->flag_X = CPU->flag_C;\n");
     }
 
@@ -2828,7 +2828,7 @@ static void GenROXLk()
 
 static void GenROLk()
 {
-    u32 base;
+    uint32_t base;
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -2840,7 +2840,7 @@ static void GenROLk()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = (((Opcode >> 9) - 1) & 7) + 1;\n");
     adds_CCnt("sft * 2");
@@ -2852,9 +2852,9 @@ static void GenROLk()
     // op & flag calculation
     wf_op("\tCPU->flag_V = 0;\n");
     if (((current_sft_mask + 1) - C68K_SR_C_SFT) < 8)
-        wf_op("\tCPU->flag_C = (u32)src << (%d + sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
-    else wf_op("\tCPU->flag_C = (u32)src >> (%d - sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
-    wf_op("\tres = ((u32)src << sft) | ((u32)src >> (%d - sft));\n", current_sft_mask + 1);
+        wf_op("\tCPU->flag_C = (uint32_t)src << (%d + sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
+    else wf_op("\tCPU->flag_C = (uint32_t)src >> (%d - sft);\n", current_sft_mask + 1 - C68K_SR_C_SFT);
+    wf_op("\tres = ((uint32_t)src << sft) | ((uint32_t)src >> (%d - sft));\n", current_sft_mask + 1);
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     if (current_size == SIZE_LONG) wf_op("\tCPU->flag_notZ = res;\n");
     else wf_op("\tCPU->flag_notZ = res & 0x%.8X;\n", current_bits_mask);
@@ -2867,7 +2867,7 @@ static void GenROLk()
 
 static void GenASRD()
 {
-//    u32 base = get_current_opcode_base();
+//    uint32_t base = get_current_opcode_base();
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -2875,7 +2875,7 @@ static void GenASRD()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = CPU->D[(Opcode >> %d) & 7] & 0x3F;\n", current_op->reg2_sft);
 
@@ -2886,21 +2886,21 @@ static void GenASRD()
     // if (shift != 0)
     wf_op("\tif (sft)\n");
     wf_op("\t{\n");
-    
+
         adds_CCnt("sft * 2");
-        
+
         // if (shift < size op)
         wf_op("\t\tif (sft < %d)\n", current_sft_mask + 1);
         wf_op("\t\t{\n");
 
             // op & flag calculation
             wf_op("\t\t\tCPU->flag_V = 0;\n");
-            if (current_size == SIZE_BYTE) wf_op("\t\t\tCPU->flag_X = CPU->flag_C = (u32)src << ((C68K_SR_C_SFT + 1) - sft);\n");
-            else wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((u32)src >> (sft - 1)) << C68K_SR_C_SFT;\n");
-            wf_op("\t\t\tres = ((s32)src) >> sft;\n", szcs);
+            if (current_size == SIZE_BYTE) wf_op("\t\t\tCPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);\n");
+            else wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((uint32_t)src >> (sft - 1)) << C68K_SR_C_SFT;\n");
+            wf_op("\t\t\tres = ((int32_t)src) >> sft;\n", szcs);
             wf_op("\t\t\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
             wf_op("\t\t\tCPU->flag_notZ = res;\n");
-            
+
             // write
             _ea_write(current_ea, current_op->reg_sft);
 
@@ -2909,11 +2909,11 @@ static void GenASRD()
         wf_op("\n");
 
         // special case of shift >= size op
-        
+
         // if signed
         wf_op("\t\tif (src & (1 << %d))\n", current_sft_mask);
         wf_op("\t\t{\n");
-        
+
             // op & flag calculation
             wf_op("\t\t\tCPU->flag_N = C68K_SR_N;\n");
             wf_op("\t\t\tCPU->flag_notZ = 1;\n");
@@ -2924,7 +2924,7 @@ static void GenASRD()
 
             // write
             _ea_write(current_ea, current_op->reg_sft);
-            
+
             quick_terminate_op(6);
         wf_op("\t\t}\n");
         wf_op("\n");
@@ -2947,15 +2947,15 @@ static void GenASRD()
     // special case of (shift == 0)
     wf_op("\tCPU->flag_V = 0;\n");
     wf_op("\tCPU->flag_C = 0;\n");
-    wf_op("\tCPU->flag_N = (u32)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
-    wf_op("\tCPU->flag_notZ = (u32)src;\n");
+    wf_op("\tCPU->flag_N = (uint32_t)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
+    wf_op("\tCPU->flag_notZ = (uint32_t)src;\n");
 
     terminate_op(6);
 }
 
 static void GenLSRD()
 {
-//    u32 base = get_current_opcode_base();
+//    uint32_t base = get_current_opcode_base();
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -2963,7 +2963,7 @@ static void GenLSRD()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = CPU->D[(Opcode >> %d) & 7] & 0x3F;\n", current_op->reg2_sft);
 
@@ -2984,9 +2984,9 @@ static void GenLSRD()
 
             // op & flag calculation
             wf_op("\t\t\tCPU->flag_N = CPU->flag_V = 0;\n");
-            if (current_size == SIZE_BYTE) wf_op("\t\t\tCPU->flag_X = CPU->flag_C = (u32)src << ((C68K_SR_C_SFT + 1) - sft);\n");
-            else wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((u32)src >> (sft - 1)) << C68K_SR_C_SFT;\n");
-            wf_op("\t\t\tres = (u32)src >> sft;\n", szcs);
+            if (current_size == SIZE_BYTE) wf_op("\t\t\tCPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);\n");
+            else wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((uint32_t)src >> (sft - 1)) << C68K_SR_C_SFT;\n");
+            wf_op("\t\t\tres = (uint32_t)src >> sft;\n", szcs);
             wf_op("\t\t\tCPU->flag_notZ = res;\n");
 
             // write
@@ -2999,7 +2999,7 @@ static void GenLSRD()
         // special case of shift > size op
         if (current_size == SIZE_LONG)
         {
-            wf_op("\t\tif (sft == 32) CPU->flag_C = (u32)src >> (31 - C68K_SR_C_SFT);\n");
+            wf_op("\t\tif (sft == 32) CPU->flag_C = (uint32_t)src >> (31 - C68K_SR_C_SFT);\n");
             wf_op("\t\telse CPU->flag_C = 0;\n");
             wf_op("\t\tCPU->flag_X = CPU->flag_C;\n");
         }
@@ -3019,15 +3019,15 @@ static void GenLSRD()
     // special case of (shift == 0)
     wf_op("\tCPU->flag_V = 0;\n");
     wf_op("\tCPU->flag_C = 0;\n");
-    wf_op("\tCPU->flag_N = (u32)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
-    wf_op("\tCPU->flag_notZ = (u32)src;\n");
+    wf_op("\tCPU->flag_N = (uint32_t)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
+    wf_op("\tCPU->flag_notZ = (uint32_t)src;\n");
 
     terminate_op(6);
 }
 
 static void GenROXRD()
 {
-//    u32 base = get_current_opcode_base();
+//    uint32_t base = get_current_opcode_base();
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -3035,7 +3035,7 @@ static void GenROXRD()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = CPU->D[(Opcode >> %d) & 7] & 0x3F;\n", current_op->reg2_sft);
 
@@ -3056,18 +3056,18 @@ static void GenROXRD()
         if (current_size != SIZE_LONG)
         {
             wf_op("\t\tsrc |= (CPU->flag_X & C68K_SR_X) << %d;\n", (current_sft_mask + 1) - C68K_SR_X_SFT);
-            wf_op("\t\tres = ((u32)src >> sft) | ((u32)src << (%d - sft));\n", current_sft_mask + 2);
+            wf_op("\t\tres = ((uint32_t)src >> sft) | ((uint32_t)src << (%d - sft));\n", current_sft_mask + 2);
             wf_op("\t\tCPU->flag_X = CPU->flag_C = res >> %d;\n", (current_sft_mask + 1) - C68K_SR_X_SFT);
         }
         else
         {
             wf_op("\t\tif (sft != 0)\n");
             wf_op("\t\t{\n");
-            wf_op("\t\t\tif (sft == 1) res = ((u32)src >> 1) | ((CPU->flag_X & C68K_SR_X) << (32 - (C68K_SR_X_SFT + 1)));\n");
-            wf_op("\t\t\telse res = ((u32)src >> sft) | ((u32)src << (33 - sft)) | (((CPU->flag_X & C68K_SR_X) << (32 - (C68K_SR_X_SFT + 1))) >> (sft - 1));\n");
-            wf_op("\t\t\tCPU->flag_X = ((u32)src >> (32 - sft)) << C68K_SR_X_SFT;\n");
+            wf_op("\t\t\tif (sft == 1) res = ((uint32_t)src >> 1) | ((CPU->flag_X & C68K_SR_X) << (32 - (C68K_SR_X_SFT + 1)));\n");
+            wf_op("\t\t\telse res = ((uint32_t)src >> sft) | ((uint32_t)src << (33 - sft)) | (((CPU->flag_X & C68K_SR_X) << (32 - (C68K_SR_X_SFT + 1))) >> (sft - 1));\n");
+            wf_op("\t\t\tCPU->flag_X = ((uint32_t)src >> (32 - sft)) << C68K_SR_X_SFT;\n");
             wf_op("\t\t}\n");
-            wf_op("\t\telse res = (u32)src;\n");
+            wf_op("\t\telse res = (uint32_t)src;\n");
             wf_op("\t\tCPU->flag_C = CPU->flag_X;\n");
         }
 
@@ -3087,15 +3087,15 @@ static void GenROXRD()
     // special case of (shift == 0)
     wf_op("\tCPU->flag_V = 0;\n");
     wf_op("\tCPU->flag_C = CPU->flag_X;\n");
-    wf_op("\tCPU->flag_N = (u32)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
-    wf_op("\tCPU->flag_notZ = (u32)src;\n");
+    wf_op("\tCPU->flag_N = (uint32_t)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
+    wf_op("\tCPU->flag_notZ = (uint32_t)src;\n");
 
     terminate_op(6);
 }
 
 static void GenRORD()
 {
-//    u32 base = get_current_opcode_base();
+//    uint32_t base = get_current_opcode_base();
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -3103,7 +3103,7 @@ static void GenRORD()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = CPU->D[(Opcode >> %d) & 7] & 0x3F;\n", current_op->reg2_sft);
 
@@ -3122,10 +3122,10 @@ static void GenRORD()
 
         // op & flag calculation
         if (current_size == SIZE_BYTE)
-            wf_op("\t\tCPU->flag_C = (u32)src << (C68K_SR_C_SFT - ((sft - 1) & 7));\n");
+            wf_op("\t\tCPU->flag_C = (uint32_t)src << (C68K_SR_C_SFT - ((sft - 1) & 7));\n");
         else
-            wf_op("\t\tCPU->flag_C = ((u32)src >> ((sft - 1) & %d)) << C68K_SR_C_SFT;\n", current_sft_mask);
-        wf_op("\t\tres = ((u32)src >> sft) | ((u32)src << (%d - sft));\n", current_sft_mask + 1);
+            wf_op("\t\tCPU->flag_C = ((uint32_t)src >> ((sft - 1) & %d)) << C68K_SR_C_SFT;\n", current_sft_mask);
+        wf_op("\t\tres = ((uint32_t)src >> sft) | ((uint32_t)src << (%d - sft));\n", current_sft_mask + 1);
         wf_op("\t\tCPU->flag_V = 0;\n");
         wf_op("\t\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
         if (current_size == SIZE_LONG) wf_op("\t\tCPU->flag_notZ = res;\n");
@@ -3141,15 +3141,15 @@ static void GenRORD()
     // special case of (shift == 0)
     wf_op("\tCPU->flag_V = 0;\n");
     wf_op("\tCPU->flag_C = 0;\n");
-    wf_op("\tCPU->flag_N = (u32)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
-    wf_op("\tCPU->flag_notZ = (u32)src;\n");
+    wf_op("\tCPU->flag_N = (uint32_t)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
+    wf_op("\tCPU->flag_notZ = (uint32_t)src;\n");
 
     terminate_op(6);
 }
 
 static void GenASLD()
 {
-//    u32 base = get_current_opcode_base();
+//    uint32_t base = get_current_opcode_base();
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -3157,7 +3157,7 @@ static void GenASLD()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = CPU->D[(Opcode >> %d) & 7] & 0x3F;\n", current_op->reg2_sft);
 
@@ -3178,24 +3178,24 @@ static void GenASLD()
             // op & flag calculation
             if (current_size != SIZE_LONG)
             {
-                wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((u32)src << sft) >> %d;\n", (current_sft_mask + 1) - C68K_SR_C_SFT);
-                wf_op("\t\t\tres = ((u32)src << sft) & 0x%.8X;\n", current_bits_mask);
+                wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((uint32_t)src << sft) >> %d;\n", (current_sft_mask + 1) - C68K_SR_C_SFT);
+                wf_op("\t\t\tres = ((uint32_t)src << sft) & 0x%.8X;\n", current_bits_mask);
             }
             else
             {
-                wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((u32)src >> (32 - sft)) << C68K_SR_C_SFT;\n");
-                wf_op("\t\t\tres = (u32)(src << sft);\n");
+                wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((uint32_t)src >> (32 - sft)) << C68K_SR_C_SFT;\n");
+                wf_op("\t\t\tres = (uint32_t)(src << sft);\n");
             }
             wf_op("\t\t\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
             wf_op("\t\t\tCPU->flag_notZ = res;\n", current_bits_mask);
 
             // write
             _ea_write(current_ea, current_op->reg_sft);
-            
+
             // we do V flag calculation at end for a better register usage
             wf_op("\t\t\tCPU->flag_V = 0;\n");
             wf_op("\t\t\t{\n");
-                wf_op("\t\t\t\tu32 msk = (((s32)0x80000000) >> (sft + %d)) & 0x%.8X;\n", 31 - current_sft_mask, current_bits_mask);
+                wf_op("\t\t\t\tuint32_t msk = (((int32_t)0x80000000) >> (sft + %d)) & 0x%.8X;\n", 31 - current_sft_mask, current_bits_mask);
                 wf_op("\t\t\t\tsrc &= msk;\n");
                 wf_op("\t\t\t\tif ((src) && (src != msk)) CPU->flag_V = C68K_SR_V;\n");
             wf_op("\t\t\t}\n");
@@ -3205,16 +3205,16 @@ static void GenASLD()
         wf_op("\n");
 
         // special case of shift >= size op
-        wf_op("\t\tif (sft == %d) CPU->flag_C = (u32)src << C68K_SR_C_SFT;\n", current_bits_mask + 1);
+        wf_op("\t\tif (sft == %d) CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;\n", current_bits_mask + 1);
         wf_op("\t\telse CPU->flag_C = 0;\n");
         wf_op("\t\tCPU->flag_X = CPU->flag_C;\n");
         wf_op("\t\tif (src) CPU->flag_V = C68K_SR_V;\n");
         wf_op("\t\telse CPU->flag_V = 0;\n");
-        
+
         wf_op("\t\tres = 0;\n");
         // write
         _ea_write(current_ea, current_op->reg_sft);
-        
+
         // others flags
         wf_op("\t\tCPU->flag_N = 0;\n");
         wf_op("\t\tCPU->flag_notZ = 0;\n");
@@ -3226,15 +3226,15 @@ static void GenASLD()
     // special case of (shift == 0)
     wf_op("\tCPU->flag_V = 0;\n");
     wf_op("\tCPU->flag_C = 0;\n");
-    wf_op("\tCPU->flag_N = (u32)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
-    wf_op("\tCPU->flag_notZ = (u32)src;\n");
+    wf_op("\tCPU->flag_N = (uint32_t)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
+    wf_op("\tCPU->flag_notZ = (uint32_t)src;\n");
 
     terminate_op(6);
 }
 
 static void GenLSLD()
 {
-//    u32 base = get_current_opcode_base();
+//    uint32_t base = get_current_opcode_base();
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -3242,7 +3242,7 @@ static void GenLSLD()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = CPU->D[(Opcode >> %d) & 7] & 0x3F;\n", current_op->reg2_sft);
 
@@ -3264,13 +3264,13 @@ static void GenLSLD()
             // op & flag calculation
             if (current_size != SIZE_LONG)
             {
-                wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((u32)src << sft) >> %d;\n", (current_sft_mask + 1) - C68K_SR_C_SFT);
+                wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((uint32_t)src << sft) >> %d;\n", (current_sft_mask + 1) - C68K_SR_C_SFT);
                 wf_op("\t\t\tres = (src << sft) & 0x%.8X;\n", current_bits_mask);
             }
             else
             {
-                wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((u32)src >> (32 - sft)) << C68K_SR_C_SFT;\n");
-                wf_op("\t\t\tres = (u32)(src << sft);\n");
+                wf_op("\t\t\tCPU->flag_X = CPU->flag_C = ((uint32_t)src >> (32 - sft)) << C68K_SR_C_SFT;\n");
+                wf_op("\t\t\tres = (uint32_t)(src << sft);\n");
             }
             wf_op("\t\t\tCPU->flag_V = 0;\n");
             wf_op("\t\t\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
@@ -3286,7 +3286,7 @@ static void GenLSLD()
         // special case of shift > size op
         if (current_size == SIZE_LONG)
         {
-            wf_op("\t\tif (sft == 32) CPU->flag_C = (u32)src << C68K_SR_C_SFT;\n");
+            wf_op("\t\tif (sft == 32) CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;\n");
             wf_op("\t\telse CPU->flag_C = 0;\n");
             wf_op("\t\tCPU->flag_X = CPU->flag_C;\n");
         }
@@ -3306,15 +3306,15 @@ static void GenLSLD()
     // special case of (shift == 0)
     wf_op("\tCPU->flag_V = 0;\n");
     wf_op("\tCPU->flag_C = 0;\n");
-    wf_op("\tCPU->flag_N = (u32)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
-    wf_op("\tCPU->flag_notZ = (u32)src;\n");
+    wf_op("\tCPU->flag_N = (uint32_t)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
+    wf_op("\tCPU->flag_notZ = (uint32_t)src;\n");
 
     terminate_op(6);
 }
 
 static void GenROXLD()
 {
-//    u32 base = get_current_opcode_base();
+//    uint32_t base = get_current_opcode_base();
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -3322,7 +3322,7 @@ static void GenROXLD()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = CPU->D[(Opcode >> %d) & 7] & 0x3F;\n", current_op->reg2_sft);
 
@@ -3338,23 +3338,23 @@ static void GenROXLD()
 
         wf_op("\t\tsft %%= %d;\n", current_sft_mask + 2);
         wf_op("\n");
-        
+
         // op & C/X flags calculation
         if (current_size != SIZE_LONG)
         {
             wf_op("\t\tsrc |= (CPU->flag_X & C68K_SR_X) << %d;\n", (current_sft_mask + 1) - C68K_SR_X_SFT);
-            wf_op("\t\tres = ((u32)src << sft) | ((u32)src >> (%d - sft));\n", current_sft_mask + 2);
+            wf_op("\t\tres = ((uint32_t)src << sft) | ((uint32_t)src >> (%d - sft));\n", current_sft_mask + 2);
             wf_op("\t\tCPU->flag_X = CPU->flag_C = res >> %d;\n", (current_sft_mask + 1) - C68K_SR_X_SFT);
         }
         else
         {
             wf_op("\t\tif (sft != 0)\n");
             wf_op("\t\t{\n");
-            wf_op("\t\t\tif (sft == 1) res = ((u32)src << 1) | ((CPU->flag_X >> ((C68K_SR_X_SFT + 1) - 1)) & 1);\n");
-            wf_op("\t\t\telse res = ((u32)src << sft) | ((u32)src >> (33 - sft)) | (((CPU->flag_X >> ((C68K_SR_X_SFT + 1) - 1)) & 1) << (sft - 1));\n");
-            wf_op("\t\t\tCPU->flag_X = ((u32)src >> (32 - sft)) << C68K_SR_X_SFT;\n");
+            wf_op("\t\t\tif (sft == 1) res = ((uint32_t)src << 1) | ((CPU->flag_X >> ((C68K_SR_X_SFT + 1) - 1)) & 1);\n");
+            wf_op("\t\t\telse res = ((uint32_t)src << sft) | ((uint32_t)src >> (33 - sft)) | (((CPU->flag_X >> ((C68K_SR_X_SFT + 1) - 1)) & 1) << (sft - 1));\n");
+            wf_op("\t\t\tCPU->flag_X = ((uint32_t)src >> (32 - sft)) << C68K_SR_X_SFT;\n");
             wf_op("\t\t}\n");
-            wf_op("\t\telse res = (u32)src;\n");
+            wf_op("\t\telse res = (uint32_t)src;\n");
             wf_op("\t\tCPU->flag_C = CPU->flag_X;\n");
         }
 
@@ -3374,15 +3374,15 @@ static void GenROXLD()
     // special case of (shift == 0)
     wf_op("\tCPU->flag_V = 0;\n");
     wf_op("\tCPU->flag_C = CPU->flag_X;\n");
-    wf_op("\tCPU->flag_N = (u32)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
-    wf_op("\tCPU->flag_notZ = (u32)src;\n");
+    wf_op("\tCPU->flag_N = (uint32_t)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
+    wf_op("\tCPU->flag_notZ = (uint32_t)src;\n");
 
     terminate_op(6);
 }
 
 static void GenROLD()
 {
-//    u32 base = get_current_opcode_base();
+//    uint32_t base = get_current_opcode_base();
 
     current_ea = EA_DREG;               // dst = Dx
 
@@ -3390,7 +3390,7 @@ static void GenROLD()
 
     if (current_size == SIZE_LONG) current_cycle += 2;
 
-    wf_op("\tu32 sft;\n");
+    wf_op("\tuint32_t sft;\n");
     wf_op("\n");
     wf_op("\tsft = CPU->D[(Opcode >> %d) & 7] & 0x3F;\n", current_op->reg2_sft);
 
@@ -3411,13 +3411,13 @@ static void GenROLD()
             // op & flag calculation
             if (current_size != SIZE_LONG)
             {
-                wf_op("\t\t\tCPU->flag_C = (u32)((src << sft) >> %d);\n", (current_sft_mask + 1) - C68K_SR_C_SFT);
-                wf_op("\t\t\tres = (u32)(((src << sft) | (src >> (%d - sft))) & 0x%.8X);\n", current_sft_mask + 1, current_bits_mask);
+                wf_op("\t\t\tCPU->flag_C = (uint32_t)((src << sft) >> %d);\n", (current_sft_mask + 1) - C68K_SR_C_SFT);
+                wf_op("\t\t\tres = (uint32_t)(((src << sft) | (src >> (%d - sft))) & 0x%.8X);\n", current_sft_mask + 1, current_bits_mask);
             }
             else
             {
-                wf_op("\t\t\tCPU->flag_C = (u32)((src >> (32 - sft)) << C68K_SR_C_SFT);\n");
-                wf_op("\t\t\tres = (u32)((src << sft) | (src >> (%d - sft)));\n", current_sft_mask + 1);
+                wf_op("\t\t\tCPU->flag_C = (uint32_t)((src >> (32 - sft)) << C68K_SR_C_SFT);\n");
+                wf_op("\t\t\tres = (uint32_t)((src << sft) | (src >> (%d - sft)));\n", current_sft_mask + 1);
             }
             wf_op("\t\t\tCPU->flag_V = 0;\n");
             wf_op("\t\t\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
@@ -3432,9 +3432,9 @@ static void GenROLD()
 
         // special case of ((shift & size op) == 0)
         wf_op("\t\tCPU->flag_V = 0;\n");
-        wf_op("\t\tCPU->flag_C = (u32)(src << C68K_SR_C_SFT);\n");
-        wf_op("\t\tCPU->flag_N = (u32)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
-        wf_op("\t\tCPU->flag_notZ = (u32)src;\n");
+        wf_op("\t\tCPU->flag_C = (uint32_t)(src << C68K_SR_C_SFT);\n");
+        wf_op("\t\tCPU->flag_N = (uint32_t)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
+        wf_op("\t\tCPU->flag_notZ = (uint32_t)src;\n");
 
         quick_terminate_op(6);
     wf_op("\t}\n");
@@ -3443,8 +3443,8 @@ static void GenROLD()
     // special case of (shift == 0)
     wf_op("\tCPU->flag_V = 0;\n");
     wf_op("\tCPU->flag_C = 0;\n");
-    wf_op("\tCPU->flag_N = (u32)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
-    wf_op("\tCPU->flag_notZ = (u32)src;\n");
+    wf_op("\tCPU->flag_N = (uint32_t)src >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
+    wf_op("\tCPU->flag_notZ = (uint32_t)src;\n");
 
     terminate_op(6);
 }
@@ -3460,11 +3460,11 @@ static void GenASR()
 
     // op & flag calculation
     wf_op("\tCPU->flag_V = 0;\n");
-    wf_op("\tCPU->flag_X = CPU->flag_C = (u32)src << C68K_SR_C_SFT;\n");
-    wf_op("\tres = ((u32)src >> 1) | ((u32)src & (1 << %d));\n", current_sft_mask);
+    wf_op("\tCPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;\n");
+    wf_op("\tres = ((uint32_t)src >> 1) | ((uint32_t)src & (1 << %d));\n", current_sft_mask);
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     wf_op("\tCPU->flag_notZ = res;\n");
-    
+
     // write
     _ea_write(current_ea, current_op->reg_sft);
 
@@ -3482,8 +3482,8 @@ static void GenLSR()
 
     // op & flag calculation
     wf_op("\tCPU->flag_N = CPU->flag_V = 0;\n");
-    wf_op("\tCPU->flag_X = CPU->flag_C = (u32)src << C68K_SR_C_SFT;\n");
-    wf_op("\tres = (u32)(src >> 1);\n");
+    wf_op("\tCPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;\n");
+    wf_op("\tres = (uint32_t)(src >> 1);\n");
     wf_op("\tCPU->flag_notZ = res;\n");
 
     // write
@@ -3503,8 +3503,8 @@ static void GenROXR()
 
     // op & flag calculation
     wf_op("\tCPU->flag_V = 0;\n");
-    wf_op("\tres = ((u32)src >> 1) | ((CPU->flag_X & C68K_SR_X) << %d);\n", current_sft_mask - C68K_SR_X_SFT);
-    wf_op("\tCPU->flag_C = CPU->flag_X = (u32)(src << C68K_SR_C_SFT);\n");
+    wf_op("\tres = ((uint32_t)src >> 1) | ((CPU->flag_X & C68K_SR_X) << %d);\n", current_sft_mask - C68K_SR_X_SFT);
+    wf_op("\tCPU->flag_C = CPU->flag_X = (uint32_t)(src << C68K_SR_C_SFT);\n");
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     wf_op("\tCPU->flag_notZ = res;\n");
 
@@ -3525,8 +3525,8 @@ static void GenROR()
 
     // op & flag calculation
     wf_op("\tCPU->flag_V = 0;\n");
-    wf_op("\tCPU->flag_C = (u32)(src << C68K_SR_C_SFT);\n");
-    wf_op("\tres = ((u32)src >> 1) | ((u32)src << %d);\n", current_sft_mask);
+    wf_op("\tCPU->flag_C = (uint32_t)(src << C68K_SR_C_SFT);\n");
+    wf_op("\tres = ((uint32_t)src >> 1) | ((uint32_t)src << %d);\n", current_sft_mask);
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     wf_op("\tCPU->flag_notZ = res & 0x%.8X;\n", current_bits_mask);
 
@@ -3546,9 +3546,9 @@ static void GenASL()
     _ea_read_src(current_ea, current_op->reg_sft);
 
     // op & flag calculation
-    wf_op("\tCPU->flag_X = CPU->flag_C = (u32)(src >> %d);\n", current_sft_mask - C68K_SR_C_SFT);
-    wf_op("\tres = (u32)(src << 1);\n");
-    wf_op("\tCPU->flag_V = ((u32)src ^ res) >> %d;\n", current_sft_mask - C68K_SR_V_SFT);
+    wf_op("\tCPU->flag_X = CPU->flag_C = (uint32_t)(src >> %d);\n", current_sft_mask - C68K_SR_C_SFT);
+    wf_op("\tres = (uint32_t)(src << 1);\n");
+    wf_op("\tCPU->flag_V = ((uint32_t)src ^ res) >> %d;\n", current_sft_mask - C68K_SR_V_SFT);
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     wf_op("\tCPU->flag_notZ = res & 0x%.8X;\n", current_bits_mask);
 
@@ -3569,8 +3569,8 @@ static void GenLSL()
 
     // op & flag calculation
     wf_op("\tCPU->flag_V = 0;\n");
-    wf_op("\tCPU->flag_X = CPU->flag_C = (u32)(src >> %d);\n", current_sft_mask - C68K_SR_C_SFT);
-    wf_op("\tres = (u32)(src << 1);\n");
+    wf_op("\tCPU->flag_X = CPU->flag_C = (uint32_t)(src >> %d);\n", current_sft_mask - C68K_SR_C_SFT);
+    wf_op("\tres = (uint32_t)(src << 1);\n");
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     wf_op("\tCPU->flag_notZ = res & 0x%.8X;\n", current_bits_mask);
 
@@ -3591,8 +3591,8 @@ static void GenROXL()
 
     // op & flag calculation
     wf_op("\tCPU->flag_V = 0;\n");
-    wf_op("\tres = (u32)(src << 1) | ((CPU->flag_X & C68K_SR_X) >> %d);\n", C68K_SR_X_SFT);
-    wf_op("\tCPU->flag_X = CPU->flag_C = (u32)(src >> %d);\n", current_sft_mask - C68K_SR_C_SFT);
+    wf_op("\tres = (uint32_t)(src << 1) | ((CPU->flag_X & C68K_SR_X) >> %d);\n", C68K_SR_X_SFT);
+    wf_op("\tCPU->flag_X = CPU->flag_C = (uint32_t)(src >> %d);\n", current_sft_mask - C68K_SR_C_SFT);
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     wf_op("\tCPU->flag_notZ = res & 0x%.8X;\n", current_bits_mask);
 
@@ -3613,8 +3613,8 @@ static void GenROL()
 
     // op & flag calculation
     wf_op("\tCPU->flag_V = 0;\n");
-    wf_op("\tCPU->flag_C = (u32)(src >> %d);\n", current_sft_mask - C68K_SR_C_SFT);
-    wf_op("\tres = ((u32)src << 1) | ((u32)src >> %d);\n", current_sft_mask);
+    wf_op("\tCPU->flag_C = (uint32_t)(src >> %d);\n", current_sft_mask - C68K_SR_C_SFT);
+    wf_op("\tres = ((uint32_t)src << 1) | ((uint32_t)src >> %d);\n", current_sft_mask);
     wf_op("\tCPU->flag_N = res >> %d;\n", current_sft_mask - C68K_SR_N_SFT);
     wf_op("\tCPU->flag_notZ = res & 0x%.8X;\n", current_bits_mask);
 
@@ -3626,7 +3626,7 @@ static void GenROL()
 
 static void Gen1010()
 {
-    u32 base;
+    uint32_t base;
     base = get_current_opcode_base();
 
     // generate jump table
@@ -3641,7 +3641,7 @@ static void Gen1010()
 
 static void Gen1111()
 {
-    u32 base;
+    uint32_t base;
     base = get_current_opcode_base();
 
     // generate jump table
@@ -3717,15 +3717,15 @@ static void Gen0xFAC3()
 /////////////////
 int main(void)
 {
-    u32 i;
-    u32 s;
-    u32 smax;
-    
+    uint32_t i;
+    uint32_t s;
+    uint32_t smax;
+
     // clear opcode files
     for(i = 0; i < 0x10; i++)
     {
         char fn[16];
-        
+
         sprintf(fn, "c68k_op%.1X.inc", (int)i);
         opcode_file = fopen(fn, "wt");
         if (opcode_file != NULL)
@@ -3756,7 +3756,7 @@ int main(void)
         smax = SIZE_LONG;
         if (current_op->size_type == 0) smax = 0;
         else if (current_op->size_type == 1) current_size = 1;
-        
+
         for(s = current_size; s <= smax; s++)
         {
             if (current_op->eam_sft != -1)
@@ -3766,7 +3766,7 @@ int main(void)
                     if (!has_ea(current_ea)) continue;
                     current_eam = _ea_to_eamreg(current_ea) >> 3;
                     current_reg = _ea_to_eamreg(current_ea) & 7;
-                    
+
                     if (op_info_table[i].eam2_sft != -1)
                     {
                         for(current_ea2 = 0; current_ea2 <= EA_ADEC7; current_ea2++)
@@ -3774,7 +3774,7 @@ int main(void)
                             if (!has_ea2(current_ea2)) continue;
                             current_eam2 = _ea_to_eamreg(current_ea2) >> 3;
                             current_reg2 = _ea_to_eamreg(current_ea2) & 7;
-                            
+
                             set_current_size(s);
                             current_op->genfunc();
                         }
@@ -3802,11 +3802,11 @@ int main(void)
     {
         fprintf(ini_file, "\tstatic const void *JumpTable[0x10000] =\n");
         fprintf(ini_file, "\t{\n");
-        
+
         for(i = 0; i < (0x10000 - 4); i += 4)
             fprintf(ini_file, "\t\t&&OP_0x%.4X, &&OP_0x%.4X, &&OP_0x%.4X, &&OP_0x%.4X,\n", op_jump_table[i + 0], op_jump_table[i + 1], op_jump_table[i + 2], op_jump_table[i + 3]);
         fprintf(ini_file, "\t\t&&OP_0x%.4X, &&OP_0x%.4X, &&OP_0x%.4X, &&OP_0x%.4X\n", op_jump_table[0xFFFC], op_jump_table[0xFFFD], op_jump_table[0xFFFE], op_jump_table[0xFFFF]);
-        
+
         fprintf(ini_file, "\t};\n\n");
     }
 #endif
@@ -3815,6 +3815,6 @@ int main(void)
     if (ini_file != NULL) fclose(ini_file);
     if (opcode_file != NULL) fclose(opcode_file);
 
-	return 0;
+    return 0;
 }
 #endif

@@ -423,7 +423,7 @@ static c68k_op_info_struc op_info_table[OP_INFO_TABLE_LEN] =
 
 #ifndef C68K_NO_JUMP_TABLE
 #ifdef C68K_CONST_JUMP_TABLE
-static u16 op_jump_table[0x10000];
+static uint16_t op_jump_table[0x10000];
 #endif
 #endif
 
@@ -433,25 +433,25 @@ static FILE* opcode_file = NULL;
 
 // current generated instruction infos
 static c68k_op_info_struc *current_op;
-static u32 current_ea;
-static u32 current_eam;
-static u32 current_reg;
-static u32 current_ea2;
-static u32 current_eam2;
-static u32 current_reg2;
-static u32 current_size;
-static u32 current_cycle;
-static u32 current_io_sav;
+static uint32_t current_ea;
+static uint32_t current_eam;
+static uint32_t current_reg;
+static uint32_t current_ea2;
+static uint32_t current_eam2;
+static uint32_t current_reg2;
+static uint32_t current_size;
+static uint32_t current_cycle;
+static uint32_t current_io_sav;
 
 static char current_cond_char[128];
 
 static char szc[20];
 static char szcs[20];
-static char szcf[20];
-static char szcsf[20];
+static char szcf[25];
+static char szcsf[24];
 
-static u32  current_bits_mask;
-static u8   current_sft_mask;
+static uint32_t  current_bits_mask;
+static uint8_t   current_sft_mask;
 
 #define	EA_DREG         0
 #define	EA_AREG         1
@@ -469,7 +469,7 @@ static u8   current_sft_mask;
 #define	EA_ADEC7	    13
 #define	EA_ILLEGAL      15
 
-static const u32 jmp_jsr_cycle_table[16] =
+static const uint32_t jmp_jsr_cycle_table[16] =
 {
     0, 0,
     4,
@@ -484,7 +484,7 @@ static const u32 jmp_jsr_cycle_table[16] =
     0, 0, 0, 0
 };
 
-static const u32 lea_pea_cycle_table[16] =
+static const uint32_t lea_pea_cycle_table[16] =
 {
     0, 0,
     0,
@@ -499,7 +499,7 @@ static const u32 lea_pea_cycle_table[16] =
     0, 0, 0, 0
 };
 
-static const u32 movem_cycle_table[16] =
+static const uint32_t movem_cycle_table[16] =
 {
     0, 0,
     0,
@@ -517,7 +517,7 @@ static const u32 movem_cycle_table[16] =
 // general emitter function
 ////////////////////////////
 
-static u32 prepare_generate(void)
+static uint32_t prepare_generate(void)
 {
     char filename[32];
 
@@ -527,33 +527,33 @@ static u32 prepare_generate(void)
         fclose(opcode_file);
         opcode_file = NULL;
     }
-	opcode_file = fopen(filename, "at");
-	if (opcode_file == NULL)
-	{
-	    printf("Can't open %s\n", filename);
-	    return 1;
-	}
-	return 0;
+    opcode_file = fopen(filename, "at");
+    if (opcode_file == NULL)
+    {
+        printf("Can't open %s\n", filename);
+        return 1;
+    }
+    return 0;
 }
 
 static void wf_op(char* fmt, ...)
 {
-	va_list args;
+    va_list args;
 
     if (opcode_file == NULL) return;
 
-	va_start(args, fmt);
-	vfprintf(opcode_file, fmt, args);
-	va_end(args);
+    va_start(args, fmt);
+    vfprintf(opcode_file, fmt, args);
+    va_end(args);
 }
 
-static void gen_jumptable(u32 base, u32 start1, u32 end1, u32 step1, u32 start2, u32 end2, u32 step2, u32 start3, u32 end3, u32 step3, u32 op)
+static void gen_jumptable(uint32_t base, uint32_t start1, uint32_t end1, uint32_t step1, uint32_t start2, uint32_t end2, uint32_t step2, uint32_t start3, uint32_t end3, uint32_t step3, uint32_t op)
 {
 #ifdef C68K_CONST_JUMP_TABLE
-    u32 i, j, k;
+    uint32_t i, j, k;
 #endif
 #ifdef C68K_NO_JUMP_TABLE
-    u32 i, j, k;
+    uint32_t i, j, k;
 #endif
 
 
@@ -578,17 +578,17 @@ static void gen_jumptable(u32 base, u32 start1, u32 end1, u32 step1, u32 start2,
         for(j = start2; j <= end2; j += step2)
             for(k = start3; k <= end3; k += step3)
                 op_jump_table[base + i + j + k] = op;
-                
+
 #else
     if (ini_file == NULL) return;
 
     if (start1 != end1)
     {
         fprintf(ini_file, "\t\tfor(i = 0x%.4X; i <= 0x%.4X; i += 0x%.4X)\n", (int)start1, (int)end1, (int)step1);
-    	if (start2 != end2)
+        if (start2 != end2)
         {
             fprintf(ini_file, "\t\t\tfor(j = 0x%.4X; j <= 0x%.4X; j += 0x%.4X)\n\t", (int)start2, (int)end2, (int)step2);
-        	if (start3 != end3)
+            if (start3 != end3)
             {
                 fprintf(ini_file, "\t\t\t\tfor(k = 0x%.4X; k <= 0x%.4X; k += 0x%.4X)\n\t", (int)start3, (int)end3, (int)step3);
                 fprintf(ini_file, "\t\t\t\t\tJumpTable[0x%.4X + i + j + k] = &&OP_0x%.4X;\n", (int)base, (int)op);
@@ -608,16 +608,16 @@ static void gen_jumptable(u32 base, u32 start1, u32 end1, u32 step1, u32 start2,
         for(j = start2; j <= end2; j += step2)
             for(k = start3; k <= end3; k += step3)
             {
-                u32 temp=(base + i + j + k);
+                uint32_t temp=(base + i + j + k);
                 if (temp != op && temp != 0x4E57 && temp != 0x4E5F)
                    wf_op("case 0x%.4X:\n", base + i + j + k);
-            }    
+            }
 #endif
 }
 
-static void gen_opjumptable_ext(u32 base, u32 start3, u32 end3, u32 step3, u32 op)
+static void gen_opjumptable_ext(uint32_t base, uint32_t start3, uint32_t end3, uint32_t step3, uint32_t op)
 {
-    u32 start1, end1, step1, start2, end2, step2;
+    uint32_t start1, end1, step1, start2, end2, step2;
 
     start1 = end1 = step1 = 0;
     start2 = end2 = step2 = 0;
@@ -644,7 +644,7 @@ static void gen_opjumptable_ext(u32 base, u32 start3, u32 end3, u32 step3, u32 o
     else gen_jumptable(base, start3, end3, step3, start2, end2, step2, start1, end1, step1, op);
 }
 
-static void gen_opjumptable(u32 op)
+static void gen_opjumptable(uint32_t op)
 {
     gen_opjumptable_ext(op, 0, 0, 0, op);
 }
@@ -655,25 +655,32 @@ static void gen_opjumptable(u32 op)
 #define GEN_DST 8
 #define GEN_ALL 15
 
-static void start_op(u32 op, int v)
+static void start_op(uint32_t op, int v)
 {
     current_io_sav = 0;
     current_cycle = 0;
 
-    wf_op("\n// %s\n", current_op->op_name);
+    wf_op("\n/* %s */\n", current_op->op_name);
 #ifndef C68K_NO_JUMP_TABLE
     wf_op("OP_0x%.4X:\n", op & 0xFFFF);
 #else
     wf_op("case 0x%.4X:\n", op & 0xFFFF);
 #endif
     wf_op("{\n");
-    if (v & GEN_ADR) wf_op("\tu32 adr;\n");
-    if (v & GEN_RES) wf_op("\tu32 res;\n");
-    if (v & GEN_DST) wf_op("\tpointer dst;\n");
-    if (v & GEN_SRC) wf_op("\tpointer src;\n");
+    if (v & GEN_ADR) wf_op("\tuint32_t adr;\n");
+    if (v & GEN_RES) wf_op("\tuint32_t res;\n");
+    if (v & GEN_DST) wf_op("\tuintptr_t dst;\n");
+    if (v & GEN_SRC) wf_op("\tuintptr_t src;\n");
+#ifdef X68000_PATCH
+    /* x68000 patch to fix Code Zero crashing on intro.
+     * seems to affect only this specific opcode */
+    if ((op & 0xFFFF) == 0x9008)
+        wf_op("	RET(4)\n");
+#endif
+
 }
 
-static void add_CCnt(u32 cycle)
+static void add_CCnt(uint32_t cycle)
 {
     if (current_io_sav) wf_op("\tPOST_IO\n");
     current_io_sav = 0;
@@ -688,7 +695,7 @@ static void adds_CCnt(char *str)
 }
 
 #if 0  // FIXME: warning removal
-static void sub_CCnt(u32 cycle)
+static void sub_CCnt(uint32_t cycle)
 {
     if (current_io_sav) wf_op("\tPOST_IO\n");
     current_io_sav = 0;
@@ -702,7 +709,7 @@ static void subs_CCnt(char *str)
     wf_op("\tCCnt += %s;\n", str);
 }
 
-static void quick_fterminate_op(u32 cycle)
+static void quick_fterminate_op(uint32_t cycle)
 {
     if (current_io_sav) wf_op("\tPOST_IO\n");
     current_io_sav = 0;
@@ -711,7 +718,7 @@ static void quick_fterminate_op(u32 cycle)
 }
 #endif
 
-static void fterminate_op(u32 cycle)
+static void fterminate_op(uint32_t cycle)
 {
     wf_op("}\n");
     if (current_io_sav) wf_op("POST_IO\n");
@@ -720,14 +727,14 @@ static void fterminate_op(u32 cycle)
     wf_op("goto C68k_Exec_End;\n");
 }
 
-static void quick_terminate_op(u32 cycle)
+static void quick_terminate_op(uint32_t cycle)
 {
     if (current_io_sav) wf_op("\tPOST_IO\n");
     current_io_sav = 0;
     wf_op("\tRET(%d)\n", current_cycle + cycle);
 }
 
-static void terminate_op(u32 cycle)
+static void terminate_op(uint32_t cycle)
 {
     if (current_io_sav) wf_op("\tPOST_IO\n");
     wf_op("}\n");
@@ -743,15 +750,15 @@ static void do_pre_io(void)
 
 static void mem_op(char* fmt, ...)
 {
-	va_list args;
+    va_list args;
 
     if (opcode_file == NULL) return;
 
     do_pre_io();
 
-	va_start(args, fmt);
-	vfprintf(opcode_file, fmt, args);
-	va_end(args);
+    va_start(args, fmt);
+    vfprintf(opcode_file, fmt, args);
+    va_end(args);
 }
 
 // flag emitter function
@@ -766,16 +773,16 @@ static void set_logic_flag(void)
     {
         case SIZE_BYTE:
             wf_op("\tCPU->flag_N = res;\n");
-        	break;
+            break;
 
         case SIZE_WORD:
             wf_op("\tCPU->flag_N = res >> 8;\n");
-        	break;
+            break;
 
         case SIZE_LONG:
             wf_op("\tCPU->flag_N = res >> 24;\n");
-        	break;
-	}
+            break;
+    }
 }
 
 static void set_logicl_flag(void)
@@ -787,18 +794,18 @@ static void set_logicl_flag(void)
         case SIZE_BYTE:
             wf_op("\tCPU->flag_N = res;\n");
             wf_op("\tCPU->flag_notZ = res & 0xFF;\n");
-        	break;
+            break;
 
         case SIZE_WORD:
             wf_op("\tCPU->flag_notZ = res & 0xFFFF;\n");
             wf_op("\tCPU->flag_N = res >> 8;\n");
-        	break;
+            break;
 
         case SIZE_LONG:
             wf_op("\tCPU->flag_notZ = res;\n");
             wf_op("\tCPU->flag_N = res >> 24;\n");
-        	break;
-	}
+            break;
+    }
 }
 
 static void set_add_flag(void)
@@ -806,25 +813,25 @@ static void set_add_flag(void)
     switch(current_size)
     {
         case SIZE_BYTE:
-        	wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res;\n");
-        	wf_op("\tCPU->flag_V = (u32)((src ^ res) & (dst ^ res));\n");
+            wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res;\n");
+            wf_op("\tCPU->flag_V = (uint32_t)((src ^ res) & (dst ^ res));\n");
             wf_op("\tCPU->flag_notZ = res & 0xFF;\n");
-        	break;
+            break;
 
         case SIZE_WORD:
-        	wf_op("\tCPU->flag_V = (u32)((src ^ res) & (dst ^ res)) >> 8;\n");
-        	wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res >> 8;\n");
+            wf_op("\tCPU->flag_V = (uint32_t)((src ^ res) & (dst ^ res)) >> 8;\n");
+            wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res >> 8;\n");
             wf_op("\tCPU->flag_notZ = res & 0xFFFF;\n");
-        	break;
+            break;
 
         case SIZE_LONG:
             wf_op("\tCPU->flag_notZ = res;\n");
-	        wf_op("\tCPU->flag_X = CPU->flag_C = (((u32)src & (u32)dst & 1) + ((u32)src >> 1) + ((u32)dst >> 1)) >> 23;\n");
+            wf_op("\tCPU->flag_X = CPU->flag_C = (((uint32_t)src & (uint32_t)dst & 1) + ((uint32_t)src >> 1) + ((uint32_t)dst >> 1)) >> 23;\n");
 //            wf_op("\tCPU->flag_X = CPU->flag_C = ((src & dst) | (~res & (src | dst))) >> 23;\n");
-        	wf_op("\tCPU->flag_V = (((u32)src ^ res) & ((u32)dst ^ res)) >> 24;\n");
+            wf_op("\tCPU->flag_V = (((uint32_t)src ^ res) & ((uint32_t)dst ^ res)) >> 24;\n");
             wf_op("\tCPU->flag_N = res >> 24;\n");
-        	break;
-	}
+            break;
+    }
 }
 
 static void set_addx_flag(void)
@@ -832,26 +839,32 @@ static void set_addx_flag(void)
     switch(current_size)
     {
         case SIZE_BYTE:
-        	wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res;\n");
-        	wf_op("\tCPU->flag_V = (u32)((src ^ res) & (dst ^ res));\n");
+            wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res;\n");
+            wf_op("\tCPU->flag_V = (uint32_t)((src ^ res) & (dst ^ res));\n");
             wf_op("\tCPU->flag_notZ |= res & 0xFF;\n");
-        	break;
+            break;
 
         case SIZE_WORD:
-        	wf_op("\tCPU->flag_V = (u32)((src ^ res) & (dst ^ res)) >> 8;\n");
-        	wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res >> 8;\n");
+            wf_op("\tCPU->flag_V = (uint32_t)((src ^ res) & (dst ^ res)) >> 8;\n");
+            wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res >> 8;\n");
             wf_op("\tCPU->flag_notZ |= res & 0xFFFF;\n");
-        	break;
+            break;
 
         case SIZE_LONG:
             wf_op("\tCPU->flag_notZ |= res;\n");
-//	        wf_op("\tCPU->flag_X = CPU->flag_C = (((u32)src & dst & 1) + ((u32)src >> 1) + ((u32)dst >> 1)) >> 23;\n"); //ORIGIN
-	        wf_op("\tCPU->flag_X = CPU->flag_C = (((((u32)src & 1) + ((u32)dst & 1) + (((CPU->flag_X >> 8) & 1) & 1)) >> 1) + ((u32)src >> 1) + ((u32)dst >> 1)) >> 23;\n");
+#ifdef X68000_PATCH
+            /* Patch to fix Hellhound freeze ingame */
+            wf_op("\tCPU->flag_X = CPU->flag_C = (((((uint32_t)src & 1) + ((uint32_t)dst & 1) + (((CPU->flag_X >> 8) & 1) & 1)) >> 1) + ((uint32_t)src >> 1) + ((uint32_t)dst >> 1)) >> 23;\n");
+#else
+            wf_op("\tCPU->flag_X = CPU->flag_C = (((uint32_t)src & dst & 1) + ((uint32_t)src >> 1) + ((uint32_t)dst >> 1)) >> 23;\n");
+#endif
+#if 0
 //            wf_op("\tCPU->flag_X = CPU->flag_C = ((src & dst) | (~res & (src | dst))) >> 23;\n");
-        	wf_op("\tCPU->flag_V = (((u32)src ^ res) & ((u32)dst ^ res)) >> 24;\n");
+#endif
+            wf_op("\tCPU->flag_V = (((uint32_t)src ^ res) & ((uint32_t)dst ^ res)) >> 24;\n");
             wf_op("\tCPU->flag_N = res >> 24;\n");
-        	break;
-	}
+            break;
+    }
 }
 
 static void set_sub_flag(void)
@@ -859,25 +872,25 @@ static void set_sub_flag(void)
     switch(current_size)
     {
         case SIZE_BYTE:
-        	wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res;\n");
-        	wf_op("\tCPU->flag_V = ((u32)src ^ (u32)dst) & (res ^ (u32)dst);\n");
+            wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res;\n");
+            wf_op("\tCPU->flag_V = ((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst);\n");
             wf_op("\tCPU->flag_notZ = res & 0xFF;\n");
-        	break;
+            break;
 
         case SIZE_WORD:
-        	wf_op("\tCPU->flag_V = (((u32)src ^ (u32)dst) & (res ^ (u32)dst)) >> 8;\n");
-        	wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res >> 8;\n");
+            wf_op("\tCPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 8;\n");
+            wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res >> 8;\n");
             wf_op("\tCPU->flag_notZ = res & 0xFFFF;\n");
-        	break;
+            break;
 
         case SIZE_LONG:
             wf_op("\tCPU->flag_notZ = res;\n");
-	        wf_op("\tCPU->flag_X = CPU->flag_C = (((u32)src & res & 1) + ((u32)src >> 1) + (res >> 1)) >> 23;\n");
+            wf_op("\tCPU->flag_X = CPU->flag_C = (((uint32_t)src & res & 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;\n");
 //            wf_op("\tCPU->flag_X = CPU->flag_C = ((src & res) | (~dst & (src | res))) >> 23;\n");
-        	wf_op("\tCPU->flag_V = (((u32)src ^ (u32)dst) & (res ^ (u32)dst)) >> 24;\n");
+            wf_op("\tCPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 24;\n");
             wf_op("\tCPU->flag_N = res >> 24;\n");
-        	break;
-	}
+            break;
+    }
 }
 
 static void set_subx_flag(void)
@@ -885,26 +898,32 @@ static void set_subx_flag(void)
     switch(current_size)
     {
         case SIZE_BYTE:
-        	wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res;\n");
-        	wf_op("\tCPU->flag_V = ((u32)src ^ (u32)dst) & (res ^ (u32)dst);\n");
+            wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res;\n");
+            wf_op("\tCPU->flag_V = ((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst);\n");
             wf_op("\tCPU->flag_notZ |= res & 0xFF;\n");
-        	break;
+            break;
 
         case SIZE_WORD:
-        	wf_op("\tCPU->flag_V = (((u32)src ^ (u32)dst) & (res ^ (u32)dst)) >> 8;\n");
-        	wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res >> 8;\n");
+            wf_op("\tCPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 8;\n");
+            wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res >> 8;\n");
             wf_op("\tCPU->flag_notZ |= res & 0xFFFF;\n");
-        	break;
+            break;
 
         case SIZE_LONG:
             wf_op("\tCPU->flag_notZ |= res;\n");
-//	        wf_op("\tCPU->flag_X = CPU->flag_C = (((u32)src & res & 1) + ((u32)src >> 1) + (res >> 1)) >> 23;\n"); //ORIGIN
-	        wf_op("\tCPU->flag_X = CPU->flag_C = (((((u32)src & 1) + (res & 1) + (((CPU->flag_X >> 8) & 1) & 1)) >> 1) + ((u32)src >> 1) + (res >> 1)) >> 23;\n");
+#ifdef X68000_PATCH
+            /* Patch to fix Hellhound freeze ingame */
+            wf_op("\tCPU->flag_X = CPU->flag_C = (((((uint32_t)src & 1) + (res & 1) + (((CPU->flag_X >> 8) & 1) & 1)) >> 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;\n");
+#else
+            wf_op("\tCPU->flag_X = CPU->flag_C = (((uint32_t)src & res & 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;\n");
+#endif
+#if 0
 //            wf_op("\tCPU->flag_X = CPU->flag_C = ((src & res) | (~dst & (src | res))) >> 23;\n");
-        	wf_op("\tCPU->flag_V = (((u32)src ^ (u32)dst) & (res ^ (u32)dst)) >> 24;\n");
+#endif
+            wf_op("\tCPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 24;\n");
             wf_op("\tCPU->flag_N = res >> 24;\n");
-        	break;
-	}
+            break;
+    }
 }
 
 static void set_cmp_flag(void)
@@ -912,25 +931,25 @@ static void set_cmp_flag(void)
     switch(current_size)
     {
         case SIZE_BYTE:
-        	wf_op("\tCPU->flag_N = CPU->flag_C = res;\n");
-        	wf_op("\tCPU->flag_V = ((u32)src ^ (u32)dst) & (res ^ (u32)dst);\n");
+            wf_op("\tCPU->flag_N = CPU->flag_C = res;\n");
+            wf_op("\tCPU->flag_V = ((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst);\n");
             wf_op("\tCPU->flag_notZ = res & 0xFF;\n");
-        	break;
+            break;
 
         case SIZE_WORD:
-        	wf_op("\tCPU->flag_V = (((u32)src ^ (u32)dst) & (res ^ (u32)dst)) >> 8;\n");
-        	wf_op("\tCPU->flag_N = CPU->flag_C = res >> 8;\n");
+            wf_op("\tCPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 8;\n");
+            wf_op("\tCPU->flag_N = CPU->flag_C = res >> 8;\n");
             wf_op("\tCPU->flag_notZ = res & 0xFFFF;\n");
-        	break;
+            break;
 
         case SIZE_LONG:
             wf_op("\tCPU->flag_notZ = res;\n");
-	        wf_op("\tCPU->flag_C = (((u32)src & res & 1) + ((u32)src >> 1) + (res >> 1)) >> 23;\n");
+            wf_op("\tCPU->flag_C = (((uint32_t)src & res & 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;\n");
 //            wf_op("\tCPU->flag_C = ((src & res) | (~dst & (src | res))) >> 23;\n");
-        	wf_op("\tCPU->flag_V = (((u32)src ^ (u32)dst) & (res ^ (u32)dst)) >> 24;\n");
+            wf_op("\tCPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 24;\n");
             wf_op("\tCPU->flag_N = res >> 24;\n");
-        	break;
-	}
+            break;
+    }
 }
 
 static void set_negx_flag(void)
@@ -938,25 +957,25 @@ static void set_negx_flag(void)
     switch(current_size)
     {
         case SIZE_BYTE:
-            wf_op("\tCPU->flag_V = res & (u32)src;\n");
+            wf_op("\tCPU->flag_V = res & (uint32_t)src;\n");
             wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res;\n");
             wf_op("\tCPU->flag_notZ |= res & 0xFF;\n");
-        	break;
+            break;
 
         case SIZE_WORD:
-            wf_op("\tCPU->flag_V = (res & (u32)src) >> 8;\n");
+            wf_op("\tCPU->flag_V = (res & (uint32_t)src) >> 8;\n");
             wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res >> 8;\n");
             wf_op("\tCPU->flag_notZ |= res & 0xFFFF;\n");
-        	break;
+            break;
 
         case SIZE_LONG:
             wf_op("\tCPU->flag_notZ |= res;\n");
-            wf_op("\tCPU->flag_V = (res & (u32)src) >> 24;\n");
-	        wf_op("\tCPU->flag_X = CPU->flag_C = (((u32)src & res & 1) + ((u32)src >> 1) + (res >> 1)) >> 23;\n");
-//            wf_op("\tCPU->flag_X = CPU->flag_C = (((u32)src & res) | (~(u32)dst & ((u32)src | res))) >> 23;\n");
+            wf_op("\tCPU->flag_V = (res & (uint32_t)src) >> 24;\n");
+            wf_op("\tCPU->flag_X = CPU->flag_C = (((uint32_t)src & res & 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;\n");
+//            wf_op("\tCPU->flag_X = CPU->flag_C = (((uint32_t)src & res) | (~(uint32_t)dst & ((uint32_t)src | res))) >> 23;\n");
             wf_op("\tCPU->flag_N = res >> 24;\n");
-        	break;
-	}
+            break;
+    }
 }
 
 static void set_neg_flag(void)
@@ -964,28 +983,28 @@ static void set_neg_flag(void)
     switch(current_size)
     {
         case SIZE_BYTE:
-            wf_op("\tCPU->flag_V = res & (u32)src;\n");
+            wf_op("\tCPU->flag_V = res & (uint32_t)src;\n");
             wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res;\n");
             wf_op("\tCPU->flag_notZ = res & 0xFF;\n");
-        	break;
+            break;
 
         case SIZE_WORD:
-            wf_op("\tCPU->flag_V = (res & (u32)src) >> 8;\n");
+            wf_op("\tCPU->flag_V = (res & (uint32_t)src) >> 8;\n");
             wf_op("\tCPU->flag_N = CPU->flag_X = CPU->flag_C = res >> 8;\n");
             wf_op("\tCPU->flag_notZ = res & 0xFFFF;\n");
-        	break;
+            break;
 
         case SIZE_LONG:
             wf_op("\tCPU->flag_notZ = res;\n");
-            wf_op("\tCPU->flag_V = (res & (u32)src) >> 24;\n");
-	        wf_op("\tCPU->flag_X = CPU->flag_C = (((u32)src & res & 1) + ((u32)src >> 1) + (res >> 1)) >> 23;\n");
+            wf_op("\tCPU->flag_V = (res & (uint32_t)src) >> 24;\n");
+            wf_op("\tCPU->flag_X = CPU->flag_C = (((uint32_t)src & res & 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;\n");
 //            wf_op("\tCPU->flag_X = CPU->flag_C = ((src & res) | (~dst & (src | res))) >> 23;\n");
             wf_op("\tCPU->flag_N = res >> 24;\n");
-        	break;
-	}
+            break;
+    }
 }
 
-static char* get_cond_as_cond(u32 cond, u32 notvar)
+static char* get_cond_as_cond(uint32_t cond, uint32_t notvar)
 {
     if (notvar) cond ^= 1;
 
@@ -1062,7 +1081,7 @@ static char* get_cond_as_cond(u32 cond, u32 notvar)
 // effective address related function
 //////////////////////////////////////
 
-static u32 has_ea(u32 ea)
+static uint32_t has_ea(uint32_t ea)
 {
     if (ea == EA_AINC7) return (current_op->ea_supported[EA_AINC] == 'o');
     if (ea == EA_ADEC7) return (current_op->ea_supported[EA_ADEC] == 'o');
@@ -1070,7 +1089,7 @@ static u32 has_ea(u32 ea)
     return 0;
 }
 
-static u32 has_ea2(u32 ea)
+static uint32_t has_ea2(uint32_t ea)
 {
     if (ea == EA_AINC7) return (current_op->ea2_supported[EA_AINC] == 'o');
     if (ea == EA_ADEC7) return (current_op->ea2_supported[EA_ADEC] == 'o');
@@ -1079,35 +1098,35 @@ static u32 has_ea2(u32 ea)
 }
 
 #if 0  // FIXME: warning removal
-static u32 _eamreg_to_ea(u32 eam, u32 reg)
+static uint32_t _eamreg_to_ea(uint32_t eam, uint32_t reg)
 {
     if ((eam > 7) || (reg > 7)) return EA_ILLEGAL;
-	if ((eam == 3) && (reg == 7)) return EA_AINC7;
-	if ((eam == 4) && (reg == 7)) return EA_ADEC7;
-	if (eam != 7) return eam;
-	if (reg < 5) return (eam + reg);
-	return EA_ILLEGAL;
+    if ((eam == 3) && (reg == 7)) return EA_AINC7;
+    if ((eam == 4) && (reg == 7)) return EA_ADEC7;
+    if (eam != 7) return eam;
+    if (reg < 5) return (eam + reg);
+    return EA_ILLEGAL;
 }
 #endif
 
-static u32 _ea_to_eamreg(u32 ea)
+static uint32_t _ea_to_eamreg(uint32_t ea)
 {
     if (ea < 7) return (ea << 3) | 0;
     if (ea == EA_AINC7) return (EA_AINC << 3) | 7;
     if (ea == EA_ADEC7) return (EA_ADEC << 3) | 7;
     if (ea <= EA_IMM) return (7 << 3) | (ea - 7);
-	return (7 << 3) | 7;
+    return (7 << 3) | 7;
 }
 
-static u32 is_ea_memory(u32 ea)
+static uint32_t is_ea_memory(uint32_t ea)
 {
     if ((ea > EA_AREG) && (ea != EA_IMM)) return 1;
     else return 0;
 }
 
-static void _ea_calc_free(u32 ea, u32 rsft)
+static void _ea_calc_free(uint32_t ea, uint32_t rsft)
 {
-	u32 step;
+    uint32_t step;
 
     step = 0;
     switch (current_size)
@@ -1126,79 +1145,79 @@ static void _ea_calc_free(u32 ea, u32 rsft)
             break;
     }
 
-  	switch (ea)
-	{
-		case EA_DREG:
-//            wf_op("\tadr = (u32)(&CPU->D[(Opcode >> %d) & 7]);\n", rsft);
-			break;
+    switch (ea)
+    {
+        case EA_DREG:
+//            wf_op("\tadr = (uint32_t)(&CPU->D[(Opcode >> %d) & 7]);\n", rsft);
+            break;
 
-		case EA_AREG:
-//            wf_op("\tadr = (u32)(&CPU->A[(Opcode >> %d) & 7]);\n", rsft);
-			break;
+        case EA_AREG:
+//            wf_op("\tadr = (uint32_t)(&CPU->A[(Opcode >> %d) & 7]);\n", rsft);
+            break;
 
-		case EA_AIND:
+        case EA_AIND:
             wf_op("\tadr = CPU->A[(Opcode >> %d) & 7];\n", rsft);
-			break;
+            break;
 
-		case EA_AINC:
+        case EA_AINC:
             wf_op("\tadr = CPU->A[(Opcode >> %d) & 7];\n", rsft);
             wf_op("\tCPU->A[(Opcode >> %d) & 7] += %d;\n", rsft, step);
-			break;
+            break;
 
-		case EA_AINC7:
+        case EA_AINC7:
             wf_op("\tadr = CPU->A[7];\n");
             wf_op("\tCPU->A[7] += %d;\n", step);
-			break;
+            break;
 
-		case EA_ADEC:
+        case EA_ADEC:
             wf_op("\tadr = CPU->A[(Opcode >> %d) & 7] - %d;\n", rsft, step);
             wf_op("\tCPU->A[(Opcode >> %d) & 7] = adr;\n", rsft);
-			break;
+            break;
 
-		case EA_ADEC7:
+        case EA_ADEC7:
             wf_op("\tadr = CPU->A[7] - %d;\n", step);
             wf_op("\tCPU->A[7] = adr;\n");
-			break;
+            break;
 
-		case EA_D16A:
-            wf_op("\tadr = CPU->A[(Opcode >> %d) & 7] + (s32)(s16)FETCH_WORD;\n", rsft);
+        case EA_D16A:
+            wf_op("\tadr = CPU->A[(Opcode >> %d) & 7] + (int32_t)(int16_t)FETCH_WORD;\n", rsft);
             wf_op("\tPC += 2;\n");
-			break;
+            break;
 
-		case EA_D8AX:
+        case EA_D8AX:
             wf_op("\tadr = CPU->A[(Opcode >> %d) & 7];\n", rsft);
             wf_op("\tDECODE_EXT_WORD\n");
-			break;
+            break;
 
-		case EA_A16:
-            wf_op("\tadr = (s32)(s16)FETCH_WORD;\n");
+        case EA_A16:
+            wf_op("\tadr = (int32_t)(int16_t)FETCH_WORD;\n");
             wf_op("\tPC += 2;\n");
-			break;
+            break;
 
-		case EA_A32:
-            wf_op("\tadr = (s32)FETCH_LONG;\n");
+        case EA_A32:
+            wf_op("\tadr = (int32_t)FETCH_LONG;\n");
             wf_op("\tPC += 4;\n");
-			break;
+            break;
 
-		case EA_D16P:
-            wf_op("\tadr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;\n");
+        case EA_D16P:
+            wf_op("\tadr = (uint32_t)(PC - CPU->BasePC) + (int32_t)(int16_t)FETCH_WORD;\n");
             wf_op("\tPC += 2;\n");
-			break;
+            break;
 
-		case EA_D8PX:
-            wf_op("\tadr = (u32)(PC - CPU->BasePC);\n");
+        case EA_D8PX:
+            wf_op("\tadr = (uint32_t)(PC - CPU->BasePC);\n");
             wf_op("\tDECODE_EXT_WORD\n");
-			break;
-	}
+            break;
+    }
 }
 
-static void _ea_calc(u32 ea, u32 rsft)
+static void _ea_calc(uint32_t ea, uint32_t rsft)
 {
-	u32 step;
-	u32 cycle_sft;
+    uint32_t step;
+    uint32_t cycle_sft;
 
     step = 0;
-  	cycle_sft = 0;
+    cycle_sft = 0;
     switch (current_size)
     {
         case SIZE_BYTE:
@@ -1211,95 +1230,95 @@ static void _ea_calc(u32 ea, u32 rsft)
             break;
 
         case SIZE_LONG:
-        	cycle_sft = 1;
+            cycle_sft = 1;
             step = 4;
             break;
     }
 
-  	switch (ea)
-	{
-		case EA_DREG:
-//            wf_op("\tadr = (u32)(&CPU->D[(Opcode >> %d) & 7]);\n", rsft);
-			break;
+    switch (ea)
+    {
+        case EA_DREG:
+//            wf_op("\tadr = (uint32_t)(&CPU->D[(Opcode >> %d) & 7]);\n", rsft);
+            break;
 
-		case EA_AREG:
-//            wf_op("\tadr = (u32)(&CPU->A[(Opcode >> %d) & 7]);\n", rsft);
-			break;
+        case EA_AREG:
+//            wf_op("\tadr = (uint32_t)(&CPU->A[(Opcode >> %d) & 7]);\n", rsft);
+            break;
 
-		case EA_IMM:
+        case EA_IMM:
             current_cycle += (4 << cycle_sft) + 0;
             break;
 
-		case EA_AIND:
+        case EA_AIND:
             current_cycle += (4 << cycle_sft) + 0;
             wf_op("\tadr = CPU->A[(Opcode >> %d) & 7];\n", rsft);
-			break;
+            break;
 
-		case EA_AINC:
+        case EA_AINC:
             current_cycle += (4 << cycle_sft) + 0;
             wf_op("\tadr = CPU->A[(Opcode >> %d) & 7];\n", rsft);
             wf_op("\tCPU->A[(Opcode >> %d) & 7] += %d;\n", rsft, step);
-			break;
+            break;
 
-		case EA_AINC7:
+        case EA_AINC7:
             current_cycle += (4 << cycle_sft) + 0;
             wf_op("\tadr = CPU->A[7];\n");
             wf_op("\tCPU->A[7] += %d;\n", step);
-			break;
+            break;
 
-		case EA_ADEC:
+        case EA_ADEC:
             current_cycle += (4 << cycle_sft) + 2;
             wf_op("\tadr = CPU->A[(Opcode >> %d) & 7] - %d;\n", rsft, step);
             wf_op("\tCPU->A[(Opcode >> %d) & 7] = adr;\n", rsft);
-			break;
+            break;
 
-		case EA_ADEC7:
+        case EA_ADEC7:
             current_cycle += (4 << cycle_sft) + 2;
             wf_op("\tadr = CPU->A[7] - %d;\n", step);
             wf_op("\tCPU->A[7] = adr;\n");
-			break;
+            break;
 
-		case EA_D16A:
+        case EA_D16A:
             current_cycle += (4 << cycle_sft) + 4;
-            wf_op("\tadr = CPU->A[(Opcode >> %d) & 7] + (s32)(s16)FETCH_WORD;\n", rsft);
+            wf_op("\tadr = CPU->A[(Opcode >> %d) & 7] + (int32_t)(int16_t)FETCH_WORD;\n", rsft);
             wf_op("\tPC += 2;\n");
-			break;
+            break;
 
-		case EA_D8AX:
+        case EA_D8AX:
             current_cycle += (4 << cycle_sft) + 6;
             wf_op("\tadr = CPU->A[(Opcode >> %d) & 7];\n", rsft);
             wf_op("\tDECODE_EXT_WORD\n");
-			break;
+            break;
 
-		case EA_A16:
+        case EA_A16:
             current_cycle += (4 << cycle_sft) + 4;
-            wf_op("\tadr = (s32)(s16)FETCH_WORD;\n");
+            wf_op("\tadr = (int32_t)(int16_t)FETCH_WORD;\n");
             wf_op("\tPC += 2;\n");
-			break;
+            break;
 
-		case EA_A32:
+        case EA_A32:
             current_cycle += (4 << cycle_sft) + 8;
-            wf_op("\tadr = (s32)FETCH_LONG;\n");
+            wf_op("\tadr = (int32_t)FETCH_LONG;\n");
             wf_op("\tPC += 4;\n");
-			break;
+            break;
 
-		case EA_D16P:
+        case EA_D16P:
             current_cycle += (4 << cycle_sft) + 4;
-            wf_op("\tadr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;\n");
+            wf_op("\tadr = (uint32_t)(PC - CPU->BasePC) + (int32_t)(int16_t)FETCH_WORD;\n");
             wf_op("\tPC += 2;\n");
-			break;
+            break;
 
-		case EA_D8PX:
+        case EA_D8PX:
             current_cycle += (4 << cycle_sft) + 6;
-            wf_op("\tadr = (u32)(PC - CPU->BasePC);\n");
+            wf_op("\tadr = (uint32_t)(PC - CPU->BasePC);\n");
             wf_op("\tDECODE_EXT_WORD\n");
-			break;
-	}
+            break;
+    }
 }
 
-static void _ea_read_(u32 ea, u32 rsft, char dest[4])
+static void _ea_read_(uint32_t ea, uint32_t rsft, char dest[4])
 {
-	char sz[8];
+    char sz[8];
 
     switch (current_size)
     {
@@ -1316,43 +1335,43 @@ static void _ea_read_(u32 ea, u32 rsft, char dest[4])
             break;
     }
 
-	switch (ea)
-	{
-		case EA_DREG:
+    switch (ea)
+    {
+        case EA_DREG:
             wf_op("\t%s = (%s)CPU->D[(Opcode >> %d) & 7];\n", dest, szc, rsft);
-			break;
+            break;
 
-		case EA_AREG:
+        case EA_AREG:
             if (current_size == SIZE_BYTE)
             {
-                wf_op("\t// can't read byte from Ax registers !\n");
+                wf_op("\t/* can't read byte from Ax registers ! */\n");
                 wf_op("\tCPU->Status |= C68K_FAULTED;\n");
                 wf_op("\tCCnt = 0;\n");
                 wf_op("\tgoto C68k_Exec_Really_End;\n");
             }
             else wf_op("\t%s = (%s)CPU->A[(Opcode >> %d) & 7];\n", dest, szc, rsft);
-			break;
+            break;
 /*
-		case EA_DREG:
-		case EA_AREG:
+        case EA_DREG:
+        case EA_AREG:
             wf_op("\t%s = %s(adr);\n", dest, szcf);
             break;
 */
-		case EA_A32:
-		case EA_D8AX:
-		case EA_D8PX:
-		case EA_D16A:
-		case EA_D16P:
-		case EA_A16:
-		case EA_ADEC:
-		case EA_ADEC7:
-		case EA_AIND:
-		case EA_AINC:
-		case EA_AINC7:
+        case EA_A32:
+        case EA_D8AX:
+        case EA_D8PX:
+        case EA_D16A:
+        case EA_D16P:
+        case EA_A16:
+        case EA_ADEC:
+        case EA_ADEC7:
+        case EA_AIND:
+        case EA_AINC:
+        case EA_AINC7:
             mem_op("\tREAD_%s_F(adr, %s)\n", sz, dest);
-			break;
+            break;
 
-		case EA_IMM:
+        case EA_IMM:
             switch (current_size)
             {
                 case SIZE_BYTE:
@@ -1370,28 +1389,28 @@ static void _ea_read_(u32 ea, u32 rsft, char dest[4])
                     wf_op("\tPC += 4;\n");
                     break;
             }
-			break;
-	}
+            break;
+    }
 }
 
-static void _ea_read(u32 ea, u32 rsft)
+static void _ea_read(uint32_t ea, uint32_t rsft)
 {
     _ea_read_(ea, rsft, "res");
 }
 
-static void _ea_read_src(u32 ea, u32 rsft)
+static void _ea_read_src(uint32_t ea, uint32_t rsft)
 {
     _ea_read_(ea, rsft, "src");
 }
 
-static void _ea_read_dst(u32 ea, u32 rsft)
+static void _ea_read_dst(uint32_t ea, uint32_t rsft)
 {
     _ea_read_(ea, rsft, "dst");
 }
 
-static void _ea_read_sx_(u32 ea, u32 rsft, char dest[4])
+static void _ea_read_sx_(uint32_t ea, uint32_t rsft, char dest[4])
 {
-	char sz[8];
+    char sz[8];
 
     switch (current_size)
     {
@@ -1408,77 +1427,77 @@ static void _ea_read_sx_(u32 ea, u32 rsft, char dest[4])
             break;
     }
 
-	switch (ea)
-	{
-		case EA_DREG:
-            wf_op("\t%s = (s32)(%s)CPU->D[(Opcode >> %d) & 7];\n", dest, szcs, rsft);
-			break;
+    switch (ea)
+    {
+        case EA_DREG:
+            wf_op("\t%s = (int32_t)(%s)CPU->D[(Opcode >> %d) & 7];\n", dest, szcs, rsft);
+            break;
 
-		case EA_AREG:
+        case EA_AREG:
             if (current_size == SIZE_BYTE)
             {
-                wf_op("\t// can't read byte from Ax registers !\n");
+                wf_op("\t/* can't read byte from Ax registers ! */\n");
                 wf_op("\tCPU->Status |= C68K_FAULTED;\n");
                 wf_op("\tCCnt = 0;\n");
                 wf_op("\tgoto C68k_Exec_Really_End;\n");
             }
-            else wf_op("\t%s = (s32)(%s)CPU->A[(Opcode >> %d) & 7];\n", dest, szcs, rsft);
-			break;
+            else wf_op("\t%s = (int32_t)(%s)CPU->A[(Opcode >> %d) & 7];\n", dest, szcs, rsft);
+            break;
 /*
-		case EA_DREG:
-		case EA_AREG:
-            wf_op("\t%s = (s32)(%s(adr));\n", dest, szcsf);
-			break;
+        case EA_DREG:
+        case EA_AREG:
+            wf_op("\t%s = (int32_t)(%s(adr));\n", dest, szcsf);
+            break;
 */
-		case EA_A32:
-		case EA_D8AX:
-		case EA_D8PX:
-		case EA_D16A:
-		case EA_D16P:
-		case EA_A16:
-		case EA_ADEC:
-		case EA_ADEC7:
-		case EA_AIND:
-		case EA_AINC:
-		case EA_AINC7:
+        case EA_A32:
+        case EA_D8AX:
+        case EA_D8PX:
+        case EA_D16A:
+        case EA_D16P:
+        case EA_A16:
+        case EA_ADEC:
+        case EA_ADEC7:
+        case EA_AIND:
+        case EA_AINC:
+        case EA_AINC7:
             mem_op("\tREADSX_%s_F(adr, %s)\n", sz, dest);
-			break;
+            break;
 
-		case EA_IMM:
+        case EA_IMM:
             switch (current_size)
             {
                 case SIZE_BYTE:
-                    wf_op("\t%s = (s32)(%s(PC)));\n", dest, szcsf);
+                    wf_op("\t%s = (int32_t)(%s(PC)));\n", dest, szcsf);
                     wf_op("\tPC += 2;\n");
                     break;
 
                 case SIZE_WORD:
-                    wf_op("\t%s = (s32)(%s)FETCH_WORD;\n", dest, szcs);
+                    wf_op("\t%s = (int32_t)(%s)FETCH_WORD;\n", dest, szcs);
                     wf_op("\tPC += 2;\n");
                     break;
 
                 case SIZE_LONG:
-                    wf_op("\t%s = (s32)(%s)FETCH_LONG;\n", dest, szcs);
+                    wf_op("\t%s = (int32_t)(%s)FETCH_LONG;\n", dest, szcs);
                     wf_op("\tPC += 4;\n");
                     break;
             }
-			break;
-	}
+            break;
+    }
 }
 
-static void _ea_read_sx(u32 ea, u32 rsft)
+static void _ea_read_sx(uint32_t ea, uint32_t rsft)
 {
     _ea_read_sx_(ea, rsft, "res");
 }
 
-static void _ea_read_src_sx(u32 ea, u32 rsft)
+static void _ea_read_src_sx(uint32_t ea, uint32_t rsft)
 {
     _ea_read_sx_(ea, rsft, "src");
 }
 
-static void _ea_write(u32 ea, u32 rsft)
+static void _ea_write(uint32_t ea, uint32_t rsft)
 {
-	char sz[8];
+    char sz[8];
 
     switch (current_size)
     {
@@ -1495,45 +1514,45 @@ static void _ea_write(u32 ea, u32 rsft)
             break;
     }
 
-	switch (ea)
-	{
-		case EA_DREG:
-            wf_op("\t%s(&CPU->D[(Opcode >> %d) & 7])) = res;\n", szcf, 
+    switch (ea)
+    {
+        case EA_DREG:
+            wf_op("\t%s(&CPU->D[(Opcode >> %d) & 7])) = res;\n", szcf,
 rsft);
-			break;
+            break;
 
-		case EA_AREG:
+        case EA_AREG:
             // writes in Ax registers are always 32 bits sized
             wf_op("\tCPU->A[(Opcode >> %d) & 7] = res;\n", rsft);
-			break;
+            break;
 /*
-		case EA_DREG:
-		case EA_AREG:
+        case EA_DREG:
+        case EA_AREG:
             wf_op("\t%s(adr) = res;\n", szcf);
-			break;
+            break;
 */
-		case EA_A32:
-		case EA_D8AX:
-		case EA_D8PX:
-		case EA_D16A:
-		case EA_D16P:
-		case EA_A16:
-		case EA_ADEC:
-		case EA_ADEC7:
-		case EA_AIND:
-		case EA_AINC:
-		case EA_AINC7:
+        case EA_A32:
+        case EA_D8AX:
+        case EA_D8PX:
+        case EA_D16A:
+        case EA_D16P:
+        case EA_A16:
+        case EA_ADEC:
+        case EA_ADEC7:
+        case EA_AIND:
+        case EA_AINC:
+        case EA_AINC7:
             mem_op("\tWRITE_%s_F(adr, res)\n", sz);
-			break;
-	}
+            break;
+    }
 }
 
 // misc function
 /////////////////
 
-static u32 get_current_opcode_base(void)
+static uint32_t get_current_opcode_base(void)
 {
-    u32 base;
+    uint32_t base;
 
     base = current_op->op_base;
     if (current_op->eam_sft != -1) base += (current_eam & 7) << current_op->eam_sft;
@@ -1548,7 +1567,7 @@ static u32 get_current_opcode_base(void)
 
 static void start_all(int v)
 {
-    u32 base;
+    uint32_t base;
 
     base = get_current_opcode_base();
 
@@ -1559,7 +1578,7 @@ static void start_all(int v)
     start_op(base, v);
 }
 
-static void set_current_size(u32 sz)
+static void set_current_size(uint32_t sz)
 {
     current_size = sz;
     switch(current_size)
@@ -1567,28 +1586,28 @@ static void set_current_size(u32 sz)
         case SIZE_BYTE:
             current_bits_mask = 0xFF;
             current_sft_mask = 7;
-            strcpy(szc, "u8");
-            strcpy(szcf, "*(BYTE_OFF + (u8*)");
-            strcpy(szcs, "s8");
-            strcpy(szcsf, "*(BYTE_OFF + (s8*)");
+            strcpy(szc, "uint8_t");
+            strcpy(szcf, "*(BYTE_OFF + (uint8_t*)");
+            strcpy(szcs, "int8_t");
+            strcpy(szcsf, "*(BYTE_OFF + (int8_t*)");
             break;
 
         case SIZE_WORD:
             current_bits_mask = 0xFFFF;
             current_sft_mask = 15;
-            strcpy(szc, "u16");
-            strcpy(szcf, "*(WORD_OFF + (u16*)");
-            strcpy(szcs, "s16");
-            strcpy(szcsf, "*(WORD_OFF + (s16*)");
+            strcpy(szc, "uint16_t");
+            strcpy(szcf, "*(WORD_OFF + (uint16_t*)");
+            strcpy(szcs, "int16_t");
+            strcpy(szcsf, "*(WORD_OFF + (int16_t*)");
             break;
 
         case SIZE_LONG:
             current_bits_mask = 0xFFFFFFFF;
             current_sft_mask = 31;
-            strcpy(szc, "u32");
-            strcpy(szcf, "*((u32*)");
-            strcpy(szcs, "s32");
-            strcpy(szcsf, "*((s32*)");
+            strcpy(szc, "uint32_t");
+            strcpy(szcf, "*((uint32_t*)");
+            strcpy(szcs, "int32_t");
+            strcpy(szcsf, "*((int32_t*)");
             break;
     }
 }
@@ -1609,7 +1628,7 @@ static void gen_privilege_exception(char *pre)
     do_pre_io();
 
     // push PC and SR
-    mem_op("%sPUSH_32_F((u32)(PC - CPU->BasePC))\n", pre);
+    mem_op("%sPUSH_32_F((uint32_t)(PC - CPU->BasePC))\n", pre);
     mem_op("%sPUSH_16_F(GET_SR)\n", pre);
 
     // adjust SR
@@ -1625,9 +1644,9 @@ static void gen_exception(char *pre, char* exception)
     // swap A7 and USP if needed
     wf_op("%sif (!CPU->flag_S)\n", pre);
     wf_op("%s{\n", pre);
-        wf_op("%s\tres = CPU->USP;\n", pre);
-        wf_op("%s\tCPU->USP = CPU->A[7];\n", pre);
-        wf_op("%s\tCPU->A[7] = res;\n", pre);
+    wf_op("%s\tres = CPU->USP;\n", pre);
+    wf_op("%s\tCPU->USP = CPU->A[7];\n", pre);
+    wf_op("%s\tCPU->A[7] = res;\n", pre);
     wf_op("%s}\n", pre);
 
     // get vector & add cycle
@@ -1638,7 +1657,7 @@ static void gen_exception(char *pre, char* exception)
     do_pre_io();
 
     // push PC and SR
-    mem_op("%sPUSH_32_F((u32)(PC - CPU->BasePC))\n", pre);
+    mem_op("%sPUSH_32_F((uint32_t)(PC - CPU->BasePC))\n", pre);
     mem_op("%sPUSH_16_F(GET_SR)\n", pre);
 
     // adjust SR
