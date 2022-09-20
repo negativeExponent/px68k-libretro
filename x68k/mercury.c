@@ -1,6 +1,4 @@
-/*
- *  MERCURY.C - ま~きゅり~ゆにっと
- */
+/* MERCURY.C - ま~きゅり~ゆにっと */
 
 #include "common.h"
 #include "mercury.h"
@@ -47,16 +45,28 @@ void FASTCALL Mcry_Int(void)
 	IRQH_Int(MCRY_IRQ, &Mcry_IntCB);
 }
 
-static long Mcry_Clocks[8] = { 22050, 16000, 22050, 24000 };
+/* 再生クロック設定 */
+static void Mcry_SetClock(void)
+{
+	static const long Mcry_Clocks[8] = { 22050, 16000, 22050, 24000 };
+
+	Mcry_ClockRate = Mcry_Clocks[(Mcry_Status >> 4) & 3];
+	if (Mcry_Status & 0x80)
+		Mcry_ClockRate *= 2;
+	Mcry_Count      = 0;
+	Mcry_PreCounter = 0;
+#if 0
+	Mcry_RdPtr = 0;
+	Mcry_WrPtr = 0;
+#endif
+}
 
 int Mcry_IsReady(void)
 {
 	return (Mcry_SampleCnt > 0);
 }
 
-/*
- *   MPU経過クロック時間分だけデータをバッファに溜める
- */
+/* MPU経過クロック時間分だけデータをバッファに溜める */
 void FASTCALL Mcry_PreUpdate(uint32_t clock)
 {
 	Mcry_PreCounter += (Mcry_ClockRate * clock);
@@ -68,9 +78,7 @@ void FASTCALL Mcry_PreUpdate(uint32_t clock)
 	M288_Timer(clock);
 }
 
-/*
- *   DSoundからの要求分だけバッファを埋める
- */
+/* DSoundからの要求分だけバッファを埋める */
 void FASTCALL Mcry_Update(int16_t *buffer, uint32_t length)
 {
 	int data;
@@ -117,9 +125,7 @@ void FASTCALL Mcry_Update(int16_t *buffer, uint32_t length)
 	}
 }
 
-/*
- *   1回分（1Word x 2ch）のデータをバッファに書き出し
- */
+/* 1回分（1Word x 2ch）のデータをバッファに書き出し */
 INLINE void Mcry_WriteOne(void)
 {
 	while (Mcry_Count < Mcry_SampleRate)
@@ -135,9 +141,7 @@ INLINE void Mcry_WriteOne(void)
 	Mcry_SampleCnt--;
 }
 
-/*
- *   I/O Write
- */
+/* I/O Write */
 void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 {
 	if ((adr == 0xecc080) || (adr == 0xecc081) || (adr == 0xecc000) || (adr == 0xecc001)) /* Data Port */
@@ -209,14 +213,14 @@ void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-/*
- *   I/O Read
- */
+/* I/O Read */
 uint8_t FASTCALL Mcry_Read(uint32_t adr)
 {
 	uint8_t ret = 0;
+
 	if ((adr == 0xecc080) || (adr == 0xecc081) || (adr == 0xecc000) || (adr == 0xecc001))
 	{
+		/* nothing to do */
 	}
 	else if ((adr == 0xecc0a1) || (adr == 0xecc021)) /* Status Port */
 	{
@@ -224,6 +228,7 @@ uint8_t FASTCALL Mcry_Read(uint32_t adr)
 	}
 	else if ((adr == 0xecc091) || (adr == 0xecc011))
 	{
+		/* nothing to do */
 	}
 	else if ((adr == 0xecc090) || (adr == 0xecc010))
 	{
@@ -245,22 +250,6 @@ uint8_t FASTCALL Mcry_Read(uint32_t adr)
 		p6logd("func = %s addr = %x flag = %d\n", __func__, adr, BusErrFlag);
 	}
 	return ret;
-}
-
-/*
- *   再生クロック設定
- */
-void Mcry_SetClock(void)
-{
-	Mcry_ClockRate = Mcry_Clocks[(Mcry_Status >> 4) & 3];
-	if (Mcry_Status & 0x80)
-		Mcry_ClockRate *= 2;
-	Mcry_Count      = 0;
-	Mcry_PreCounter = 0;
-#if 0
-	Mcry_RdPtr = 0;
-	Mcry_WrPtr = 0;
-#endif
 }
 
 /*

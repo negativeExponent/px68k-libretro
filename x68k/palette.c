@@ -1,6 +1,4 @@
-/*
- *  PALETTE.C - Text/BG/Graphic Palette
- */
+/* PALETTE.C - Text/BG/Graphic Palette */
 
 #include "common.h"
 #include "palette.h"
@@ -17,7 +15,7 @@ uint16_t Pal16[65536];
 uint16_t Ibit; /* 半透明処理とかで使うかも~ */
 
 uint16_t Pal_HalfMask, Pal_Ix2;
-uint16_t Pal_R, Pal_G, Pal_B; /* 画面輝度変更時用 */
+static uint16_t Pal_R, Pal_G, Pal_B; /* 画面輝度変更時用 */
 
 /* ----- DDrawの16ビットモードの色マスクからX68k→Win用の変換テーブルを作る -----
  * X68kは「GGGGGRRRRRBBBBBI」の構造。Winは「RRRRRGGGGGGBBBBB」の形が多いみたい。が、
@@ -129,9 +127,7 @@ static void Pal_SetColor(void)
 	}
 }
 
-/*
- *   初期化
- */
+/* 初期化 */
 void Pal_Init(void)
 {
 	memset(Pal_Regs, 0, 1024);
@@ -162,8 +158,10 @@ void FASTCALL Pal_Write(uint32_t adr, uint8_t data)
 	{
 		Pal_Regs[adr] = data;
 		TVRAM_SetAllDirty();
-		pal              = Pal_Regs[adr & 0xfffe];
-		pal              = (pal << 8) + Pal_Regs[adr | 1];
+
+		pal = Pal_Regs[adr & 0xfffe];
+		pal = (pal << 8) + Pal_Regs[adr | 1];
+
 		GrphPal[adr / 2] = Pal16[pal];
 	}
 	else if (adr < 0x400)
@@ -172,29 +170,27 @@ void FASTCALL Pal_Write(uint32_t adr, uint8_t data)
 			return; /* TextPalはバイトアクセスは出来ないらしい（神戸恋愛物語） */
 		Pal_Regs[adr] = data;
 		TVRAM_SetAllDirty();
-		pal                        = Pal_Regs[adr & 0xfffe];
-		pal                        = (pal << 8) + Pal_Regs[adr | 1];
+
+		pal = Pal_Regs[adr & 0xfffe];
+		pal = (pal << 8) + Pal_Regs[adr | 1];
+
 		TextPal[(adr - 0x200) / 2] = Pal16[pal];
 	}
 }
 
-/*
- *   こんとらすと変更（パレットに対するWin側の表示色で実現してます ^^;）
- */
+/* こんとらすと変更（パレットに対するWin側の表示色で実現してます ^^;） */
 void Pal_ChangeContrast(int num)
 {
+	int r, g, b, i;
+	int palr, palg, palb;
 	uint16_t bit;
 	uint16_t R[5] = { 0, 0, 0, 0, 0 };
 	uint16_t G[5] = { 0, 0, 0, 0, 0 };
 	uint16_t B[5] = { 0, 0, 0, 0, 0 };
-	int r, g, b, i;
-	int palr, palg, palb;
 	uint16_t pal;
 
-	TVRAM_SetAllDirty();
-
 	r = g = b = 5;
-
+	TVRAM_SetAllDirty();
 	for (bit = 0x8000; bit; bit >>= 1)
 	{
 		/* 各色毎に左（上位）から5ビットずつ拾う */
@@ -239,10 +235,12 @@ void Pal_ChangeContrast(int num)
 			palb |= B[1];
 		if (i & 0x0002)
 			palb |= B[0];
-		pal      = palr | palb | palg;
-		palg     = (uint16_t)((palg * num) / 15) & Pal_G;
-		palr     = (uint16_t)((palr * num) / 15) & Pal_R;
-		palb     = (uint16_t)((palb * num) / 15) & Pal_B;
+
+		pal  = palr | palb | palg;
+		palg = (uint16_t)((palg * num) / 15) & Pal_G;
+		palr = (uint16_t)((palr * num) / 15) & Pal_R;
+		palb = (uint16_t)((palb * num) / 15) & Pal_B;
+
 		Pal16[i] = palr | palb | palg;
 		if ((pal) && (!Pal16[i]))
 			Pal16[i] = B[0];
@@ -252,12 +250,14 @@ void Pal_ChangeContrast(int num)
 
 	for (i = 0; i < 256; i++)
 	{
-		pal        = Pal_Regs[i * 2];
-		pal        = (pal << 8) + Pal_Regs[i * 2 + 1];
+		pal = Pal_Regs[i * 2];
+		pal = (pal << 8) + Pal_Regs[i * 2 + 1];
+
 		GrphPal[i] = Pal16[pal];
 
-		pal        = Pal_Regs[i * 2 + 512];
-		pal        = (pal << 8) + Pal_Regs[i * 2 + 513];
+		pal = Pal_Regs[i * 2 + 512];
+		pal = (pal << 8) + Pal_Regs[i * 2 + 513];
+
 		TextPal[i] = Pal16[pal];
 	}
 }

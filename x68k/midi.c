@@ -30,49 +30,47 @@
 #define MIDIFIFOSIZE 256
 #define MIDIDELAYBUF 4096 /* 31250/10 = 3125 byts (1s分) あればおっけ？ */
 
-enum
-{
-	/* 各機種リセット用に一応。*/
-	MIDI_NOTUSED,
-	MIDI_DEFAULT,
-	MIDI_MT32,
-	MIDI_CM32L,
-	MIDI_CM64,
-	MIDI_CM300,
-	MIDI_CM500,
-	MIDI_SC55,
-	MIDI_SC88,
-	MIDI_LA,
-	MIDI_GM,
-	MIDI_GS,
-	MIDI_XG,
-};
+#define MIDI_NOTUSED 0
+#define MIDI_DEFAULT 1
+#define MIDI_MT32    2
+#define MIDI_CM32L   3
+#define MIDI_CM64    4
+#define MIDI_CM300   5
+#define MIDI_CM500   6
+#define MIDI_SC55    7
+#define MIDI_SC88    8
+#define MIDI_LA      9
+#define MIDI_GM     10
+#define MIDI_GS     11
+#define MIDI_XG     12
 
-void *hOut = 0;
-MIDIHDR hHdr;
-int MIDI_CTRL;
-int MIDI_POS;
-int MIDI_SYSCOUNT;
-uint8_t MIDI_LAST;
-uint8_t MIDI_BUF[MIDIBUFFERS];
-uint8_t MIDI_EXCVBUF[MIDIBUFFERS];
-uint8_t MIDI_EXCVWAIT;
+static void *hOut = 0;
+static MIDIHDR hHdr;
 
-uint8_t MIDI_RegHigh    = 0; /* X68K用 */
-uint8_t MIDI_Playing    = 0; /* マスタスイッチ */
-uint8_t MIDI_Vector     = 0;
-uint8_t MIDI_IntEnable  = 0;
-uint8_t MIDI_IntVect    = 0;
-uint8_t MIDI_IntFlag    = 0;
-uint32_t MIDI_Buffered  = 0;
-long MIDI_BufTimer      = 3333;
-uint8_t MIDI_R05        = 0;
-uint32_t MIDI_GTimerMax = 0;
-uint32_t MIDI_MTimerMax = 0;
-long MIDI_GTimerVal     = 0;
-long MIDI_MTimerVal     = 0;
-uint8_t MIDI_TxFull     = 0;
-uint8_t MIDI_MODULE     = MIDI_NOTUSED;
+static int MIDI_CTRL;
+static int MIDI_POS;
+static int MIDI_SYSCOUNT;
+
+static uint8_t MIDI_LAST;
+static uint8_t MIDI_BUF[MIDIBUFFERS];
+static uint8_t MIDI_EXCVBUF[MIDIBUFFERS];
+static uint8_t MIDI_EXCVWAIT;
+
+static uint8_t MIDI_RegHigh    = 0; /* X68K用 */
+static uint8_t MIDI_Playing    = 0; /* マスタスイッチ */
+static uint8_t MIDI_Vector     = 0;
+static uint8_t MIDI_IntEnable  = 0;
+static uint8_t MIDI_IntVect    = 0;
+static uint8_t MIDI_IntFlag    = 0;
+static uint32_t MIDI_Buffered  = 0;
+static long MIDI_BufTimer      = 3333;
+static uint8_t MIDI_R05        = 0;
+static uint32_t MIDI_GTimerMax = 0;
+static uint32_t MIDI_MTimerMax = 0;
+static long MIDI_GTimerVal     = 0;
+static long MIDI_MTimerVal     = 0;
+static uint8_t MIDI_TxFull     = 0;
+static uint8_t MIDI_MODULE     = MIDI_NOTUSED;
 
 static uint8_t MIDI_ResetType[5] = {
 	MIDI_LA, MIDI_GM, MIDI_GS, MIDI_XG
@@ -88,17 +86,12 @@ static DELAYBUFITEM DelayBuf[MIDIDELAYBUF];
 static int DBufPtrW = 0;
 static int DBufPtrR = 0;
 
-/*
- * ねこみぢ6、MIMPIトーンマップ対応関係
- */
+/* ねこみぢ6、MIMPIトーンマップ対応関係 */
 
-enum
-{
-	MIMPI_LA = 0,
-	MIMPI_PCM,
-	MIMPI_GS,
-	MIMPI_RHYTHM,
-};
+#define MIMPI_LA     0
+#define MIMPI_PCM    1
+#define MIMPI_GS     2
+#define MIMPI_RHYTHM 3
 
 static uint8_t LOADED_TONEMAP = 0;
 static uint8_t ENABLE_TONEMAP = 0;
@@ -197,7 +190,7 @@ void FASTCALL MIDI_Timer(uint32_t clk)
 	}
 }
 
-void MIDI_SetModule(void)
+static void MIDI_SetModule(void)
 {
 	if (Config.MIDI_SW)
 		MIDI_MODULE = MIDI_ResetType[Config.MIDI_Type];
@@ -205,7 +198,7 @@ void MIDI_SetModule(void)
 		MIDI_MODULE = MIDI_NOTUSED;
 }
 
-void MIDI_Sendexclusive(uint8_t *excv, int length)
+static void MIDI_Sendexclusive(uint8_t *excv, int length)
 {
 	memcpy(MIDI_EXCVBUF, excv, length);
 	hHdr.lpData         = MIDI_EXCVBUF;
@@ -216,7 +209,7 @@ void MIDI_Sendexclusive(uint8_t *excv, int length)
 	MIDI_EXCVWAIT = 1;
 }
 
-void MIDI_Waitlastexclusiveout(void)
+static void MIDI_Waitlastexclusiveout(void)
 {
 	/* エクスクルーシヴ送信完了まで待ちましょう~ */
 	if (MIDI_EXCVWAIT)
@@ -229,7 +222,6 @@ void MIDI_Waitlastexclusiveout(void)
 
 void MIDI_Reset(void)
 {
-
 	uint32_t msg;
 
 	memset(DelayBuf, 0, sizeof(DelayBuf));
@@ -275,7 +267,6 @@ void MIDI_Reset(void)
 
 void MIDI_Init(void)
 {
-
 	memset(DelayBuf, 0, sizeof(DelayBuf));
 	DBufPtrW = DBufPtrR = 0;
 
@@ -317,7 +308,6 @@ void MIDI_Stop(void)
 
 void MIDI_Cleanup(void)
 {
-
 	if (hOut)
 	{
 		MIDI_Reset();
@@ -330,7 +320,6 @@ void MIDI_Cleanup(void)
 
 void MIDI_Message(uint8_t mes)
 {
-
 	if (!hOut)
 	{
 		return;
@@ -769,9 +758,7 @@ void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-/*
- * MIMPIトーンファイル読み込み（ねこみぢ6）
- */
+/* MIMPIトーンファイル読み込み（ねこみぢ6） */
 
 static int exstrcmp(char *str, char *cmp)
 {

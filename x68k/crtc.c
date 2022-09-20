@@ -1,6 +1,4 @@
-/*
- *  CRTC.C - CRT Controller / Video Controller
- */
+/* CRTC.C - CRT Controller / Video Controller */
 
 #include "common.h"
 #include "crtc.h"
@@ -14,19 +12,20 @@ static uint16_t FastClearMask[16] = {
 	0x0fff, 0x0ff0, 0x0f0f, 0x0f00, 0x00ff, 0x00f0, 0x000f, 0x0000
 };
 
-uint8_t CRTC_Regs[24 * 2];
-uint8_t CRTC_Mode = 0;
-uint32_t TextDotX = 768, TextDotY = 512;
-uint16_t CRTC_VSTART, CRTC_VEND;
-uint16_t CRTC_HSTART, CRTC_HEND;
+uint8_t  CRTC_Regs[24 * 2];
+uint8_t  CRTC_Mode = 0;
+uint32_t TextDotX = 768;
+uint32_t TextDotY = 512;
+uint16_t CRTC_VSTART = 0, CRTC_VEND = 0;
+uint16_t CRTC_HSTART = 0, CRTC_HEND = 0;
 uint32_t TextScrollX = 0, TextScrollY = 0;
 uint32_t GrphScrollX[4] = { 0, 0, 0, 0 }; /* 配列にしちゃった… */
 uint32_t GrphScrollY[4] = { 0, 0, 0, 0 };
 
-uint8_t CRTC_FastClr             = 0;
-uint16_t CRTC_FastClrMask        = 0;
-uint16_t CRTC_IntLine            = 0;
-uint8_t CRTC_VStep               = 2;
+uint8_t  CRTC_FastClr     = 0;
+uint16_t CRTC_FastClrMask = 0;
+uint16_t CRTC_IntLine     = 0;
+uint8_t  CRTC_VStep       = 2;
 
 uint8_t VCReg0[2] = { 0, 0 };
 uint8_t VCReg1[2] = { 0, 0 };
@@ -37,9 +36,7 @@ static uint8_t CRTC_RCFlag[2] = { 0, 0 };
 int HSYNC_CLK = 324;
 extern int VID_MODE;
 
-/*
- *   らすたーこぴー
- */
+/* らすたーこぴー */
 static void CRTC_RasterCopy(void)
 {
 	static const uint32_t off[4] = { 0, 0x20000, 0x40000, 0x60000 };
@@ -69,9 +66,7 @@ static void CRTC_RasterCopy(void)
 	TVRAM_RCUpdate();
 }
 
-/*
- *   びでおこんとろーるれじすた
- */
+/* びでおこんとろーるれじすた */
 
 /* Reg0の色モードは、ぱっと見CRTCと同じだけど役割違うので注意。
  * CRTCはGVRAMへのアクセス方法（メモリマップ上での見え方）が変わるのに対し、
@@ -130,8 +125,7 @@ void FASTCALL VCtrl_Write(uint32_t adr, uint8_t data)
 }
 
 /*
- *   CRTCれじすた
- *
+ * CRTCれじすた
  * レジスタアクセスのコードが汚い ^^;
  */
 

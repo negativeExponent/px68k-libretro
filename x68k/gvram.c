@@ -1,6 +1,4 @@
-/*
- *  GVRAM.C - Graphic VRAM
- */
+/* GVRAM.C - Graphic VRAM */
 
 #include "winx68k.h"
 #include "gvram.h"
@@ -18,9 +16,6 @@ uint16_t Pal16Adr[256];        /* 16bit color パレットアドレス計算用 */
 /* xxx: for little endian only */
 #define GET_WORD_W8(src) ((uint16_t)(*(uint8_t *)(src)) | (uint16_t)(*((uint8_t *)(src) + 1) << 8))
 
-/*
- *   初期化~
- */
 void GVRAM_Init(void)
 {
 	int i;
@@ -32,10 +27,6 @@ void GVRAM_Init(void)
 		Pal16Adr[i * 2 + 1] = i * 4 + 1;
 	}
 }
-
-/*
- *  高速クリア用ルーチン
- */
 
 void FASTCALL GVRAM_FastClear(void)
 {
@@ -59,9 +50,6 @@ void FASTCALL GVRAM_FastClear(void)
 	}
 }
 
-/*
- *   VRAM Read
- */
 uint8_t FASTCALL GVRAM_Read(uint32_t adr)
 {
 	uint8_t page;
@@ -125,9 +113,6 @@ uint8_t FASTCALL GVRAM_Read(uint32_t adr)
 	return 0;
 }
 
-/*
- *   VRAM Write
- */
 void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t page;
@@ -232,9 +217,6 @@ void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-/*
- *   こっから後はライン単位での画面展開部
- */
 void Grp_DrawLine16(void)
 {
 	uint16_t *srcp, *destp;
@@ -561,9 +543,7 @@ void FASTCALL Grp_DrawLine4h(void)
 	}
 }
 
-/*
- * --- 半透明／特殊Priのベースとなるページの描画 ---
- */
+/* 半透明／特殊Priのベースとなるページの描画  */
 void FASTCALL Grp_DrawLine16SP(void)
 {
 	uint32_t x, y;

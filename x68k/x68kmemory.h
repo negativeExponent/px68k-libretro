@@ -14,15 +14,13 @@ extern uint32_t BusErrFlag;
 extern uint32_t BusErrAdr;
 extern uint32_t MemByteAccess;
 
-void Memory_ErrTrace(void);
-void Memory_IntErr(int i);
-
 void Memory_Init(void);
+
 uint32_t cpu_readmem24(uint32_t adr);
 uint32_t cpu_readmem24_word(uint32_t adr);
 uint32_t cpu_readmem24_dword(uint32_t adr);
 
-uint8_t dma_readmem24(uint32_t adr);
+uint8_t  dma_readmem24(uint32_t adr);
 uint16_t dma_readmem24_word(uint32_t adr);
 uint32_t dma_readmem24_dword(uint32_t adr);
 
@@ -33,8 +31,6 @@ void cpu_writemem24_dword(uint32_t adr, uint32_t data);
 void dma_writemem24(uint32_t adr, uint8_t data);
 void dma_writemem24_word(uint32_t adr, uint16_t data);
 void dma_writemem24_dword(uint32_t adr, uint32_t data);
-
-void cpu_setOPbase24(uint32_t adr);
 
 void Memory_SetSCSIMode(void);
 

@@ -27,9 +27,6 @@
 
 #include "fmg_wrap.h"
 
-void AdrError(uint32_t, uint32_t);
-void BusError(uint32_t, uint32_t);
-
 static void wm_main(uint32_t addr, uint8_t val);
 static void wm_cnt(uint32_t addr, uint8_t val);
 static void wm_buserr(uint32_t addr, uint8_t val);
@@ -45,10 +42,11 @@ static uint8_t rm_opm(uint32_t addr);
 static uint8_t rm_e82(uint32_t addr);
 static uint8_t rm_buserr(uint32_t addr);
 
-void cpu_setOPbase24(uint32_t addr);
-void Memory_ErrTrace(void);
+static void AdrError(uint32_t, uint32_t);
+static void BusError(uint32_t, uint32_t);
+static void Memory_ErrTrace(void);
 
-uint8_t (*MemReadTable[])(uint32_t) = {
+static uint8_t (*MemReadTable[])(uint32_t) = {
 /*	$0000		$2000		$4000		$6000		$8000		$a000		$c000		$e000 */
 	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e00000 */
 	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e10000 */
@@ -89,7 +87,7 @@ uint8_t (*MemReadTable[])(uint32_t) = {
 	rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		/* $ff0000 */
 };
 
-void (*MemWriteTable[])(uint32_t, uint8_t) = {
+static void (*MemWriteTable[])(uint32_t, uint8_t) = {
 /*	$0000			$2000			$4000			$6000			$8000			$a000			$c000			$e000 */
 	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e00000 */
 	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e10000 */
@@ -316,14 +314,14 @@ static void wm_nop(uint32_t addr, uint8_t val)
 /*
  * read function
  */
-uint8_t dma_readmem24(uint32_t addr)
+uint32_t dma_readmem24(uint32_t addr)
 {
-	return rm_main(addr);
+	return (uint32_t)rm_main(addr);
 }
 
-uint16_t dma_readmem24_word(uint32_t addr)
+uint32_t dma_readmem24_word(uint32_t addr)
 {
-	uint16_t v;
+	uint32_t v;
 
 	if (addr & 1)
 	{
@@ -481,29 +479,7 @@ static uint8_t rm_buserr(uint32_t addr)
 	return 0;
 }
 
-/*
- * Memory misc
- */
-void Memory_Init(void)
-{
-#if defined(HAVE_CYCLONE)
-	cpu_setOPbase24((uint32_t)m68000_get_reg(M68K_PC));
-#elif defined(HAVE_M68000)
-	cpu_setOPbase24((uint32_t)C68k_Get_Reg(&C68K, C68K_PC));
-#elif defined(HAVE_C68K)
-	cpu_setOPbase24((uint32_t)C68k_Get_PC(&C68K));
-#elif defined(HAVE_MUSASHI)
-	cpu_setOPbase24((uint32_t)m68k_get_reg(NULL, M68K_REG_PC));
-#endif
-	ram_size = SRAM[0x09 ^ 1] >> 4;
-	if (ram_size  != Config.ramSize)
-	{
-		ram_size = Config.ramSize;
-		SRAM_SetRAMSize(ram_size);
-	}
-}
-
-void cpu_setOPbase24(uint32_t addr)
+static void cpu_setOPbase24(uint32_t addr)
 {
 	switch ((addr >> 20) & 0xf) {
 	case 0: case 1: case 2: case 3:
@@ -547,6 +523,28 @@ void cpu_setOPbase24(uint32_t addr)
 	}
 }
 
+/*
+ * Memory misc
+ */
+void Memory_Init(void)
+{
+#if defined(HAVE_CYCLONE)
+	cpu_setOPbase24((uint32_t)m68000_get_reg(M68K_PC));
+#elif defined(HAVE_M68000)
+	cpu_setOPbase24((uint32_t)C68k_Get_Reg(&C68K, C68K_PC));
+#elif defined(HAVE_C68K)
+	cpu_setOPbase24((uint32_t)C68k_Get_PC(&C68K));
+#elif defined(HAVE_MUSASHI)
+	cpu_setOPbase24((uint32_t)m68k_get_reg(NULL, M68K_REG_PC));
+#endif
+	ram_size = SRAM[0x09 ^ 1] >> 4;
+	if (ram_size  != Config.ramSize)
+	{
+		ram_size = Config.ramSize;
+		SRAM_SetRAMSize(ram_size);
+	}
+}
+
 void Memory_SetSCSIMode(void)
 {
 	int i;
@@ -557,17 +555,16 @@ void Memory_SetSCSIMode(void)
 	}
 }
 
-void Memory_ErrTrace(void) { }
-void Memory_IntErr(int i) { }
+static void Memory_ErrTrace(void) { }
 
-void AdrError(uint32_t adr, uint32_t unknown)
+static void AdrError(uint32_t adr, uint32_t unknown)
 {
 	(void)adr;
 	(void)unknown;
 	p6logd("AdrError: %x\n", adr);
 }
 
-void BusError(uint32_t adr, uint32_t unknown)
+static void BusError(uint32_t adr, uint32_t unknown)
 {
 	(void)adr;
 	(void)unknown;

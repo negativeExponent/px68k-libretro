@@ -47,9 +47,11 @@ static int16_t ADPCM_BufL[ADPCM_BufSize];
 static int32_t ADPCM_VolumeShift = 65536;
 static int32_t ADPCM_WrPtr       = 0;
 static int32_t ADPCM_RdPtr       = 0;
+
 static uint32_t ADPCM_SampleRate = 44100 * 12;
 static uint32_t ADPCM_ClockRate  = 7800 * 12;
 static uint32_t ADPCM_Count      = 0;
+
 static int32_t ADPCM_Step        = 0;
 static int32_t ADPCM_Out         = 0;
 static uint8_t ADPCM_Playing     = 0;
@@ -69,19 +71,17 @@ int ADPCM_IsReady(void)
 	return 1;
 }
 
-/*
- *   てーぶる初期化
- */
+/* てーぶる初期化 */
 static void ADPCM_InitTable(void)
 {
-	int32_t step, n;
-	double val;
 	static int32_t bit[16][4] = {
 		{ 1, 0, 0, 0 },  { 1, 0, 0, 1 },  { 1, 0, 1, 0 },  { 1, 0, 1, 1 },
 		{ 1, 1, 0, 0 },  { 1, 1, 0, 1 },  { 1, 1, 1, 0 },  { 1, 1, 1, 1 },
 		{ -1, 0, 0, 0 }, { -1, 0, 0, 1 }, { -1, 0, 1, 0 }, { -1, 0, 1, 1 },
 		{ -1, 1, 0, 0 }, { -1, 1, 0, 1 }, { -1, 1, 1, 0 }, { -1, 1, 1, 1 }
 	};
+	int32_t step, n;
+	double val;
 
 	for (step = 0; step <= 48; step++)
 	{
@@ -97,12 +97,12 @@ static void ADPCM_InitTable(void)
 	}
 }
 
-/*
- *   MPUクロック経過分だけバッファにデータを溜めておく
- */
+/* MPUクロック経過分だけバッファにデータを溜めておく */
 void FASTCALL ADPCM_PreUpdate(uint32_t clock)
 {
+#if 0
 	/*if (!ADPCM_Playing) return;*/
+#endif
 	ADPCM_PreCounter += ((ADPCM_ClockRate / 24) * clock);
 	while (ADPCM_PreCounter >= 10000000L)
 	{
@@ -117,9 +117,7 @@ void FASTCALL ADPCM_PreUpdate(uint32_t clock)
 	}
 }
 
-/*
- *   DSoundが指定してくる分だけバッファにデータを書き出す
- */
+/* DSoundが指定してくる分だけバッファにデータを書き出す */
 void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, int rate, uint8_t *pbsp, uint8_t *pbep)
 {
 	if (length <= 0)
@@ -247,9 +245,7 @@ void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, int rate, uint8_t *
 		ADPCM_DifBuf += ADPCM_BufSize;
 }
 
-/*
- *   1nibble（4bit）をデコード
- */
+/* 1nibble（4bit）をデコード */
 INLINE void ADPCM_WriteOne(uint8_t val)
 {
 	ADPCM_Out += dif_table[(ADPCM_Step << 4) + val];
@@ -303,9 +299,6 @@ INLINE void ADPCM_WriteOne(uint8_t val)
 	ADPCM_Count -= ADPCM_SampleRate;
 }
 
-/*
- *   I/O Write
- */
 void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 {
 	if (adr == 0xe92001)
@@ -336,9 +329,6 @@ void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-/*
- *   I/O Read（ステータスチェック）
- */
 uint8_t FASTCALL ADPCM_Read(uint32_t adr)
 {
 	if (adr == 0xe92001)
@@ -347,9 +337,6 @@ uint8_t FASTCALL ADPCM_Read(uint32_t adr)
 	return 0x00;
 }
 
-/*
- *   ぼりゅーむ
- */
 void ADPCM_SetVolume(uint8_t vol)
 {
 	if (vol > 16)
@@ -361,9 +348,6 @@ void ADPCM_SetVolume(uint8_t vol)
 		ADPCM_VolumeShift = 0;
 }
 
-/*
- *   Panning
- */
 void ADPCM_SetPan(int n)
 {
 	if ((ADPCM_Pan & 0x0c) != (n & 0x0c))
@@ -376,9 +360,6 @@ void ADPCM_SetPan(int n)
 	ADPCM_Pan = n;
 }
 
-/*
- *   Clock
- */
 void ADPCM_SetClock(int n)
 {
 	if ((ADPCM_Clock & 4) != n)
@@ -389,9 +370,6 @@ void ADPCM_SetClock(int n)
 	}
 }
 
-/*
- *   初期化
- */
 void ADPCM_Init(uint32_t samplerate)
 {
 	ADPCM_WrPtr      = 0;
@@ -401,10 +379,14 @@ void ADPCM_Init(uint32_t samplerate)
 	ADPCM_Playing    = 0;
 	ADPCM_SampleRate = (samplerate * 12);
 	ADPCM_PreCounter = 0;
+
 	memset(Outs, 0, sizeof(Outs));
+
 	OutsIp[0] = OutsIp[1] = OutsIp[2] = OutsIp[3] = -1;
+
 	OutsIpR[0] = OutsIpR[1] = OutsIpR[2] = OutsIpR[3] = 0;
 	OutsIpL[0] = OutsIpL[1] = OutsIpL[2] = OutsIpL[3] = 0;
+
 	OldL = OldR = 0;
 
 	ADPCM_SetPan(0x0b);

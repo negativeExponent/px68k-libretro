@@ -19,19 +19,13 @@ uint8_t TextDrawPattern[2048 * 4];
 
 uint8_t Text_TrFlag[1024];
 
-INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data);
-
-/*
- *   全部書き換え~
- */
+/* 全部書き換え~ */
 void TVRAM_SetAllDirty(void)
 {
 	memset(TextDirtyLine, 1, 1024);
 }
 
-/*
- *   初期化
- */
+/* 初期化 */
 void TVRAM_Init(void)
 {
 	int i, j, bit;
@@ -56,14 +50,10 @@ void TVRAM_Init(void)
 	}
 }
 
-/*
- *   撤収
- */
+/* 撤収 */
 void TVRAM_Cleanup(void) { }
 
-/*
- *   読むなり
- */
+/* 読むなり */
 uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 {
 	adr &= 0x7ffff;
@@ -71,9 +61,7 @@ uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 	return TVRAM[adr];
 }
 
-/*
- *   1ばいと書くなり
- */
+/* 1ばいと書くなり */
 INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 {
 	if (TVRAM[adr] != data)
@@ -83,9 +71,7 @@ INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 	}
 }
 
-/*
- *   ますく付きで書くなり
- */
+/* ますく付きで書くなり */
 INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data)
 {
 	data = (TVRAM[adr] & CRTC_Regs[0x2e + ((adr ^ 1) & 1)]) | (data & (~CRTC_Regs[0x2e + ((adr ^ 1) & 1)]));
@@ -96,9 +82,7 @@ INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data)
 	}
 }
 
-/*
- *   書くなり
- */
+/*  書くなり */
 void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 {
 	adr &= 0x7ffff;
@@ -169,9 +153,7 @@ void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-/*
- *   らすたこぴー時のあっぷでーと
- */
+/* らすたこぴー時のあっぷでーと */
 void FASTCALL TVRAM_RCUpdate(void)
 {
 	uint32_t adr = ((uint32_t)CRTC_Regs[0x2d] << 9);
@@ -209,9 +191,7 @@ void FASTCALL TVRAM_RCUpdate(void)
 	}
 }
 
-/*
- *   1ライン描画
- */
+/* 1ライン描画 */
 void FASTCALL Text_DrawLine(int opaq)
 {
 	uint32_t addr;

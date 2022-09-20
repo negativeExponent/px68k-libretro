@@ -10,21 +10,21 @@
 #include "prop.h"
 #include "status.h"
 
-uint8_t SASI_Cmd[6];
-uint8_t SASI_Buf[256];
-uint8_t SASI_Phase   = 0;
-uint32_t SASI_Sector = 0;
-uint32_t SASI_Blocks = 0;
-uint8_t SASI_CmdPtr  = 0;
-uint16_t SASI_Device = 0;
-uint8_t SASI_Unit    = 0;
-int16_t SASI_BufPtr  = 0;
-uint8_t SASI_RW      = 0;
-uint8_t SASI_Stat    = 0;
-uint8_t SASI_Mes     = 0;
-uint8_t SASI_Error   = 0;
-uint8_t SASI_SenseStatBuf[4];
-uint8_t SASI_SenseStatPtr = 0;
+static uint8_t SASI_Cmd[6];
+static uint8_t SASI_Buf[256];
+static uint8_t SASI_Phase   = 0;
+static uint32_t SASI_Sector = 0;
+static uint32_t SASI_Blocks = 0;
+static uint8_t SASI_CmdPtr  = 0;
+static uint16_t SASI_Device = 0;
+static uint8_t SASI_Unit    = 0;
+static int16_t SASI_BufPtr  = 0;
+static uint8_t SASI_RW      = 0;
+static uint8_t SASI_Stat    = 0;
+static uint8_t SASI_Mes     = 0;
+static uint8_t SASI_Error   = 0;
+static uint8_t SASI_SenseStatBuf[4];
+static uint8_t SASI_SenseStatPtr = 0;
 
 int SASI_IsReady(void)
 {
@@ -34,9 +34,7 @@ int SASI_IsReady(void)
 		return 0;
 }
 
-/*
- *   わりこみ~
- */
+/* わりこみ~ */
 static int32_t FASTCALL SASI_Int(int32_t irq)
 {
 	IRQH_IRQCallBack(irq);
@@ -47,9 +45,7 @@ static int32_t FASTCALL SASI_Int(int32_t irq)
 	return IRQ_DEFAULT_VECTOR;
 }
 
-/*
- *   初期化
- */
+/* 初期化 */
 void SASI_Init(void)
 {
 	SASI_Phase        = 0;
@@ -65,10 +61,8 @@ void SASI_Init(void)
 	SASI_SenseStatPtr = 0;
 }
 
-/*
- *   し−く（リード時）
- */
-int16_t SASI_Seek(void)
+/* し−く（リード時）*/
+static int SASI_Seek(void)
 {
 	void *fp;
 
@@ -97,7 +91,7 @@ int16_t SASI_Seek(void)
 /*
  *   しーく（ライト時）
  */
-int16_t SASI_Flush(void)
+static int SASI_Flush(void)
 {
 	void *fp;
 
@@ -206,9 +200,9 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
  *   - C2h（初期化系？）。Unit以外のパラメータは無し。DataPhaseで10個のデータを書きこむ。
  *   - 06h（フォーマット？）。論理ブロック指定あり（21hおきに指定している）。ブロック数のとこは6が指定されている。
  */
-void SASI_CheckCmd(void)
+static void SASI_CheckCmd(void)
 {
-	int16_t result;
+	int result;
 
 	SASI_Unit = (SASI_Cmd[1] >> 5) & 1; /* X68kでは、ユニット番号は0か1しか取れない */
 	switch (SASI_Cmd[0])
@@ -314,13 +308,10 @@ void SASI_CheckCmd(void)
 	}
 }
 
-/*
- *   I/O Write
- */
+/* I/O Write */
 void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 {
-	int16_t result;
-	int i;
+	int result, i;
 	uint8_t bit;
 
 	if ((adr == 0xe96007) && (SASI_Phase == 0))

@@ -1,6 +1,4 @@
-/*
- *  PIA.C - uPD8255（必要最低限のみ）
- */
+/* PIA.C - uPD8255（必要最低限のみ） */
 
 #include "common.h"
 #include "pia.h"
@@ -17,9 +15,7 @@ typedef struct {
 
 static PIA pia;
 
-/*
- *   初期化
- */
+/*  初期化 */
 void PIA_Init(void)
 {
 	pia.PortA = 0xff;

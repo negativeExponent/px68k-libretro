@@ -23,9 +23,7 @@ static uint8_t SCC_Vector    = 0;
 static uint8_t SCC_Dat[3]    = { 0, 0, 0 };
 static uint8_t SCC_DatNum    = 0;
 
-/*
- *   わりこみ
- */
+/* わりこみ */
 static int32_t FASTCALL SCC_Int(int32_t irq)
 {
 	IRQH_IRQCallBack(irq);
@@ -34,18 +32,20 @@ static int32_t FASTCALL SCC_Int(int32_t irq)
 		if (SCC_RegsB[9] & 1)
 		{
 			if (SCC_RegsB[9] & 0x10)
+			{
 				return ((int32_t)(SCC_Vector & 0x8f) + 0x20);
+			}
 			else
+			{
 				return ((int32_t)(SCC_Vector & 0xf1) + 4);
+			}
 		}
 	}
 
 	return IRQ_DEFAULT_VECTOR;
 }
 
-/*
- *   割り込みのチェック
- */
+/* 割り込みのチェック */
 void SCC_IntCheck(void)
 {
 	if ((SCC_DatNum) && ((SCC_RegsB[1] & 0x18) == 0x10) && (SCC_RegsB[9] & 0x08))
@@ -58,9 +58,7 @@ void SCC_IntCheck(void)
 	}
 }
 
-/*
- *   初期化
- */
+/* 初期化 */
 void SCC_Init(void)
 {
 	MouseX      = 0;
@@ -74,9 +72,7 @@ void SCC_Init(void)
 	SCC_DatNum  = 0;
 }
 
-/*
- *   I/O Write
- */
+/* I/O Write */
 void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 {
 	if (adr >= 0xe98008)
@@ -90,7 +86,8 @@ void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 			{
 				if ((!(SCC_RegsB[5] & 2)) && (data & 2) && (SCC_RegsB[3] & 1) &&
 				    (!SCC_DatNum)) /* データが無い時だけにしやう（闇の血族） */
-				{                  /* マウスデータ生成 */
+				{
+					/* マウスデータ生成 */
 					Mouse_SetData();
 					SCC_DatNum = 3;
 					SCC_Dat[2] = MouseSt;
@@ -152,15 +149,15 @@ void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 	}
 	else if ((adr & 7) == 3)
 	{
+		/* nothing to do */
 	}
 	else if ((adr & 7) == 7)
 	{
+		/* nothing to do */
 	}
 }
 
-/*
- *   I/O Read
- */
+/* I/O Read */
 uint8_t FASTCALL SCC_Read(uint32_t adr)
 {
 	uint8_t ret = 0;

@@ -26,7 +26,7 @@ static uint8_t SCSIIMG[] = {
 	0x4e, 0x75,                         /* $ea0042 "rts" */
 	0x53, 0x43, 0x53, 0x49, 0x45, 0x58, /* $ea0044 ID "SCSIEX"		(SCSIカードのID) */
 	0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x00, /* $ea004a "move.b d1, $e9f800"	(SCSI IOCSコールエントリポイント) */
-	0x4e, 0x75,                         /* $ea0050 "rts" */
+	0x4e, 0x75,                         		/* $ea0050 "rts" */
 };
 
 void SCSI_Init(void)

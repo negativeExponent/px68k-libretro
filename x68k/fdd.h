@@ -8,13 +8,6 @@ typedef struct {
 	uint8_t n;
 } FDCID;
 
-enum {
-	FD_Non = 0,
-	FD_XDF,
-	FD_D88,
-	FD_DIM,
-};
-
 void FDD_SetFD(int drive, char* filename, int readonly);
 void FDD_EjectFD(int drive);
 void FDD_Init(void);

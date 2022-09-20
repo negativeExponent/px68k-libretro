@@ -1,6 +1,4 @@
-/*
- *  RTC.C - RTC (Real Time Clock / RICOH RP5C15)
- */
+/* RTC.C - RTC (Real Time Clock / RICOH RP5C15) */
 
 #include "common.h"
 #include "mfp.h"
@@ -102,8 +100,10 @@ void FASTCALL RTC_Write(uint32_t adr, uint8_t data)
 {
 	if (adr == 0xe8a001)
 	{
-		/* RTC_Timer1  = 0;
-		RTC_Timer16 = 0; */
+#if 0
+		RTC_Timer1  = 0;
+		RTC_Timer16 = 0;
+#endif
 	}
 	else if (adr == 0xe8a01b)
 	{
