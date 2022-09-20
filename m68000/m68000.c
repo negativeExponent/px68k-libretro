@@ -122,13 +122,13 @@ void m68000_init(void)
     C68k_Set_ReadW(&C68K, cpu_readmem24_word);
     C68k_Set_WriteB(&C68K, cpu_writemem24);
     C68k_Set_WriteW(&C68K, cpu_writemem24_word);
-	C68k_Set_Fetch(&C68K, 0x000000, 0xbfffff, (pointer)MEM);
-    C68k_Set_Fetch(&C68K, 0xc00000, 0xc7ffff, (pointer)GVRAM);
-    C68k_Set_Fetch(&C68K, 0xe00000, 0xe7ffff, (pointer)TVRAM);
-    C68k_Set_Fetch(&C68K, 0xea0000, 0xea1fff, (pointer)SCSIIPL);
-    C68k_Set_Fetch(&C68K, 0xed0000, 0xed3fff, (pointer)SRAM);
-    C68k_Set_Fetch(&C68K, 0xf00000, 0xfbffff, (pointer)FONT);
-    C68k_Set_Fetch(&C68K, 0xfc0000, 0xffffff, (pointer)IPL);
+	C68k_Set_Fetch(&C68K, 0x000000, 0xbfffff, (uintptr_t)MEM);
+    C68k_Set_Fetch(&C68K, 0xc00000, 0xc7ffff, (uintptr_t)GVRAM);
+    C68k_Set_Fetch(&C68K, 0xe00000, 0xe7ffff, (uintptr_t)TVRAM);
+    C68k_Set_Fetch(&C68K, 0xea0000, 0xea1fff, (uintptr_t)SCSIIPL);
+    C68k_Set_Fetch(&C68K, 0xed0000, 0xed3fff, (uintptr_t)SRAM);
+    C68k_Set_Fetch(&C68K, 0xf00000, 0xfbffff, (uintptr_t)FONT);
+    C68k_Set_Fetch(&C68K, 0xfc0000, 0xffffff, (uintptr_t)IPL);
 #elif defined (HAVE_MUSASHI)
     m68k_set_cpu_type(M68K_CPU_TYPE_68000);
     m68k_init();

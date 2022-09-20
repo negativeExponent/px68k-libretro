@@ -24,8 +24,9 @@
 #include "core.h"
 #include "c68k.h"
 
-// #define TRACE_WITH_Q68  // Define to use Q68 tracing code to trace insns
-                           // (requires Q68 built in, of course)
+/* #define TRACE_WITH_Q68 */  /* Define to use Q68 tracing code to trace insns
+                               * (requires Q68 built in, of course)
+							   */
 
 #ifdef NEOCD_HLE
 void    cdrom_load_files(void);
@@ -34,74 +35,74 @@ void    neogeo_prio_switch(void);
 void    neogeo_upload(void);
 #endif
 
-// exception cycle table (taken from musashi core)
-static const s32 c68k_exception_cycle_table[256] =
+/* exception cycle table (taken from musashi core) */
+static const int32_t c68k_exception_cycle_table[256] =
 {
-	  4, //  0: Reset - Initial Stack Pointer
-	  4, //  1: Reset - Initial Program Counter
-	 50, //  2: Bus Error
-	 50, //  3: Address Error
-	 34, //  4: Illegal Instruction
-	 38, //  5: Divide by Zero
-	 40, //  6: CHK
-	 34, //  7: TRAPV
-	 34, //  8: Privilege Violation
-	 34, //  9: Trace
-	  4, // 10:
-	  4, // 11:
-	  4, // 12: RESERVED
-	  4, // 13: Coprocessor Protocol Violation
-	  4, // 14: Format Error
-	 44, // 15: Uninitialized Interrupt
-	  4, // 16: RESERVED
-	  4, // 17: RESERVED
-	  4, // 18: RESERVED
-	  4, // 19: RESERVED
-	  4, // 20: RESERVED
-	  4, // 21: RESERVED
-	  4, // 22: RESERVED
-	  4, // 23: RESERVED
-	 44, // 24: Spurious Interrupt
-	 44, // 25: Level 1 Interrupt Autovector
-	 44, // 26: Level 2 Interrupt Autovector
-	 44, // 27: Level 3 Interrupt Autovector
-	 44, // 28: Level 4 Interrupt Autovector
-	 44, // 29: Level 5 Interrupt Autovector
-	 44, // 30: Level 6 Interrupt Autovector
-	 44, // 31: Level 7 Interrupt Autovector
-	 34, // 32: TRAP #0
-	 34, // 33: TRAP #1
-	 34, // 34: TRAP #2
-	 34, // 35: TRAP #3
-	 34, // 36: TRAP #4
-	 34, // 37: TRAP #5
-	 34, // 38: TRAP #6
-	 34, // 39: TRAP #7
-	 34, // 40: TRAP #8
-	 34, // 41: TRAP #9
-	 34, // 42: TRAP #10
-	 34, // 43: TRAP #11
-	 34, // 44: TRAP #12
-	 34, // 45: TRAP #13
-	 34, // 46: TRAP #14
-	 34, // 47: TRAP #15
-	  4, // 48: FP Branch or Set on Unknown Condition
-	  4, // 49: FP Inexact Result
-	  4, // 50: FP Divide by Zero
-	  4, // 51: FP Underflow
-	  4, // 52: FP Operand Error
-	  4, // 53: FP Overflow
-	  4, // 54: FP Signaling NAN
-	  4, // 55: FP Unimplemented Data Type
-	  4, // 56: MMU Configuration Error
-	  4, // 57: MMU Illegal Operation Error
-	  4, // 58: MMU Access Level Violation Error
-	  4, // 59: RESERVED
-	  4, // 60: RESERVED
-	  4, // 61: RESERVED
-	  4, // 62: RESERVED
-	  4, // 63: RESERVED
-	     // 64-255: User Defined
+	  4, /*  0: Reset - Initial Stack Pointer */
+	  4, /*  1: Reset - Initial Program Counter */
+	 50, /*  2: Bus Error */
+	 50, /*  3: Address Error */
+	 34, /*  4: Illegal Instruction */
+	 38, /*  5: Divide by Zero */
+	 40, /*  6: CHK */
+	 34, /*  7: TRAPV */
+	 34, /*  8: Privilege Violation */
+	 34, /*  9: Trace */
+	  4, /* 10: */
+	  4, /* 11: */
+	  4, /* 12: RESERVED */
+	  4, /* 13: Coprocessor Protocol Violation */
+	  4, /* 14: Format Error */
+	 44, /* 15: Uninitialized Interrupt */
+	  4, /* 16: RESERVED */
+	  4, /* 17: RESERVED */
+	  4, /* 18: RESERVED */
+	  4, /* 19: RESERVED */
+	  4, /* 20: RESERVED */
+	  4, /* 21: RESERVED */
+	  4, /* 22: RESERVED */
+	  4, /* 23: RESERVED */
+	 44, /* 24: Spurious Interrupt */
+	 44, /* 25: Level 1 Interrupt Autovector */
+	 44, /* 26: Level 2 Interrupt Autovector */
+	 44, /* 27: Level 3 Interrupt Autovector */
+	 44, /* 28: Level 4 Interrupt Autovector */
+	 44, /* 29: Level 5 Interrupt Autovector */
+	 44, /* 30: Level 6 Interrupt Autovector */
+	 44, /* 31: Level 7 Interrupt Autovector */
+	 34, /* 32: TRAP #0 */
+	 34, /* 33: TRAP #1 */
+	 34, /* 34: TRAP #2 */
+	 34, /* 35: TRAP #3 */
+	 34, /* 36: TRAP #4 */
+	 34, /* 37: TRAP #5 */
+	 34, /* 38: TRAP #6 */
+	 34, /* 39: TRAP #7 */
+	 34, /* 40: TRAP #8 */
+	 34, /* 41: TRAP #9 */
+	 34, /* 42: TRAP #10 */
+	 34, /* 43: TRAP #11 */
+	 34, /* 44: TRAP #12 */
+	 34, /* 45: TRAP #13 */
+	 34, /* 46: TRAP #14 */
+	 34, /* 47: TRAP #15 */
+	  4, /* 48: FP Branch or Set on Unknown Condition */
+	  4, /* 49: FP Inexact Result */
+	  4, /* 50: FP Divide by Zero */
+	  4, /* 51: FP Underflow */
+	  4, /* 52: FP Operand Error */
+	  4, /* 53: FP Overflow */
+	  4, /* 54: FP Signaling NAN */
+	  4, /* 55: FP Unimplemented Data Type */
+	  4, /* 56: MMU Configuration Error */
+	  4, /* 57: MMU Illegal Operation Error */
+	  4, /* 58: MMU Access Level Violation Error */
+	  4, /* 59: RESERVED */
+	  4, /* 60: RESERVED */
+	  4, /* 61: RESERVED */
+	  4, /* 62: RESERVED */
+	  4, /* 63: RESERVED */
+	     /* 64-255: User Defined */
 	  4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
 	  4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
 	  4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
@@ -110,8 +111,8 @@ static const s32 c68k_exception_cycle_table[256] =
 	  4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4
 };
 
-// global variable
-///////////////////
+/* global variable */
+/*******************/
 
 #ifndef C68K_GEN
 
@@ -121,16 +122,16 @@ static void *JumpTable[0x10000];
 #endif
 #endif
 
-static u32 C68k_Initialised = 0;
+static uint32_t C68k_Initialised = 0;
 
-#endif  // C68K_GEN
+#endif  /* C68K_GEN */
 
 #ifdef NEOCD_HLE
 extern int img_display;
 #endif
 
-// include macro file
-//////////////////////
+/* include macro file */
+/**********************/
 
 #include "c68kmac.inc"
 
@@ -144,7 +145,7 @@ static uint32_t readw(uint32_t address) {
 /* Make our own version of the structure to avoid the overhead of dozens of
  * function calls every instruction */
 static struct {
-    u32 D[8], A[8], PC, SR, USP, SSP, dummy[7];
+    uint32_t D[8], A[8], PC, SR, USP, SSP, dummy[7];
     void *readb, *readw, *writeb, *writew;
 } state = {.readw = readw};
 void TRACE(int PC,c68k_struc *CPU,int Opcode,int CCnt) {
@@ -157,35 +158,20 @@ void TRACE(int PC,c68k_struc *CPU,int Opcode,int CCnt) {
     if (f) q68_trace((Q68State *)&state, f,
                      CPU->CycleToDo - CCnt, CPU->CycleToDo);
 }
-# endif  // TRACE_WITH_Q68
-#endif  // !C68K_GEN
+# endif  /* TRACE_WITH_Q68 */
+#endif   /* !C68K_GEN */
 
-// main exec function
-//////////////////////
+/* main exec function */
+/**********************/
 
-s32 FASTCALL C68k_Exec(c68k_struc *cpu, s32 cycle)
+int32_t FASTCALL C68k_Exec(c68k_struc *cpu, int32_t cycle)
 {
 #ifndef C68K_GEN
-#if 0
-    register c68k_struc *CPU asm ("ebx");
-    register pointer PC asm ("esi");
-    register s32 CCnt asm ("edi");
-//    register u32 Opcode asm ("edi");
-//    c68k_struc *CPU;
-//    u32 PC;
-//    s32 CCnt;
-    u32 Opcode;
-#else
-//    register c68k_struc *CPU asm ("r10");
-//    register u32 PC asm ("r11");
-//    register s32 CCnt asm ("r12");
-//    register u32 Opcode asm ("r13");
     c68k_struc *CPU;
-    pointer PC;
-    s32 CCnt;
-    u32 Opcode;
-#endif
-#endif
+    uintptr_t PC;
+    int32_t CCnt;
+    uint32_t Opcode;
+#endif /* C68K_GEN */
 
 #ifndef C68K_GEN
 
@@ -218,11 +204,11 @@ s32 FASTCALL C68k_Exec(c68k_struc *cpu, s32 cycle)
     CHECK_INT
 #else
     {
-        s32 line, vect;
+        int32_t line, vect;
 
         line = CPU->IRQLine;
 
-        if ((line == 7) || (line > (s32)CPU->flag_I))
+        if ((line == 7) || (line > (int32_t)CPU->flag_I))
         {
             PRE_IO
 
@@ -238,7 +224,7 @@ s32 FASTCALL C68k_Exec(c68k_struc *cpu, s32 cycle)
             /* swap A7 and USP */
             if (!CPU->flag_S)
             {
-                u32 tmpSP;
+                uint32_t tmpSP;
 
                 tmpSP = CPU->USP;
                 CPU->USP = CPU->A[7];
@@ -246,7 +232,7 @@ s32 FASTCALL C68k_Exec(c68k_struc *cpu, s32 cycle)
             }
 
             /* push PC and SR */
-            PUSH_32_F((u32)(PC - CPU->BasePC))
+            PUSH_32_F((uint32_t)(PC - CPU->BasePC))
             PUSH_16_F(GET_SR)
 
             /* adjust SR */
@@ -301,7 +287,18 @@ SwitchTable:
     #include "c68k_opE.inc"
     #include "c68k_opF.inc"
 #ifdef C68K_NO_JUMP_TABLE
-    }
+	/* fallthrough and loop to SwitchTable */
+	default:
+		if (Opcode <= 0xFFFF)
+		{
+			const uint32_t JmpTable[] = {
+				0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC,
+				0x4AFC, 0x4AFC, 0xA000, 0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC, 0xF000
+			};
+			Opcode = JmpTable[(Opcode & 0xF000) >> 12];
+			goto SwitchTable;
+		}
+	}
 #endif
 
 C68k_Exec_End:
@@ -322,7 +319,7 @@ C68k_Exec_Really_End:
 #ifndef C68K_NO_JUMP_TABLE
 C68k_Init:
     {
-        u32 i, j;
+        uint32_t i, j;
 
         #include "c68k_ini.inc"
 

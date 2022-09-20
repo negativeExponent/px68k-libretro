@@ -65,9 +65,17 @@
 #define INLINE _inline
 #else
 #define INLINE inline
-#endif 
+#endif
 #endif
 
+#ifdef GEKKO
+/* Wii have both stdint.h and "yabause" definitions of fixed size types */
+#include <gccore.h>
+#else /* ! GEKKO */
+#include <stdint.h>
+#endif
+
+#if 0
 #ifdef GEKKO
 /* Wii have both stdint.h and "yabause" definitions of fixed
 size types */
@@ -133,6 +141,7 @@ typedef signed long long s64;
 #endif  // !HAVE_STDINT_H
 
 #endif // !GEKKO
+#endif /* if 0 */
 
 #if 0
 typedef struct {
@@ -191,9 +200,9 @@ static INLINE int StateCheckRetrieveHeader(FILE *fp, const char *name, int *vers
    return 0;
 }
 #endif
-//////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 
-// Terrible, but I'm not sure how to do the equivalent in inline
+/* Terrible, but I'm not sure how to do the equivalent in inline */
 #ifdef HAVE_C99_VARIADIC_MACROS
 #define AddString(s, ...) \
    { \
@@ -208,7 +217,7 @@ static INLINE int StateCheckRetrieveHeader(FILE *fp, const char *name, int *vers
    }
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 
 #ifdef HAVE_LIBMINI18N
 #include "mini18n.h"
@@ -218,7 +227,7 @@ static INLINE int StateCheckRetrieveHeader(FILE *fp, const char *name, int *vers
 #endif
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 
 /* Minimum/maximum values */
 
@@ -227,7 +236,7 @@ static INLINE int StateCheckRetrieveHeader(FILE *fp, const char *name, int *vers
 #define MIN(a,b)  ((a) < (b) ? (a) : (b))
 #define MAX(a,b)  ((a) > (b) ? (a) : (b))
 
-//////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 
 /*
  * BSWAP16(x) swaps two bytes in a 16-bit value (AABB -> BBAA) or adjacent
@@ -271,7 +280,7 @@ static INLINE int StateCheckRetrieveHeader(FILE *fp, const char *name, int *vers
 # define WSWAP32(x)  ((u32)(x)>>16 | (u32)(x)<<16)
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 
 #ifdef __GNUC__
 
