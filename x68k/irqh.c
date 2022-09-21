@@ -62,7 +62,7 @@ void IRQH_Int(uint8_t irq, int32_t (*handler)(int32_t))
 
 int32_t my_irqh_callback(int32_t level)
 {
-	int32_t (*func)(int32_t) = IRQH_CallBack[level & 7] ? IRQH_CallBack[level & 7] : IRQH_DefaultVector(level & 7);
+	int32_t (*func)(int32_t) = IRQH_CallBack[level & 7] ? IRQH_CallBack[level & 7] : &IRQH_DefaultVector;
 	int vect                 = (*func)(level & 7);
 	int i;
 
