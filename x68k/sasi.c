@@ -21,7 +21,6 @@ static uint8_t SASI_Unit    = 0;
 static int16_t SASI_BufPtr  = 0;
 static uint8_t SASI_RW      = 0;
 static uint8_t SASI_Stat    = 0;
-static uint8_t SASI_Mes     = 0;
 static uint8_t SASI_Error   = 0;
 static uint8_t SASI_SenseStatBuf[4];
 static uint8_t SASI_SenseStatPtr = 0;
