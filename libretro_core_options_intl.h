@@ -11,9 +11,10 @@
 
 /*
  ********************************
- * VERSION: 1.3
+ * VERSION: 2.0
  ********************************
  *
+ * - 2.0: Add support for core options v2 interface
  * - 1.3: Move translations to libretro_core_options_intl.h
  *        - libretro_core_options_intl.h includes BOM and utf-8
  *          fix for MSVC 2010-2013
@@ -41,12 +42,45 @@ extern "C" {
 
 /* RETRO_LANGUAGE_FRENCH */
 
-struct retro_core_option_definition option_def_fr[] = {
+/* needs to be translated */
+struct retro_core_option_v2_category option_cats_fr[] = {
+   {
+      "system",
+      "System",
+      "Change emulated hardware settings."
+   },
+   {
+      "audio",
+      "Audio",
+      "Change sound volumes and midi output type."
+   },
+   {
+      "input",
+      "Input",
+      "Change controller types and button mapping."
+   },
+   {
+      "media",
+      "Media",
+      "Change floppy disk media swapping options."
+   },
+   {
+      "tweaks",
+      "Tweaks",
+      "Change system-related tweaks for performance or aesthetics."
+   },
 
+   { NULL, NULL, NULL },
+};
+
+struct retro_core_option_v2_definition option_defs_fr[] = {
    {
       "px68k_menufontsize",
       "Taille de la police du menu",
       NULL,
+	  NULL,
+	  NULL,
+	  "system",
       {
          { "normale", NULL },
          { "grande",  NULL },
@@ -57,12 +91,18 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_cpuspeed",
       "Vitesse du CPU",
+	  NULL,
       "Configurez la vitesse du processeur. Peut être utilisé pour ralentir les jeux trop rapides ou pour accélérer les temps de chargement des disquettes.",
+	  NULL,
+	  "system",
       {
          { "10Mhz",       NULL },
          { "16Mhz",       NULL },
+         { "20Mhz",       NULL },
          { "25Mhz",       NULL },
-         { "33Mhz (OC)",  NULL },
+         { "33Mhz",       NULL },
+         { "40Mhz",       NULL },
+         { "50Mhz",       NULL },
          { "66Mhz (OC)",  NULL },
          { "100Mhz (OC)", NULL },
          { NULL,          NULL },
@@ -72,7 +112,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_ramsize",
       "Taille de la RAM (Redémare)",
+	  NULL,
       "Définit la quantité de RAM à utiliser par le système.",
+	  NULL,
+	  "system",
       {
          { "1MB",  NULL },
          { "2MB",  NULL },
@@ -94,6 +137,9 @@ struct retro_core_option_definition option_def_fr[] = {
       "px68k_analog",
       "Utiliser l'Analogique",
       NULL,
+	  NULL,
+	  NULL,
+	  "input",
       {
          { "désactivé", NULL },
          { "activé",  NULL },
@@ -104,7 +150,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_joytype1",
       "Type de Manette du J1",
+	  NULL,
       "Défini le type de manette du joueur 1.",
+	  NULL,
+	  "input",
       {
          { "Défaut (2 Boutons)",  NULL },
          { "CPSF-MD (8 Boutons)",  NULL },
@@ -116,7 +165,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_joytype2",
       "Type de Joypad du J2",
+	  NULL,
       "Défini le type de manette du joueur 2.",
+	  NULL,
+	  "input",
       {
          { "Défaut (2 Boutons)",  NULL },
          { "CPSF-MD (8 Boutons)",  NULL },
@@ -128,7 +180,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_joy1_select",
       "Mappage de la manette du J1",
+	  NULL,
       "Attribue une touche du clavier au bouton SELECT de la manette, car certains jeux utilisent ces touches comme boutons Démarrer ou Insérer une pièce.",
+	  NULL,
+	  "input",
       {
          { "Défaut", NULL },
          { "XF1",     NULL },
@@ -147,7 +202,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_adpcm_vol",
       "Volume ADPCM",
+	  NULL,
       "Règlage du volume du canal audio ADPCM.",
+	  NULL,
+	  "audio",
       {
          { "0",  NULL },
          { "1",  NULL },
@@ -172,7 +230,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_opm_vol",
       "Volume OPM",
+	  NULL,
       "Règlage du volume du canal audio OPM.",
+	  NULL,
+	  "audio",
       {
          { "0",  NULL },
          { "1",  NULL },
@@ -198,7 +259,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_mercury_vol",
       "Volume Mercury",
+	  NULL,
       "Règlage du volume du canal sonore Mercury.",
+	  NULL,
+	  "audio",
       {
          { "0",  NULL },
          { "1",  NULL },
@@ -224,7 +288,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_disk_drive",
       "Échange de disques sur le lecteur",
+	  NULL,
       "Par défaut, l'interface native de RetroArch, d'échange de disque dans le menu, échange le disque dans le lecteur FDD1. Modifiez cette option pour échanger des disques dans le lecteur FDD0.",
+	  NULL,
+	  "media",
       {
          { "FDD1", NULL },
          { "FDD0", NULL },
@@ -235,7 +302,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_save_fdd_path",
       "Enregistrer les chemins d'accès aux disques",
+	  NULL,
       "Lorsqu'elle est activée, les chemins d'accès aux disques précédemment chargés seront enregistrés pour chaque lecteur, puis chargés automatiquement au démarrage. Lorsqu'elle est désactivé, FDD et HDD commencent à vide.",
+	  NULL,
+	  "media",
       {
          { "activé",  NULL },
          { "désactivé", NULL },
@@ -248,7 +318,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_joy_mouse",
       "Manette /sourie",
+	  NULL,
       "Sélectionner la [sourie] ou la [manette] pour contrôler le pointeur de sourie dans les jeux..",
+	  NULL,
+	  "input",
       {
          { "Sourie",    NULL},
          { "Manette", NULL}, /* unimplemented yet */
@@ -259,7 +332,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_vbtn_swap",
       "Echange des boutons",
+	  NULL,
       "Echange le BOUTON1 et le BOUTON2 quand une manette 2 boutons est sélectionné.",
+	  NULL,
+	  "input",
       {
          { "BOUTON1 BOUTON2", NULL},
          { "BOUTON2 BOUTON1", NULL},
@@ -270,7 +346,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_no_wait_mode",
       "Mode sans attente",
+	  NULL,
       "Lorsque ce mode est [activé], le cœur s'exécute aussi vite que possible. Cela peut provoquer une désynchronisation audio mais permet une avance rapide. Il est recommandé de définir ce paramètre à [désactivé].",
+	  NULL,
+	  "tweaks",
       {
          { "désactivé", NULL},
          { "activé",  NULL},
@@ -281,7 +360,10 @@ struct retro_core_option_definition option_def_fr[] = {
    {
       "px68k_frameskip",
       "Saut d'images",
+	  NULL,
       "Choisissez le nombre d'images à ignorer pour améliorer les performances au détriment de la fluidité visuelle.",
+	  NULL,
+	  "tweaks",
       {
          { "Toutes les images",      NULL },
          { "1/2 image",       NULL },
@@ -299,7 +381,11 @@ struct retro_core_option_definition option_def_fr[] = {
       "Toutes les images"
    },
 
-   { NULL, NULL, NULL, {{0}}, NULL }
+   { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },
+};
+struct retro_core_options_v2 options_fr = {
+   option_cats_fr,
+   option_defs_fr
 };
 
 /* RETRO_LANGUAGE_SPANISH */
