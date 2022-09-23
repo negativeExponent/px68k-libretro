@@ -126,7 +126,7 @@ void FASTCALL Mcry_Update(int16_t *buffer, uint32_t length)
 }
 
 /* 1回分（1Word x 2ch）のデータをバッファに書き出し */
-INLINE void Mcry_WriteOne(void)
+static INLINE void Mcry_WriteOne(void)
 {
 	while (Mcry_Count < Mcry_SampleRate)
 	{

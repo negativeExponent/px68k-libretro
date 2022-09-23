@@ -16,7 +16,7 @@ extern int FDD_IsReading;
 #define	StatBar_SetFDD(d,f)
 #define	StatBar_HDD(s)
 
-INLINE void StatBar_ParamFDD(int drv, int access, int insert, int blink)
+static INLINE void StatBar_ParamFDD(int drv, int access, int insert, int blink)
 {
 	static int fdd_access[2], fdd_insert[2], fdd_blink[2];
 	int update;
