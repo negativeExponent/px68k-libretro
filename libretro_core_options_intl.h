@@ -65,9 +65,9 @@ struct retro_core_option_v2_category option_cats_fr[] = {
       "Change floppy disk media swapping options."
    },
    {
-      "tweaks",
-      "Tweaks",
-      "Change system-related tweaks for performance or aesthetics."
+      "advanced",
+      "Advanced",
+      "Change system-related advanced options for performance or aesthetics."
    },
 
    { NULL, NULL, NULL },
@@ -349,7 +349,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
 	  NULL,
       "Lorsque ce mode est [activé], le cœur s'exécute aussi vite que possible. Cela peut provoquer une désynchronisation audio mais permet une avance rapide. Il est recommandé de définir ce paramètre à [désactivé].",
 	  NULL,
-	  "tweaks",
+	  "advanced",
       {
          { "désactivé", NULL},
          { "activé",  NULL},
@@ -363,7 +363,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
 	  NULL,
       "Choisissez le nombre d'images à ignorer pour améliorer les performances au détriment de la fluidité visuelle.",
 	  NULL,
-	  "tweaks",
+	  "advanced",
       {
          { "Toutes les images",      NULL },
          { "1/2 image",       NULL },
