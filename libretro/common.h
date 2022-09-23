@@ -3,10 +3,6 @@
 
 #include "../win32api/windows.h"
 
-#ifndef FASTCALL
-#define FASTCALL
-#endif
-
 void Error(const char *s);
 void p6logd(const char *fmt, ...);
 

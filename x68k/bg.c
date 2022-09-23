@@ -263,7 +263,7 @@ struct SPRITECTRLTBL {
 typedef struct SPRITECTRLTBL SPRITECTRLTBL_T;
 
 /* 1ライン分の描画 */
-INLINE void Sprite_DrawLineMcr(int pri)
+static INLINE void Sprite_DrawLineMcr(int pri)
 {
 	SPRITECTRLTBL_T *sct = (SPRITECTRLTBL_T *)Sprite_Regs;
 	uint32_t y;
@@ -466,22 +466,22 @@ void bg_drawline_loopx16(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY,
 	}
 }
 
-INLINE void BG_DrawLineMcr8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
+static INLINE void BG_DrawLineMcr8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
 {
 	bg_drawline_loopx8(BGTOP, BGScrollX, BGScrollY, BG_HAdjust, 0);
 }
 
-INLINE void BG_DrawLineMcr16(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
+static INLINE void BG_DrawLineMcr16(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
 {
 	bg_drawline_loopx16(BGTOP, BGScrollX, BGScrollY, BG_HAdjust, 0);
 }
 
-INLINE void BG_DrawLineMcr8_ng(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
+static INLINE void BG_DrawLineMcr8_ng(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
 {
 	bg_drawline_loopx8(BGTOP, BGScrollX, BGScrollY, BG_HAdjust, 1);
 }
 
-INLINE void BG_DrawLineMcr16_ng(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
+static INLINE void BG_DrawLineMcr16_ng(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY)
 {
 	bg_drawline_loopx16(BGTOP, BGScrollX, BGScrollY, 0, 1);
 }

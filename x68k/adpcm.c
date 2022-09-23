@@ -246,7 +246,7 @@ void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, int rate, uint8_t *
 }
 
 /* 1nibble（4bit）をデコード */
-INLINE void ADPCM_WriteOne(uint8_t val)
+static INLINE void ADPCM_WriteOne(uint8_t val)
 {
 	ADPCM_Out += dif_table[(ADPCM_Step << 4) + val];
 

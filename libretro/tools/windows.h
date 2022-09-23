@@ -1,6 +1,7 @@
 #ifndef __NP2_WIN32EMUL_H__
 #define __NP2_WIN32EMUL_H__
 
+#include <assert.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -11,9 +12,6 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/param.h>
-
-/* for INLINE */
-#include "../libretro-common/include/retro_inline.h"
 
 typedef int BOOL;
 
@@ -33,6 +31,10 @@ typedef int BOOL;
 #define MAX_PATH MAXPATHLEN
 #endif
 
+#ifndef AVE
+#define AVE(a, b) (((a) + (b)) / 2)
+#endif
+
 #ifdef __GNUC__
 #ifndef UNUSED
 #define UNUSED __attribute((unused))
@@ -40,6 +42,27 @@ typedef int BOOL;
 #else
 #define UNUSED(v) ((void)(v))
 #endif
+
+#ifndef INLINE
+#define INLINE static inline
+#endif
+
+#define RGB(r, g, b) ((uint32_t)((uint8_t)(r)) | ((uint16_t)((uint8_t)(g))) | ((uint32_t)((uint8_t)(b))))
+
+#define MB_APPLMODAL 0
+
+#define MB_ICONSTOP        16
+#define MB_ICONINFORMATION 64
+
+#define MB_OK 0
+
+#define GPTR 64
+
+/* for BITMAP */
+#define BI_RGB       0
+#define BI_RLE8      1
+#define BI_RLE4      2
+#define BI_BITFIELDS 3
 
 /* for dosio.c */
 #define GENERIC_READ  1

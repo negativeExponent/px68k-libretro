@@ -62,7 +62,7 @@ uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 }
 
 /* 1ばいと書くなり */
-INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
+static INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 {
 	if (TVRAM[adr] != data)
 	{
@@ -72,7 +72,7 @@ INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 }
 
 /* ますく付きで書くなり */
-INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data)
+static INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data)
 {
 	data = (TVRAM[adr] & CRTC_Regs[0x2e + ((adr ^ 1) & 1)]) | (data & (~CRTC_Regs[0x2e + ((adr ^ 1) & 1)]));
 	if (TVRAM[adr] != data)
