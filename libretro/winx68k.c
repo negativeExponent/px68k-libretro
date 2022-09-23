@@ -643,10 +643,10 @@ void handle_retrok()
 	KEYP(RETROK_i, 0x18);
 	KEYP(RETROK_o, 0x19);
 	KEYP(RETROK_p, 0x1A);
-	KEYP(RETROK_BACKQUOTE, 0x1B);
+	KEYP(RETROK_BACKQUOTE, 0x1B); /* @` */
 	KEYP(RETROK_LEFTBRACKET, 0x1C);
 	KEYP(RETROK_RETURN, 0x1d);
-	KEYP(RETROK_EQUALS, 0xd); /* caret ^ */
+	KEYP(RETROK_EQUALS, 0xd); /* caret ^~ */
 
 	KEYP(RETROK_a, 0x1e);
 	KEYP(RETROK_s, 0x1f);
@@ -657,8 +657,8 @@ void handle_retrok()
 	KEYP(RETROK_j, 0x24);
 	KEYP(RETROK_k, 0x25);
 	KEYP(RETROK_l, 0x26);
-	KEYP(RETROK_SEMICOLON, 0x27);
-	KEYP(RETROK_BACKSLASH, 0xe); /* Yen symbol ¥ */
+	KEYP(RETROK_SEMICOLON, 0x27); /* ;+ */
+	KEYP(RETROK_BACKSLASH, 0xe); /* Yen symbol(backslash) ¥| */
 	KEYP(RETROK_RIGHTBRACKET, 0x29);
 
 	KEYP(RETROK_z, 0x2a);
@@ -680,7 +680,7 @@ void handle_retrok()
 	KEYP(RETROK_DELETE, 0x37);
 	KEYP(RETROK_PAGEDOWN, 0x38);
 	KEYP(RETROK_PAGEUP, 0x39);
-	KEYP(RETROK_END, 0x3a);
+	KEYP(RETROK_END, 0x3a); /* UNDO */
 	KEYP(RETROK_LEFT, 0x3b);
 	KEYP(RETROK_UP, 0x3c);
 	KEYP(RETROK_RIGHT, 0x3d);
@@ -709,23 +709,20 @@ void handle_retrok()
 	KEYP(RETROK_PRINT, 0x52);     /* symbol input (kigou) */
 	KEYP(RETROK_SCROLLOCK, 0x53); /* registration (touroku) */
 	KEYP(RETROK_F11, 0x54);       /* help */
+
 	/*	KEYP(RETROK_MENU,0x55); */      /* xf1 */
 	/*	KEYP(RETROK_KP_PERIOD,0x56); */ /* xf2 */
 	/*	KEYP(RETROK_KP_PERIOD,0x57); */ /* xf3 */
-
-	/* only process kb_to_joypad map when its not zero, else button is used as joypad select mode */
-	if (Config.P1SelectMap)
-		KEYP(RETROK_XFX, Config.P1SelectMap);
-
 	/*	KEYP(RETROK_KP_PERIOD,0x58); */ /* xf4 */
 	/*	KEYP(RETROK_KP_PERIOD,0x59); */ /* xf5 */
 	/*	KEYP(RETROK_KP_PERIOD,0x5a); */ /* kana */
 	/*	KEYP(RETROK_KP_PERIOD,0x5b); */ /* romaji */
 	/*	KEYP(RETROK_KP_PERIOD,0x5c); */ /* input by codes*/
+
 	KEYP(RETROK_CAPSLOCK, 0x5d);
 	KEYP(RETROK_INSERT, 0x5e);
-	/*	KEYP(RETROK_KP_PERIOD,0x5f); */
-	/*	KEYP(RETROK_KP_PERIOD,0x60); */
+	/*	KEYP(RETROK_KP_PERIOD,0x5f); */ /* hiragana */
+	/*	KEYP(RETROK_KP_PERIOD,0x60); */ /* full width */
 	KEYP(RETROK_BREAK, 0x61); /* break */
 	KEYP(RETROK_PAUSE, 0x61); /* break (allow shift+break combo) */
 	/*	KEYP(RETROK_KP_PERIOD,0x62); */ /* copy */
@@ -733,18 +730,18 @@ void handle_retrok()
 	for (i = 0; i < 10; i++)
 		KEYP(RETROK_F1 + i, 0x63 + i);
 
-	/*	KEYP(RETROK_KP_PERIOD,0x6d); */
-	/*	KEYP(RETROK_KP_PERIOD,0x6e); */
-	/*	KEYP(RETROK_KP_PERIOD,0x6f); */
-
 	KEYP(RETROK_LSHIFT, 0x70);
 	KEYP(RETROK_RSHIFT, 0x70);
 	KEYP(RETROK_LCTRL, 0x71);
 	KEYP(RETROK_RCTRL, 0x71);
-	KEYP(RETROK_LSUPER, 0x72);
-	KEYP(RETROK_RSUPER, 0x73);
+	KEYP(RETROK_LSUPER, 0x72); /* OPT.1 */
+	KEYP(RETROK_RSUPER, 0x73); /* OPT.2 */
 	KEYP(RETROK_LALT, 0x72);
 	KEYP(RETROK_RALT, 0x73);
+
+	/* only process kb_to_joypad map when its not zero, else button is used as joypad select mode */
+	if (Config.P1SelectMap)
+		KEYP(RETROK_XFX, Config.P1SelectMap);
 }
 
 void exec_app_retro(void)
