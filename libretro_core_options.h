@@ -54,9 +54,9 @@ struct retro_core_option_v2_category option_cats_us[] = {
       "Change floppy disk media swapping options."
    },
    {
-      "tweaks",
-      "Tweaks",
-      "Change system-related tweaks for performance or aesthetics."
+      "advanced",
+      "Advanced",
+      "Change system-related advanced options for performance or aesthetics."
    },
 
    { NULL, NULL, NULL },
@@ -348,7 +348,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       NULL,
       "Produces rumble effect on supported devices when reading from floppy disks.",
       NULL,
-      "tweaks",
+      "advanced",
       {
          { "enabled",  NULL },
          { "disabled", NULL },
@@ -390,7 +390,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       NULL,
       "When set to [enabled], core runs as fast as possible. Can cause audio desync. Setting this [disabled] is recommended.",
       NULL,
-      "tweaks",
+      "advanced",
       {
          { "disabled", NULL},
          { "enabled",  NULL},
@@ -404,7 +404,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       NULL,
       "Choose how many frames will be skipped to improve performance at the expense of visual smoothness.",
       NULL,
-      "tweaks",
+      "advanced",
       {
          { "Full Frame",      NULL },
          { "1/2 Frame",       NULL },
@@ -427,7 +427,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       NULL,
       "For compatibility with modern displays, slightly adjust frame rates reported to frontend in order to reduce the chances of audio stuttering.  Disable to use actual frame rates.",
       NULL,
-      "tweaks",
+      "advanced",
       {
          { "disabled", NULL},
          { "enabled",  NULL},
@@ -441,7 +441,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       NULL,
       "Prevents audio from desynchronizing by simply discarding any audio samples generated past the requested amount per frame slice.  Forces 'No Wait Mode' to [enabled], use appropriate frontend settings to properly throttle content.",
       NULL,
-      "tweaks",
+      "advanced",
       {
          { "disabled", NULL},
          { "enabled",  NULL},
