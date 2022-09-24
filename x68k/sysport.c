@@ -48,45 +48,34 @@ void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 
 uint8_t FASTCALL SysPort_Read(uint32_t adr)
 {
-	uint8_t ret = 0xff;
-
 	switch (adr)
 	{
 	case 0xe8e001:
-		ret = SysPort[1];
-		break;
+		return SysPort[1];
 	case 0xe8e003:
-		ret = SysPort[2];
-		break;
+		return SysPort[2];
 	case 0xe8e005:
-		ret = SysPort[3];
-		break;
+		return SysPort[3];
 	case 0xe8e007:
-		ret = SysPort[4];
-		break;
+		return SysPort[4];
 	case 0xe8e00b:
 		/* 10MHz:0xff、16MHz:0xfe、030(25MHz):0xdcをそれぞれ返すらしい */
 		switch (Config.XVIMode)
 		{
-		case 1: /* XVI or RedZone */
-		case 2:
-			ret = 0xfe;
-			break;
-		case 3: /* 030 */
-			ret = 0xdc;
-			break;
+		case 1: /* x68030 */
+			return 0xdc;
+		case 2: /* XVI or Compact */
+		case 3:
+			return 0xfe;
 		default: /* 10MHz */
-			ret = 0xff;
 			break;
 		}
-		break;
+		return 0xff;
 	case 0xe8e00d:
-		ret = SysPort[5];
-		break;
+		return SysPort[5];
 	case 0xe8e00f:
-		ret = SysPort[6];
-		break;
+		return SysPort[6];
 	}
 
-	return ret;
+	return 0xff;
 }

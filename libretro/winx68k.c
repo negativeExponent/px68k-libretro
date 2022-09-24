@@ -123,19 +123,23 @@ int WinX68k_LoadROMs(void)
 	static const char FONTFILE[]    = "cgrom.dat";
 	static const char FONTFILETMP[] = "cgrom.tmp";
 	void *fp;
-	int i;
 	uint8_t tmp;
+	int i;
 
-	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(BIOSFILE); ++i)
+	fp = NULL;
+	for (i = 0; i < NELEMENTS(BIOSFILE); ++i)
 	{
 		fp = file_open_c((char *)BIOSFILE[i]);
+		if (fp) break;
 	}
 
-	if (fp == 0)
+	if (fp == NULL)
 	{
 		Error("BIOS ROM image can't be found.");
 		return FALSE;
 	}
+
+	Config.XVIMode = i;
 
 	file_read(fp, &IPL[0x20000], 0x20000);
 	file_close(fp);
@@ -307,15 +311,17 @@ void WinX68k_Exec(void)
 	clk_total = (clk_total * Config.cpuClock) / 10;
 	clkdiv    = Config.cpuClock;
 
-	/*	if (Config.XVIMode == 1) {
-			clk_total = (clk_total*16)/10;
-			clkdiv = 16;
-		} else if (Config.XVIMode == 2) {
-			clk_total = (clk_total*24)/10;
-			clkdiv = 24;
-		} else {
-			clkdiv = 10;
-		} */
+#if 0
+	if (Config.XVIMode == 1) { /* x68030 */
+		clk_total = (clk_total*25)/10;
+		clkdiv = 25;
+	} else if (Config.XVIMode == 2 || Config.XVIMode == 3) { /* XVI or Compact */
+		clk_total = (clk_total*16)/10;
+		clkdiv = 16;
+	} else { /* x68000 and earlier models */
+		clkdiv = 10;
+	}
+#endif
 
 	ICount += clk_total;
 	clk_next = (clk_total / VLINE_TOTAL);

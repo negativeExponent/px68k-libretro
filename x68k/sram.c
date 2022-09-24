@@ -12,15 +12,23 @@
 uint8_t SRAM[0x4000];
 static char SRAMFILE[] = "sram.dat";
 
+void SRAM_SetMem(uint16_t adr, uint8_t val)
+{
+	if (SRAM[adr ^ 1] != val)
+	{
+		SRAM[adr ^ 1] = val;
+	}
+}
+
 void SRAM_SetRAMSize(int size)
 {
 	if ((SRAM[0x09 ^ 1] >> 4) == size)
 		return;
 
-	SRAM[0x08 ^ 1] = 0x00;
-	SRAM[0x09 ^ 1] = (size << 4) & 0xf0;
-	SRAM[0x0a ^ 1] = 0x00;
-	SRAM[0x0b ^ 1] = 0x00;
+	SRAM_SetMem(0x08, 0x00);
+	SRAM_SetMem(0x09, (size << 4) & 0xf0);
+	SRAM_SetMem(0x0a, 0x00);
+	SRAM_SetMem(0x0b, 0x00);
 }
 
 void SRAM_Clear(void)
