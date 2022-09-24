@@ -8,6 +8,7 @@
 #include "ioc.h"
 #include "irqh.h"
 #include "prop.h"
+#include "sram.h"
 #include "status.h"
 
 static uint8_t SASI_Cmd[6];
@@ -58,6 +59,10 @@ void SASI_Init(void)
 	SASI_Stat         = 0;
 	SASI_Error        = 0;
 	SASI_SenseStatPtr = 0;
+
+	/* $ed005a - Always enable SASI-HD */
+	if (Config.XVIMode >= 2)
+		SRAM_SetMem(0x5a, 0x01);
 }
 
 /* し−く（リード時）*/

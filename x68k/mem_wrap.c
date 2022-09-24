@@ -138,8 +138,6 @@ uint32_t BusErrHandling = 0;
 uint32_t BusErrAdr;
 uint32_t MemByteAccess = 0;
 
-static int ram_size = 0;
-
 /*
  * write function
  */
@@ -537,12 +535,8 @@ void Memory_Init(void)
 #elif defined(HAVE_MUSASHI)
 	cpu_setOPbase24((uint32_t)m68k_get_reg(NULL, M68K_REG_PC));
 #endif
-	ram_size = SRAM[0x09 ^ 1] >> 4;
-	if (ram_size  != Config.ramSize)
-	{
-		ram_size = Config.ramSize;
-		SRAM_SetRAMSize(ram_size);
-	}
+
+	SRAM_SetRAMSize(Config.ramSize);
 }
 
 void Memory_SetSCSIMode(void)
