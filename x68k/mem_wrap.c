@@ -39,7 +39,6 @@ static uint8_t rm_buserr(uint32_t addr);
 
 static void AdrError(uint32_t, uint32_t);
 static void BusError(uint32_t, uint32_t);
-static void Memory_ErrTrace(void);
 
 static uint8_t (*MemReadTable[])(uint32_t) = {
 /*	$0000		$2000		$4000		$6000		$8000		$a000		$c000		$e000 */
@@ -173,7 +172,6 @@ void cpu_writemem24(uint32_t addr, uint32_t val)
 	wm_cnt(addr, val & 0xff);
 	if (BusErrFlag & 2)
 	{
-		Memory_ErrTrace();
 		BusError(addr, val);
 	}
 }
@@ -193,7 +191,6 @@ void cpu_writemem24_word(uint32_t addr, uint32_t val)
 
 	if (BusErrFlag & 2)
 	{
-		Memory_ErrTrace();
 		BusError(addr, val);
 	}
 }
@@ -215,7 +212,6 @@ void cpu_writemem24_dword(uint32_t addr, uint32_t val)
 
 	if (BusErrFlag & 2)
 	{
-		Memory_ErrTrace();
 		BusError(addr, val);
 	}
 }
@@ -305,7 +301,6 @@ uint32_t cpu_readmem24(uint32_t addr)
 	if (BusErrFlag & 1)
 	{
 		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
-		Memory_ErrTrace();
 		BusError(addr, 0);
 	}
 	return v;
@@ -328,7 +323,6 @@ uint32_t cpu_readmem24_word(uint32_t addr)
 	if (BusErrFlag & 1)
 	{
 		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
-		Memory_ErrTrace();
 		BusError(addr, 0);
 	}
 	return v;
@@ -426,7 +420,6 @@ static void cpu_setOPbase24(uint32_t addr)
 		{
 			BusErrFlag = 3;
 			BusErrAdr  = addr;
-			Memory_ErrTrace();
 			BusError(addr, 0);
 		}
 		break;
@@ -438,7 +431,6 @@ static void cpu_setOPbase24(uint32_t addr)
 		{
 			BusErrFlag = 3;
 			BusErrAdr  = addr;
-			Memory_ErrTrace();
 			BusError(addr, 0);
 		}
 		break;
@@ -472,8 +464,6 @@ void Memory_SetSCSIMode(void)
 		MemReadTable[i] = rm_buserr;
 	}
 }
-
-static void Memory_ErrTrace(void) { }
 
 static void AdrError(uint32_t adr, uint32_t unknown)
 {
