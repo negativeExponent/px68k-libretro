@@ -56,12 +56,13 @@ endif
 TARGET_NAME := px68k
 ENDIANNESS_DEFINES :=
 CORE_DIR := .
+LIBRETRO_DIR := $(CORE_DIR)/libretro
 
 # Unix
 ifneq (,$(findstring unix,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
 
 # OS X
 else ifeq ($(platform), osx)
@@ -133,7 +134,7 @@ endif
 else ifneq (,$(findstring android,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro_android.so
 	fpic = -fPIC
-	SHARED := -lstdc++ -llog -shared -Wl,--version-script=link.T -Wl,--no-undefined
+	SHARED := -lstdc++ -llog -shared -Wl,--version-script=$(LIBRETRO_DIR)/link.T -Wl,--no-undefined
 	CFLAGS +=  -g -O2
 	CXXFLAGS = -g -O2  -fno-merge-constants
 	CC = arm-linux-androideabi-gcc
@@ -150,7 +151,7 @@ else ifneq (,$(findstring crosspi,$(platform)))
 	CXXFLAGS += -g -O2  -fno-merge-constants
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
 	FLAGS += -DARM -marm
 else ifeq ($(platform), vita)
 	TARGET := $(TARGET_NAME)_libretro_vita.a
@@ -180,7 +181,7 @@ else ifeq ($(platform), libnx)
 else ifeq ($(platform), classic_armv7_a7)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
 	CPU_FLAGS += -Ofast \
 	-flto=4 -fwhole-program -fuse-linker-plugin \
 	-fdata-sections -ffunction-sections -Wl,--gc-sections \
@@ -208,7 +209,7 @@ else ifeq ($(platform), classic_armv7_a7)
 else ifeq ($(platform), classic_armv8_a35)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
 	CFLAGS += -Ofast \
 	-fuse-linker-plugin \
 	-fno-stack-protector -fno-ident -fomit-frame-pointer \
@@ -226,7 +227,7 @@ else ifeq ($(platform), wincross64)
 	AR = x86_64-w64-mingw32-ar
 	CC = x86_64-w64-mingw32-gcc
 	CXX = x86_64-w64-mingw32-g++
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
 	LDFLAGS += -static-libgcc -static-libstdc++
 	EXTRA_LDF := -lwinmm -Wl,--export-all-symbols
 
@@ -329,7 +330,7 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 # ARM
 else ifneq (,$(findstring armv,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro.so
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
 	fpic := -fPIC -fsigned-char
 	CFLAGS += -D_GNU_SOURCE=1
 	CC = gcc
@@ -368,7 +369,7 @@ else
 	TARGET :=  $(TARGET_NAME)_libretro.dll
 	CC ?= gcc
 	CXX ?= g++
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
 	LDFLAGS += -static-libgcc -static-libstdc++
 	EXTRA_LDF = -lwinmm -Wl,--export-all-symbols
 endif
@@ -404,7 +405,7 @@ ifeq ($(DEBUG), 1)
 else ifneq (,$(findstring msvc,$(platform)))
    FLAGS +=
 else
-   FLAGS += -O3
+   FLAGS += -O2
 endif
 
 ifneq ($(SANITIZER),)

@@ -2,7 +2,7 @@
 
 #include "common.h"
 #include "pia.h"
-#include "../m68000/m68000.h"
+#include "m68000/m68000.h"
 #include "adpcm.h"
 #include "joystick.h"
 
