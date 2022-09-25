@@ -13,7 +13,7 @@
 #include <sys/param.h>
 
 /* for INLINE */
-#include "../libretro-common/include/retro_inline.h"
+#include "libretro-common/include/retro_inline.h"
 
 typedef int BOOL;
 

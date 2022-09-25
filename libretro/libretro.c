@@ -9,18 +9,18 @@
 #include <libretro_core_options.h>
 #include <string/stdstring.h>
 
-#include "libretro/common.h"
+#include "x11/common.h"
 
 #include "fmgen/fmg_wrap.h"
-#include "libretro/dswin.h"
-#include "libretro/keyboard.h"
-#include "libretro/mouse.h"
-#include "libretro/prop.h"
+#include "x11/dswin.h"
+#include "x11/keyboard.h"
+#include "x11/mouse.h"
+#include "x11/prop.h"
 #include "x68k/adpcm.h"
 #include "x68k/fdd.h"
 #include "x68k/sram.h"
 #include "x68k/x68kmemory.h"
-#include "libretro/winx68k.h"
+#include "x11/winx68k.h"
 #ifndef NO_MERCURY
 #include "x68k/mercury.h"
 #endif
