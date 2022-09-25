@@ -40,24 +40,58 @@
 #define ROR_32(A, C)    (LSR_32(A, C) | LSL_32(A, 32-(C)))
 #define ROR_33(A, C)    (LSR_32(A, C) | LSL_32(A, 33-(C)))
 
-
+#define CHECK_BUS_ERROR_TRAP                        \
+    if (BusErrHandling)                             \
+    {                                               \
+        /* swap A7 and USP */                       \
+        if (!CPU->flag_S)                           \
+        {                                           \
+            uint32_t tmpSP;                         \
+                                                    \
+            tmpSP     = CPU->USP;                   \
+            CPU->USP  = CPU->A[7];                  \
+            CPU->A[7] = tmpSP;                      \
+        }                                           \
+                                                    \
+        PRE_IO                                      \
+                                                    \
+        /* push PC and SR */                        \
+        PUSH_32_F((uint32_t)(PC - CPU->BasePC) - 2) \
+        PUSH_16_F(GET_SR)                           \
+                                                    \
+        CPU->A[7] -= 2;                             \
+        PUSH_32_F(BusErrAdr);                       \
+        CPU->A[7] -= 2;                             \
+                                                    \
+        CPU->flag_S = C68K_SR_S;                    \
+                                                    \
+        /* fetch new PC */                          \
+        READ_LONG_F(C68K_BUS_ERROR_EX << 2, PC)     \
+        SET_PC(PC)                                  \
+                                                    \
+        POST_IO                                     \
+                                                    \
+        BusErrHandling = 0;                         \
+    }
 #ifdef TRACE_WITH_Q68
 extern void TRACE(int,c68k_struc*,int,int);
 #else
 # define TRACE(a,b,c,d) /*nothing*/
 #endif
 #ifndef C68K_NO_JUMP_TABLE
-#define NEXT                    \
-    PRE_IO                      \
-    Opcode = FETCH_WORD;        \
-    PC += 2;                    \
+#define NEXT                      \
+    CHECK_BUS_ERROR_TRAP          \
+    PRE_IO                        \
+    Opcode = FETCH_WORD;          \
+    PC += 2;                      \
     TRACE(PC, CPU, Opcode, CCnt); \
     goto *JumpTable[Opcode];
 #else
-#define NEXT                    \
-    PRE_IO                      \
-    Opcode = FETCH_WORD;        \
-    PC += 2;                    \
+#define NEXT                      \
+    CHECK_BUS_ERROR_TRAP          \
+    PRE_IO                        \
+    Opcode = FETCH_WORD;          \
+    PC += 2;                      \
     TRACE(PC, CPU, Opcode, CCnt); \
     goto SwitchTable;
 #endif
