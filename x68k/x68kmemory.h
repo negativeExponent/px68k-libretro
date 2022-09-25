@@ -12,7 +12,6 @@ extern uint8_t TVRAM[0x80000];
 
 extern uint32_t BusErrFlag;
 extern uint32_t BusErrAdr;
-extern uint32_t MemByteAccess;
 
 void Memory_Init(void);
 

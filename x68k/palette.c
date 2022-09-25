@@ -166,8 +166,8 @@ void FASTCALL Pal_Write(uint32_t adr, uint8_t data)
 	}
 	else if (adr < 0x400)
 	{
-		if (MemByteAccess)
-			return; /* TextPalはバイトアクセスは出来ないらしい（神戸恋愛物語） */
+		/* TODOL verify:
+		 * TextPalはバイトアクセスは出来ないらしい（神戸恋愛物語）> */
 		Pal_Regs[adr] = data;
 		TVRAM_SetAllDirty();
 
