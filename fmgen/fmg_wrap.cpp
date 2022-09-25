@@ -160,22 +160,38 @@ void OPM_Reset(void)
 
 uint8_t FASTCALL OPM_Read(uint16_t adr)
 {
-	uint8_t ret = 0;
-	(void)adr;
-	if ( opm ) ret = opm->ReadStatus();
-	if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
-		int newptr = (RMPtrW+1)%RMBUFSIZE;
-		ret = (ret&0x7f)|((newptr==RMPtrR)?0x80:0x00);
+	if ((adr & 3) == 3)
+	{
+		uint8_t ret = 0;
+		if ( opm ) ret = opm->ReadStatus();
+		if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
+			int newptr = (RMPtrW+1)%RMBUFSIZE;
+			ret = (ret&0x7f)|((newptr==RMPtrR)?0x80:0x00);
+		}
+		return ret;
 	}
-	return ret;
+	return 0xff;
 }
 
 
 void FASTCALL OPM_Write(uint32_t adr, uint8_t data)
 {
-	if ( opm ) opm->WriteIO(adr, data);
-}
+#ifdef RFMDRV
+	char buf[2];
+#endif
 
+	if (adr & 1)
+	{
+		uint reg = !!((adr & 3) == 3);
+		if (opm) opm->WriteIO(reg, data);
+	}
+
+#ifdef RFMDRV
+	buf[0] = adr & 3;
+	buf[1] = data;
+	send(rfd_sock, buf, sizeof(buf), 0);
+#endif
+}
 
 void OPM_Update(int16_t *buffer, int length, int rate, uint8_t *pbsp, uint8_t *pbep)
 {

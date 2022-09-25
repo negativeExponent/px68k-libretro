@@ -30,7 +30,6 @@
 static void wm_main(uint32_t addr, uint8_t val);
 static void wm_cnt(uint32_t addr, uint8_t val);
 static void wm_buserr(uint32_t addr, uint8_t val);
-static void wm_opm(uint32_t addr, uint8_t val);
 static void wm_e82(uint32_t addr, uint8_t val);
 static void wm_nop(uint32_t addr, uint8_t val);
 
@@ -38,7 +37,6 @@ static uint8_t rm_main(uint32_t addr);
 static uint8_t rm_font(uint32_t addr);
 static uint8_t rm_ipl(uint32_t addr);
 static uint8_t rm_nop(uint32_t addr);
-static uint8_t rm_opm(uint32_t addr);
 static uint8_t rm_e82(uint32_t addr);
 static uint8_t rm_buserr(uint32_t addr);
 
@@ -57,7 +55,7 @@ static uint8_t (*MemReadTable[])(uint32_t) = {
 	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e60000 */
 	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e70000 */
 	CRTC_Read,	rm_e82,		DMA_Read,	rm_nop,		MFP_Read,	RTC_Read,	rm_nop,		SysPort_Read,	/* $e80000 */
-	rm_opm,		ADPCM_Read,	FDC_Read,	SASI_Read,	SCC_Read,	PIA_Read,	IOC_Read,	rm_nop,		/* $e90000 */
+	OPM_Read,	ADPCM_Read,	FDC_Read,	SASI_Read,	SCC_Read,	PIA_Read,	IOC_Read,	rm_nop,		/* $e90000 */
 	SCSI_Read,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	MIDI_Read,	/* $ea0000 */
 	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	/* $eb0000 */
 #ifndef	NO_MERCURY
@@ -98,7 +96,7 @@ static void (*MemWriteTable[])(uint32_t, uint8_t) = {
 	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e60000 */
 	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e70000 */
 	CRTC_Write,		wm_e82,			DMA_Write,		wm_nop,			MFP_Write,		RTC_Write,		wm_nop,			SysPort_Write,	/* $e80000 */
-	wm_opm,			ADPCM_Write,	FDC_Write,		SASI_Write,		SCC_Write,		PIA_Write,		IOC_Write,		wm_nop,			/* $e90000 */
+	OPM_Write,		ADPCM_Write,	FDC_Write,		SASI_Write,		SCC_Write,		PIA_Write,		IOC_Write,		wm_nop,			/* $e90000 */
 	SCSI_Write,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		MIDI_Write,		/* $ea0000 */
 	BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		/* $eb0000 */
 #ifndef	NO_MERCURY
@@ -267,29 +265,6 @@ static void wm_buserr(uint32_t addr, uint8_t val)
 	(void)val;
 }
 
-static void wm_opm(uint32_t addr, uint8_t val)
-{
-	uint8_t t;
-#ifdef RFMDRV
-	char buf[2];
-#endif
-
-	t = addr & 3;
-	if (t == 1)
-	{
-		OPM_Write(0, val);
-	}
-	else if (t == 3)
-	{
-		OPM_Write(1, val);
-	}
-#ifdef RFMDRV
-	buf[0] = t;
-	buf[1] = val;
-	send(rfd_sock, buf, sizeof(buf), 0);
-#endif
-}
-
 static void wm_e82(uint32_t addr, uint8_t val)
 {
 	if (addr < 0x00e82400)
@@ -442,15 +417,6 @@ static uint8_t rm_ipl(uint32_t addr)
 static uint8_t rm_nop(uint32_t addr)
 {
 	(void)addr;
-	return 0;
-}
-
-static uint8_t rm_opm(uint32_t addr)
-{
-	if ((addr & 3) == 3)
-	{
-		return OPM_Read(0);
-	}
 	return 0;
 }
 
