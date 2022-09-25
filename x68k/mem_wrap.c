@@ -472,10 +472,18 @@ static void AdrError(uint32_t adr, uint32_t unknown)
 	p6logd("AdrError: %x\n", adr);
 }
 
+#if defined (HAVE_MUSASHI)
+void m68k_pulse_bus_error(void);
+#endif
+
 static void BusError(uint32_t adr, uint32_t unknown)
 {
 	(void)adr;
 	(void)unknown;
 	p6logd("BusError: %x\n", adr);
+#if defined (HAVE_MUSASHI)
+	m68k_pulse_bus_error();
+#else
 	BusErrHandling = 1;
+#endif
 }
