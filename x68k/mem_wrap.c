@@ -15,7 +15,6 @@
 #include "mercury.h"
 #include "mfp.h"
 #include "midi.h"
-#include "palette.h"
 #include "pia.h"
 #include "rtc.h"
 #include "sasi.h"
@@ -30,14 +29,12 @@
 static void wm_main(uint32_t addr, uint8_t val);
 static void wm_cnt(uint32_t addr, uint8_t val);
 static void wm_buserr(uint32_t addr, uint8_t val);
-static void wm_e82(uint32_t addr, uint8_t val);
 static void wm_nop(uint32_t addr, uint8_t val);
 
 static uint8_t rm_main(uint32_t addr);
 static uint8_t rm_font(uint32_t addr);
 static uint8_t rm_ipl(uint32_t addr);
 static uint8_t rm_nop(uint32_t addr);
-static uint8_t rm_e82(uint32_t addr);
 static uint8_t rm_buserr(uint32_t addr);
 
 static void AdrError(uint32_t, uint32_t);
@@ -54,7 +51,7 @@ static uint8_t (*MemReadTable[])(uint32_t) = {
 	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e50000 */
 	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e60000 */
 	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	TVRAM_Read,	/* $e70000 */
-	CRTC_Read,	rm_e82,		DMA_Read,	rm_nop,		MFP_Read,	RTC_Read,	rm_nop,		SysPort_Read,	/* $e80000 */
+	CRTC_Read,	VCtrl_Read,	DMA_Read,	rm_nop,		MFP_Read,	RTC_Read,	rm_nop,		SysPort_Read,	/* $e80000 */
 	OPM_Read,	ADPCM_Read,	FDC_Read,	SASI_Read,	SCC_Read,	PIA_Read,	IOC_Read,	rm_nop,		/* $e90000 */
 	SCSI_Read,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	MIDI_Read,	/* $ea0000 */
 	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	BG_Read,	/* $eb0000 */
@@ -95,7 +92,7 @@ static void (*MemWriteTable[])(uint32_t, uint8_t) = {
 	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e50000 */
 	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e60000 */
 	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	TVRAM_Write,	/* $e70000 */
-	CRTC_Write,		wm_e82,			DMA_Write,		wm_nop,			MFP_Write,		RTC_Write,		wm_nop,			SysPort_Write,	/* $e80000 */
+	CRTC_Write,		VCtrl_Write,	DMA_Write,		wm_nop,			MFP_Write,		RTC_Write,		wm_nop,			SysPort_Write,	/* $e80000 */
 	OPM_Write,		ADPCM_Write,	FDC_Write,		SASI_Write,		SCC_Write,		PIA_Write,		IOC_Write,		wm_nop,			/* $e90000 */
 	SCSI_Write,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		MIDI_Write,		/* $ea0000 */
 	BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		BG_Write,		/* $eb0000 */
@@ -265,18 +262,6 @@ static void wm_buserr(uint32_t addr, uint8_t val)
 	(void)val;
 }
 
-static void wm_e82(uint32_t addr, uint8_t val)
-{
-	if (addr < 0x00e82400)
-	{
-		Pal_Write(addr, val);
-	}
-	else if (addr < 0x00e82700)
-	{
-		VCtrl_Write(addr, val);
-	}
-}
-
 static void wm_nop(uint32_t addr, uint8_t val)
 {
 	/* Nothing to do */
@@ -417,19 +402,6 @@ static uint8_t rm_ipl(uint32_t addr)
 static uint8_t rm_nop(uint32_t addr)
 {
 	(void)addr;
-	return 0;
-}
-
-static uint8_t rm_e82(uint32_t addr)
-{
-	if (addr < 0x00e82400)
-	{
-		return Pal_Read(addr);
-	}
-	else if (addr < 0x00e83000)
-	{
-		return VCtrl_Read(addr);
-	}
 	return 0;
 }
 
