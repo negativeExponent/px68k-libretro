@@ -130,23 +130,18 @@ uint8_t *FONT;
 
 uint32_t BusErrFlag     = 0;
 uint32_t BusErrHandling = 0;
-uint32_t BusErrAdr;
-uint32_t MemByteAccess = 0;
+uint32_t BusErrAdr      = 0;
 
 /*
  * write function
  */
 void dma_writemem24(uint32_t addr, uint8_t val)
 {
-	MemByteAccess = 0;
-
 	wm_main(addr, val);
 }
 
 void dma_writemem24_word(uint32_t addr, uint16_t val)
 {
-	MemByteAccess = 0;
-
 	if (addr & 1)
 	{
 		BusErrFlag |= 4;
@@ -159,8 +154,6 @@ void dma_writemem24_word(uint32_t addr, uint16_t val)
 
 void dma_writemem24_dword(uint32_t addr, uint32_t val)
 {
-	MemByteAccess = 0;
-
 	if (addr & 1)
 	{
 		BusErrFlag |= 4;
@@ -175,7 +168,6 @@ void dma_writemem24_dword(uint32_t addr, uint32_t val)
 
 void cpu_writemem24(uint32_t addr, uint32_t val)
 {
-	MemByteAccess = 0;
 	BusErrFlag    = 0;
 
 	wm_cnt(addr, val & 0xff);
@@ -188,8 +180,6 @@ void cpu_writemem24(uint32_t addr, uint32_t val)
 
 void cpu_writemem24_word(uint32_t addr, uint32_t val)
 {
-	MemByteAccess = 0;
-
 	if (addr & 1)
 	{
 		AdrError(addr, val);
@@ -210,8 +200,6 @@ void cpu_writemem24_word(uint32_t addr, uint32_t val)
 
 void cpu_writemem24_dword(uint32_t addr, uint32_t val)
 {
-	MemByteAccess = 0;
-
 	if (addr & 1)
 	{
 		AdrError(addr, val);
@@ -349,8 +337,6 @@ uint32_t cpu_readmem24_word(uint32_t addr)
 uint32_t cpu_readmem24_dword(uint32_t addr)
 {
 	uint32_t v;
-
-	MemByteAccess = 0;
 
 	if (addr & 1)
 	{
