@@ -164,6 +164,9 @@ void TRACE(int PC,c68k_struc *CPU,int Opcode,int CCnt) {
 /* main exec function */
 /**********************/
 
+extern uint32_t BusErrHandling;
+extern uint32_t BusErrAdr;
+
 int32_t FASTCALL C68k_Exec(c68k_struc *cpu, int32_t cycle)
 {
 #ifndef C68K_GEN
