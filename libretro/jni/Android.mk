@@ -2,9 +2,11 @@ LOCAL_PATH := $(call my-dir)
 
 CORE_DIR := $(LOCAL_PATH)/../..
 
+C68K := 1
+
 include $(CORE_DIR)/Makefile.common
 
-COREFLAGS := -DHAVE_C68K -DC68K_NO_JUMP_TABLE -DNO_MERCURY -D__LIBRETRO__ $(INCFLAGS) $(FLAGS)
+COREFLAGS := -DNO_MERCURY -D__LIBRETRO__ $(INCFLAGS) $(FLAGS)
 
 GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
