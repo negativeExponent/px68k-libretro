@@ -147,8 +147,6 @@ void m68000_reset(void)
 	m68k.srh = 0x27; /* Set supervisor mode */
 #elif defined (HAVE_M68000)
 	C68k_Reset(&C68K);
-	C68K.ICount = 0;
-	m68000_ICountBk = 0;
 #elif defined (HAVE_C68K)
 	C68k_Reset(&C68K);
 #elif defined (HAVE_MUSASHI)
@@ -175,13 +173,7 @@ int m68000_execute(int cycles)
 	CycloneRun(&m68k);
 	return m68k.cycles;
 #elif defined(HAVE_M68000)
-	int ret;
-	C68K.ICount = cycles;
-	C68k_Exec(&C68K, cycles);
-	ret = cycles - C68K.ICount - m68000_ICountBk;
-	m68000_ICountBk = 0;
-	C68K.ICount = 0;
-	return ret;
+	return C68k_Exec(&C68K, cycles);
 #elif defined(HAVE_C68K)
 	return C68k_Exec(&C68K, cycles);
 #elif defined(HAVE_MUSASHI)
@@ -199,12 +191,7 @@ void m68000_set_irq_line(int irqline, int state)
 #if defined(HAVE_CYCLONE)
 	m68k.irq = irqline;
 #elif defined(HAVE_M68000)
-	C68k_Set_IRQ(&C68K, irqline, state); /* xxx */
-	if (C68K.ICount)
-	{                                   /* 多重割り込み時（CARAT）*/
-		m68000_ICountBk += C68K.ICount; /* 強制的に割り込みチェックをさせる */
-		C68K.ICount = 0;                /* 苦肉の策 ^^; */
-	}
+	C68k_Set_IRQ(&C68K, irqline, state);
 #elif defined(HAVE_C68K)
 	C68k_Set_IRQ(&C68K, irqline);
 #elif defined(HAVE_MUSASHI)

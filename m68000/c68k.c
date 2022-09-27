@@ -12,8 +12,6 @@
 #include <string.h>
 #include "c68k.h"
 
-int m68000_ICountBk;
-
 /******************************************************************************
 	マクロ
 ******************************************************************************/
@@ -91,7 +89,6 @@ void C68k_Init(c68k_struc *CPU)
 void C68k_Reset(c68k_struc *CPU)
 {
 	memset(CPU, 0, (uint8_t*)&CPU->BasePC - (uint8_t*)&CPU->D[0]);
-	m68000_ICountBk = 0;
 
 	CPU->flag_I = 7;
 	CPU->flag_S = C68K_SR_S;
@@ -109,7 +106,7 @@ extern uint32_t BusErrAdr;
 
 int32_t C68k_Exec(c68k_struc *CPU, int32_t cycles)
 {
-	if (CPU)
+	if (CPU != NULL)
 	{
 		uintptr_t PC;
 		uint32_t Opcode;
@@ -117,6 +114,7 @@ int32_t C68k_Exec(c68k_struc *CPU, int32_t cycles)
 		uint32_t res;
 		uintptr_t src;
 		uintptr_t dst;
+		int32_t cycles_used;
 
 		PC = CPU->PC;
 		CPU->ICount = cycles;
@@ -131,7 +129,6 @@ C68k_Exec_Next:
 			{
 
 				if (BusErrHandling) {
-					printf("BusError occured\n");
 					SWAP_SP();
 					PUSH_32_F(GET_PC() - 2);
 					PUSH_16_F(GET_SR());
@@ -144,7 +141,6 @@ C68k_Exec_Next:
 					BusErrHandling = 0;
 				}
 
-
 				Opcode = READ_IMM_16();
 				PC += 2;
 				goto *JumpTable[Opcode];
@@ -155,10 +151,16 @@ C68k_Exec_Next:
 
 		CPU->PC = PC;
 
-		return cycles - CPU->ICount;
+		cycles_used = cycles - CPU->ICount - CPU->ICountBk;
+
+		CPU->ICount   = 0;
+		CPU->ICountBk = 0;
+
+		return cycles_used;
 	}
 	else
 	{
+		/* initializes jump table */
 		#include "c68k_ini.c"
 	}
 
@@ -181,6 +183,12 @@ void C68k_Set_IRQ(c68k_struc *CPU, int32_t line, int32_t state)
 	{
 		CPU->IRQLine = line;
 		CPU->HaltState = 0;
+	}
+
+	if (C68K.ICount)
+	{                                   /* 多重割り込み時（CARAT）*/
+		C68K.ICountBk += C68K.ICount;   /* 強制的に割り込みチェックをさせる */
+		C68K.ICount = 0;                /* 苦肉の策 ^^; */
 	}
 }
 

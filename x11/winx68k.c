@@ -200,7 +200,7 @@ void WinX68k_Reset(int softReset)
 	MIDI_Init();
 	Keyboard_Init();
 
-	ICount          = 0;
+	ICount = 0;
 
 	DSound_Stop();
 	SRAM_VirusCheck();

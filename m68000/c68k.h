@@ -124,6 +124,7 @@ typedef struct c68k_t
 	int32_t IRQLine;
 	int32_t IRQState;
 	int32_t ICount;
+	int32_t ICountBk;
 
 	uintptr_t BasePC;
 	uintptr_t Fetch[C68K_FETCH_BANK];
@@ -144,7 +145,6 @@ typedef struct c68k_t
 /* 68K core var declaration */
 
 extern c68k_struc C68K;
-extern int m68000_ICountBk;
 
 /* 68K core function declaration */
 
