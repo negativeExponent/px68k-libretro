@@ -96,14 +96,14 @@ extern void TRACE(int,c68k_struc*,int,int);
     goto SwitchTable;
 #endif
 
-#define RET(A)                  \
-    CCnt -= (A);                \
+#define RET(A)                         \
+    CCnt -= (A);                       \
     if (CCnt <= 0) goto C68k_Exec_End; \
     NEXT
 
-#define SET_PC(A)               \
-    CPU->BasePC = CPU->Fetch[((A) >> C68K_FETCH_SFT) & C68K_FETCH_MASK];    \
-    CPU->BasePC -= (A) & 0xFF000000;    \
+#define SET_PC(A)                                                        \
+    CPU->BasePC = CPU->Fetch[((A) >> C68K_FETCH_SFT) & C68K_FETCH_MASK]; \
+    CPU->BasePC -= (A) & 0xFF000000;                                     \
     PC = (A) + CPU->BasePC;
 
 #define PRE_IO                  \
@@ -168,11 +168,11 @@ extern void TRACE(int,c68k_struc*,int,int);
 
 #ifdef C68K_BIG_ENDIAN
     #define WRITE_LONG_F(A, D)              \
-    CPU->Write_Word((A), (D) >> 16);     \
+    CPU->Write_Word((A), (D) >> 16);        \
     CPU->Write_Word((A) + 2, (D) & 0xFFFF);
 
     #define WRITE_LONG_DEC_F(A, D)          \
-    CPU->Write_Word((A) + 2, (D) & 0xFFFF);    \
+    CPU->Write_Word((A) + 2, (D) & 0xFFFF); \
     CPU->Write_Word((A), (D) >> 16);
 #else
     #define WRITE_LONG_F(A, D)              \
@@ -187,7 +187,7 @@ extern void TRACE(int,c68k_struc*,int,int);
 #define PUSH_16_F(D)                    \
     CPU->Write_Word(CPU->A[7] -= 2, D); \
 
-#define POP_16_F(D)                     \
+#define POP_16_F(D)                          \
     D = (uint16_t)CPU->Read_Word(CPU->A[7]); \
     CPU->A[7] += 2;
 
@@ -225,20 +225,20 @@ extern void TRACE(int,c68k_struc*,int,int);
 
 #define DECODE_EXT_WORD     \
 {                           \
-    uint32_t ext;                \
+    uint32_t ext;           \
                             \
-    ext = (*(uint16_t*)PC);      \
+    ext = (*(uint16_t*)PC); \
     PC += 2;                \
                             \
-    adr += (int32_t)((int8_t)(ext));                            \
+    adr += (int32_t)((int8_t)(ext));                        \
     if (ext & 0x0800) adr += (int32_t) CPU->D[ext >> 12];   \
-    else adr += (int32_t)((int16_t)(CPU->D[ext >> 12]));        \
+    else adr += (int32_t)((int16_t)(CPU->D[ext >> 12]));    \
 }
 
 #ifndef C68K_BIG_ENDIAN
 #ifdef C68K_BYTE_SWAP_OPT
     #undef FETCH_LONG
-    #define FETCH_LONG          \
+    #define FETCH_LONG           \
     ((((uint32_t)(*(uint16_t*)PC)) << 16) | ((uint32_t)(*(uint16_t*)(PC + 2))))
 #if 0
     ((((uint32_t)(*(uint8_t*)(PC + 2))) | (((uint32_t)(*(uint8_t*)(PC + 3))) << 8) | (((uint32_t)(*(uint8_t*)PC)) << 16) | (((uint32_t)(*(uint8_t*)(PC + 1))) << 24)))
@@ -265,14 +265,14 @@ extern void TRACE(int,c68k_struc*,int,int);
     #undef DECODE_EXT_WORD
     #define DECODE_EXT_WORD     \
     {                           \
-        uint32_t ext;                \
+        uint32_t ext;           \
                                 \
-        ext = (*(uint16_t*)PC);      \
+        ext = (*(uint16_t*)PC); \
         PC += 2;                \
                                 \
-        adr += (int32_t)((int8_t)(ext >> 8));                                   \
+        adr += (int32_t)((int8_t)(ext >> 8));                               \
         if (ext & 0x0008) adr += (int32_t) CPU->D[(ext >> 4) & 0x000F];     \
-        else adr += (int32_t)((int16_t)(CPU->D[(ext >> 4) & 0x000F]));          \
+        else adr += (int32_t)((int16_t)(CPU->D[(ext >> 4) & 0x000F]));      \
     }
 #endif
 #endif
@@ -301,47 +301,47 @@ extern void TRACE(int,c68k_struc*,int,int);
     CPU->flag_I = ((A) >> 8) & 7;   \
     CPU->flag_S = (A) & C68K_SR_S;
 
-#define CHECK_INT                                     \
-    {                                                 \
-        int32_t line, vect;                               \
-                                                      \
-        line = CPU->IRQLine;                          \
-                                                      \
-        if ((line == 7) || (line > (int32_t)CPU->flag_I)) \
-        {                                             \
-            /* get vector */                                        \
-            CPU->IRQLine = 0;                                       \
-            vect = CPU->Interrupt_CallBack(line);                   \
-            if (vect == C68K_INT_ACK_AUTOVECTOR)                    \
-                vect = C68K_INTERRUPT_AUTOVECTOR_EX + (line & 7);   \
-                                                                    \
-            /* adjust CCnt */                                       \
-            CCnt -= c68k_exception_cycle_table[vect];               \
-                                                                    \
-            /* swap A7 and USP */              \
-            if (!CPU->flag_S)                  \
-            {                                  \
-                uint32_t tmpSP;                     \
-                                               \
-                tmpSP = CPU->USP;              \
-                CPU->USP = CPU->A[7];          \
-                CPU->A[7] = tmpSP;             \
-            }                                  \
-                                               \
-            PRE_IO                             \
-                                               \
-            /* push PC and SR */               \
-            PUSH_32_F((uint32_t)(PC - CPU->BasePC)) \
-            PUSH_16_F(GET_SR)                  \
-                                               \
-            /* adjust SR */                    \
-            CPU->flag_S = C68K_SR_S;           \
-            CPU->flag_I = line;                \
-                                               \
-            /* fetch new PC */                 \
-            READ_LONG_F(vect * 4, PC)          \
-            SET_PC(PC)                         \
-                                               \
-            POST_IO                            \
-        }                                      \
+#define CHECK_INT                                                 \
+    {                                                             \
+        int32_t line, vect;                                       \
+                                                                  \
+        line = CPU->IRQLine;                                      \
+                                                                  \
+        if ((line == 7) || (line > (int32_t)CPU->flag_I))         \
+        {                                                         \
+            /* get vector */                                      \
+            CPU->IRQLine = 0;                                     \
+            vect         = CPU->Interrupt_CallBack(line);         \
+            if (vect == C68K_INT_ACK_AUTOVECTOR)                  \
+                vect = C68K_INTERRUPT_AUTOVECTOR_EX + (line & 7); \
+                                                                  \
+            /* adjust CCnt */                                     \
+            CCnt -= c68k_exception_cycle_table[vect];             \
+                                                                  \
+            /* swap A7 and USP */                                 \
+            if (!CPU->flag_S)                                     \
+            {                                                     \
+                uint32_t tmpSP;                                   \
+                                                                  \
+                tmpSP     = CPU->USP;                             \
+                CPU->USP  = CPU->A[7];                            \
+                CPU->A[7] = tmpSP;                                \
+            }                                                     \
+                                                                  \
+            PRE_IO                                                \
+                                                                  \
+            /* push PC and SR */                                  \
+            PUSH_32_F((uint32_t)(PC - CPU->BasePC))               \
+            PUSH_16_F(GET_SR)                                     \
+                                                                  \
+            /* adjust SR */                                       \
+            CPU->flag_S = C68K_SR_S;                              \
+            CPU->flag_I = line;                                   \
+                                                                  \
+            /* fetch new PC */                                    \
+            READ_LONG_F(vect * 4, PC)                             \
+            SET_PC(PC)                                            \
+                                                                  \
+            POST_IO                                               \
+        }                                                         \
     }

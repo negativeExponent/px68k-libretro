@@ -124,6 +124,7 @@ typedef struct c68k_t
 	int32_t IRQLine;
 	int32_t IRQState;
 	int32_t ICount;
+	int32_t ICountBk;
 
 	uintptr_t BasePC;
 	uintptr_t Fetch[C68K_FETCH_BANK];
@@ -144,34 +145,24 @@ typedef struct c68k_t
 /* 68K core var declaration */
 
 extern c68k_struc C68K;
-extern int m68000_ICountBk;
 
 /* 68K core function declaration */
 
-void C68k_Init(c68k_struc *cpu);
-
-void C68k_Reset(c68k_struc *cpu);
-
+void     C68k_Init(c68k_struc *cpu, int32_t (*irq_cb)(int32_t level));
+void     C68k_Reset(c68k_struc *cpu);
 int32_t  C68k_Exec(c68k_struc *cpu, int32_t cycle);
-
-void C68k_Set_IRQ(c68k_struc *cpu, int32_t line, int32_t state);
-
-uint32_t  C68k_Get_Reg(c68k_struc *cpu, int32_t regnum);
-void C68k_Set_Reg(c68k_struc *cpu, int32_t regnum, uint32_t val);
-
-void C68k_Set_Fetch(c68k_struc *cpu, uint32_t low_adr, uint32_t high_adr, uintptr_t fetch_adr);
-
-void C68k_Set_ReadB(c68k_struc *cpu, uint32_t (*Func)(uint32_t address));
-void C68k_Set_ReadW(c68k_struc *cpu, uint32_t (*Func)(uint32_t address));
-
-void C68k_Set_ReadB_PC_Relative(c68k_struc *cpu, uint32_t (*Func)(uint32_t address));
-void C68k_Set_ReadW_PC_Relative(c68k_struc *cpu, uint32_t (*Func)(uint32_t address));
-
-void C68k_Set_WriteB(c68k_struc *cpu, void (*Func)(uint32_t address, uint32_t data));
-void C68k_Set_WriteW(c68k_struc *cpu, void (*Func)(uint32_t address, uint32_t data));
-
-void C68k_Set_IRQ_Callback(c68k_struc *cpu, int32_t (*Func)(int32_t irqline));
-void C68k_Set_Reset_Callback(c68k_struc *cpu, void (*Func)(void));
+void     C68k_Set_IRQ(c68k_struc *cpu, int32_t line, int32_t state);
+uint32_t C68k_Get_Reg(c68k_struc *cpu, int32_t regnum);
+void     C68k_Set_Reg(c68k_struc *cpu, int32_t regnum, uint32_t val);
+void     C68k_Set_Fetch(c68k_struc *cpu, uint32_t low_adr, uint32_t high_adr, uintptr_t fetch_adr);
+void     C68k_Set_ReadB(c68k_struc *cpu, uint32_t (*Func)(uint32_t address));
+void     C68k_Set_ReadW(c68k_struc *cpu, uint32_t (*Func)(uint32_t address));
+void     C68k_Set_ReadB_PC_Relative(c68k_struc *cpu, uint32_t (*Func)(uint32_t address));
+void     C68k_Set_ReadW_PC_Relative(c68k_struc *cpu, uint32_t (*Func)(uint32_t address));
+void     C68k_Set_WriteB(c68k_struc *cpu, void (*Func)(uint32_t address, uint32_t data));
+void     C68k_Set_WriteW(c68k_struc *cpu, void (*Func)(uint32_t address, uint32_t data));
+void     C68k_Set_IRQ_Callback(c68k_struc *cpu, int32_t (*Func)(int32_t irqline));
+void     C68k_Set_Reset_Callback(c68k_struc *cpu, void (*Func)(void));
 
 #ifdef __cplusplus
 }

@@ -305,9 +305,9 @@ SwitchTable:
 #endif
 
 C68k_Exec_End:
-    CHECK_INT
     if ((CCnt += CPU->CycleSup) > 0)
     {
+        CHECK_INT
         CPU->CycleSup = 0;
         NEXT;
     }
