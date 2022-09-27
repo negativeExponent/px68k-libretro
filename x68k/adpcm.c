@@ -331,10 +331,14 @@ void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 
 uint8_t FASTCALL ADPCM_Read(uint32_t adr)
 {
+	/* adpcm status */
 	if (adr == 0xe92001)
-		return 0x40 | (ADPCM_Playing ? 0x80 : 0x00);
+	{
+		/* bit 7 : 0:playing 1:recording/standby */
+		return ADPCM_Playing ? 0x7f : 0xff;
+	}
 
-	return 0x00;
+	return 0xff;
 }
 
 void ADPCM_SetVolume(uint8_t vol)
