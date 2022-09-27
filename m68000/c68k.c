@@ -64,13 +64,14 @@ static void C68k_ResetCallback(void)
 	CPU½é´ü²½
 --------------------------------------------------------*/
 
-void C68k_Init(c68k_struc *CPU)
+void C68k_Init(c68k_struc *CPU, int32_t (*irq_cb)(int32_t level))
 {
 	int i;
 
 	memset(CPU, 0, sizeof(c68k_struc));
 
-	CPU->Interrupt_CallBack = C68k_InterruptCallback;
+	if (irq_cb) CPU->Interrupt_CallBack = irq_cb;
+	else CPU->Interrupt_CallBack = C68k_InterruptCallback;
 	CPU->Reset_CallBack = C68k_ResetCallback;
 
 	memset(c68k_bad_address, 0xff, sizeof(c68k_bad_address));

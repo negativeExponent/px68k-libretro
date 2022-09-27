@@ -104,7 +104,7 @@ void m68000_init(void)
 	CycloneInit();
 
 #elif defined (HAVE_M68000)
-    C68k_Init(&C68K);
+    C68k_Init(&C68K, my_irqh_callback);
     C68k_Set_ReadB(&C68K, cpu_readmem24);
     C68k_Set_ReadW(&C68K, cpu_readmem24_word);
     C68k_Set_WriteB(&C68K, cpu_writemem24);
@@ -186,12 +186,12 @@ int m68000_execute(int cycles)
 	割り込み処理
 --------------------------------------------------------*/
 
-void m68000_set_irq_line(int irqline, int state)
+void m68000_set_irq_line(int irqline)
 {
 #if defined(HAVE_CYCLONE)
 	m68k.irq = irqline;
 #elif defined(HAVE_M68000)
-	C68k_Set_IRQ(&C68K, irqline, state);
+	C68k_Set_IRQ(&C68K, irqline, (irqline > 0 ) ? HOLD_LINE : CLEAR_LINE);
 #elif defined(HAVE_C68K)
 	C68k_Set_IRQ(&C68K, irqline);
 #elif defined(HAVE_MUSASHI)
@@ -205,9 +205,6 @@ void m68000_set_irq_line(int irqline, int state)
 
 void m68000_set_irq_callback(int32_t (*callback)(int32_t line))
 {
-#if defined(HAVE_M68000)
-	C68k_Set_IRQ_Callback(&C68K, callback);
-#endif
 }
 
 /*--------------------------------------------------------
