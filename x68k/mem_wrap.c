@@ -271,8 +271,8 @@ uint32_t dma_readmem24_word(uint32_t addr)
 		return 0;
 	}
 
-	v = rm_main(addr++) << 8;
-	v |= rm_main(addr);
+	v = rm_main(addr) << 8;
+	v |= rm_main(addr + 1);
 	return v;
 }
 
@@ -286,10 +286,10 @@ uint32_t dma_readmem24_dword(uint32_t addr)
 		return 0;
 	}
 
-	v = rm_main(addr++) << 24;
-	v |= rm_main(addr++) << 16;
-	v |= rm_main(addr++) << 8;
-	v |= rm_main(addr);
+	v = rm_main(addr) << 24;
+	v |= rm_main(addr + 1) << 16;
+	v |= rm_main(addr + 2) << 8;
+	v |= rm_main(addr + 3);
 	return v;
 }
 
@@ -318,8 +318,8 @@ uint32_t cpu_readmem24_word(uint32_t addr)
 
 	BusErrFlag = 0;
 
-	v = rm_main(addr++) << 8;
-	v |= rm_main(addr);
+	v = rm_main(addr) << 8;
+	v |= rm_main(addr + 1);
 	if (BusErrFlag & 1)
 	{
 		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
@@ -341,10 +341,10 @@ uint32_t cpu_readmem24_dword(uint32_t addr)
 
 	BusErrFlag = 0;
 
-	v = rm_main(addr++) << 24;
-	v |= rm_main(addr++) << 16;
-	v |= rm_main(addr++) << 8;
-	v |= rm_main(addr);
+	v = rm_main(addr) << 24;
+	v |= rm_main(addr + 1) << 16;
+	v |= rm_main(addr + 2) << 8;
+	v |= rm_main(addr + 3);
 	return v;
 }
 
