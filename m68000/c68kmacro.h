@@ -2,7 +2,7 @@
 
 	c68kmacro.h
 
-	C68K �Ƽ�ޥ���
+	C68K macros
 
 ******************************************************************************/
 
@@ -189,24 +189,26 @@
 	SET_PC(PC)
 
 #define CHECK_INT															\
-	adr = CPU->IRQLine;														\
-	if ((adr == 7) || (adr > CPU->flag_I))									\
 	{																		\
-		if (CPU->IRQState == HOLD_LINE)										\
-			CPU->IRQState = CLEAR_LINE;										\
-		CPU->IRQLine = 0;													\
-		SWAP_SP()															\
-		res = CPU->Interrupt_CallBack(adr);									\
-		if (res < 0) { \
-			res = adr + 24; \
-		} \
-		EXCEPTION(res)														\
-		CPU->flag_I = adr;													\
-		USE_CYCLES(44)														\
+		int32_t line, vect;													\
+		line = CPU->IRQLine;												\
+		if ((line == 7) || (line > (int32_t)CPU->flag_I))					\
+		{																	\
+			if (CPU->IRQState == HOLD_LINE)									\
+				CPU->IRQState = CLEAR_LINE;									\
+			CPU->IRQLine = 0;												\
+			SWAP_SP()														\
+			vect = CPU->Interrupt_CallBack(line);							\
+			if (vect == C68K_INT_ACK_AUTOVECTOR)							\
+				vect = C68K_INTERRUPT_AUTOVECTOR_EX + (line & 7);			\
+			EXCEPTION(vect)													\
+			CPU->flag_I = line;												\
+			USE_CYCLES(44)													\
+		}																	\
 	}
 
 /******************************************************************************
-	c68k_op�ѥޥ���
+	macros for c68k_op
 ******************************************************************************/
 
 /*------------------------------- opcode macros -----------------------------*/
@@ -1506,8 +1508,8 @@
 
 /*
   (*) The base time of six clock periods is increased to eight if the
-      effective address mode is register direct or immediate (effective
-      address time should also be added).
+	  effective address mode is register direct or immediate (effective
+	  address time should also be added).
 */
 
 #define OR_CLOCKS_ER_8		4
@@ -1664,8 +1666,8 @@
 
 /*
   (*) The base time of six clock periods is increased to eight if the
-      effective address mode is register direct or immediate (effective
-      address time should also be added).
+	  effective address mode is register direct or immediate (effective
+	  address time should also be added).
 */
 
 #define SUB_CLOCKS_ER_8		4
@@ -1731,8 +1733,8 @@
 
 /*
   (*) The base time of six clock periods is increased to eight if the
-      effective address mode is register direct or immediate (effective
-      address time should also be added).
+	  effective address mode is register direct or immediate (effective
+	  address time should also be added).
 */
 
 #define SUBA_CLOCKS_16		8
@@ -1831,8 +1833,8 @@
 
 /*
   (*) The base time of six clock periods is increased to eight if the
-      effective address mode is register direct or immediate (effective
-      address time should also be added).
+	  effective address mode is register direct or immediate (effective
+	  address time should also be added).
 */
 
 #define AND_CLOCKS_ER_8		4
@@ -1953,8 +1955,8 @@
 
 /*
   (*) The base time of six clock periods is increased to eight if the
-      effective address mode is register direct or immediate (effective
-      address time should also be added).
+	  effective address mode is register direct or immediate (effective
+	  address time should also be added).
 */
 
 #define ADD_CLOCKS_ER_8		4
@@ -2020,8 +2022,8 @@
 
 /*
   (*) The base time of six clock periods is increased to eight if the
-      effective address mode is register direct or immediate (effective
-      address time should also be added).
+	  effective address mode is register direct or immediate (effective
+	  address time should also be added).
 */
 
 #define ADDA_CLOCKS_16		8
