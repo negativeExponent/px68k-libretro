@@ -170,24 +170,24 @@ void m68000_exit(void)
 
 int m68000_execute(int cycles)
 {
-	int ret = cycles;
-
 #if defined(HAVE_CYCLONE)
 	m68k.cycles = cycles;
 	CycloneRun(&m68k);
 	return m68k.cycles;
 #elif defined(HAVE_M68000)
+	int ret;
 	C68K.ICount = cycles;
 	C68k_Exec(&C68K, cycles);
 	ret = cycles - C68K.ICount - m68000_ICountBk;
 	m68000_ICountBk = 0;
 	C68K.ICount = 0;
-#elif defined(HAVE_C68K)
-	C68k_Exec(&C68K, cycles);
-#elif defined(HAVE_MUSASHI)
-	m68k_execute(cycles);
-#endif
 	return ret;
+#elif defined(HAVE_C68K)
+	return C68k_Exec(&C68K, cycles);
+#elif defined(HAVE_MUSASHI)
+	return m68k_execute(cycles);
+#endif
+	return 0;
 }
 
 /*--------------------------------------------------------

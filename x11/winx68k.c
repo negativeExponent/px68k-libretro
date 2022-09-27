@@ -271,9 +271,14 @@ void WinX68k_Cleanup(void)
 #define CLOCK_SLICE 200
 void WinX68k_Exec(void)
 {
-	int clk_total, clkdiv, usedclk, hsync, clk_next, clk_count, clk_line = 0;
-	int KeyIntCnt = 0, MouseIntCnt = 0;
-	uint32_t t_start = timeGetTime(), t_end;
+	int clk_total, clkdiv, usedclk, hsync, clk_next, clk_count, clk_line;
+	int KeyIntCnt, MouseIntCnt;
+	uint32_t t_start, t_end;
+
+	clk_line = 0;
+	KeyIntCnt = 0;
+	MouseIntCnt = 0;
+	t_start = timeGetTime();
 
 	if (Config.FrameRate != 7)
 	{
@@ -329,7 +334,9 @@ void WinX68k_Exec(void)
 
 	do
 	{
-		int m, n = (ICount > CLOCK_SLICE) ? CLOCK_SLICE : ICount;
+		int m, n;
+
+		n = (ICount > CLOCK_SLICE) ? CLOCK_SLICE : ICount;
 
 		if (hsync)
 		{
@@ -362,7 +369,7 @@ void WinX68k_Exec(void)
 			}
 		}
 
-		/* clockspeed progress */
+		/* clock cycle progress */
 		m = m68000_execute(n);
 
 		ClkUsed += m * 10;
