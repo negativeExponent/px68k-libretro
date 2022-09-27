@@ -158,7 +158,7 @@ void OPM_Reset(void)
 }
 
 
-uint8_t FASTCALL OPM_Read(uint16_t adr)
+uint8_t FASTCALL OPM_Read(uint32_t adr)
 {
 	if ((adr & 3) == 3)
 	{
