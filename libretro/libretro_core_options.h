@@ -213,6 +213,20 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "GM"
    },
    {
+      "px68k_adpcm_lowpassfilter",
+      "ADPCM Low-Pass Filter",
+      NULL,
+      "Enables low-pass filtering for ADPCM unit.",
+      NULL,
+      "audio",
+      {
+         { "enabled", NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled"
+   },
+   {
       "px68k_adpcm_vol",
       "ADPCM Volume",
       NULL,

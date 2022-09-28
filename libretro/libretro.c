@@ -950,6 +950,17 @@ static void update_variables(int running)
          opt_analog = true;
    }
 
+   var.key   = "px68k_adpcm_lowpassfilter";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "enabled") == 0)
+         Config.Sound_LPF = 1;
+      else
+         Config.Sound_LPF = 0;
+   }
+
    var.key   = "px68k_adpcm_vol";
    var.value = NULL;
 
