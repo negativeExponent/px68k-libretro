@@ -1461,6 +1461,5 @@ void retro_run(void)
 
 void shutdown_app_retro(void)
 {
-   end_loop_retro();
    environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
 }
