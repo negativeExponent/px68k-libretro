@@ -45,7 +45,6 @@ SOURCES_C 		+= \
 				$(CORE_DIR)/x68k/ioc.c \
 				$(CORE_DIR)/x68k/irqh.c \
 				$(CORE_DIR)/x68k/mem_wrap.c \
-				$(CORE_DIR)/x68k/mercury.c \
 				$(CORE_DIR)/x68k/mfp.c \
 				$(CORE_DIR)/x68k/palette.c \
 				$(CORE_DIR)/x68k/midi.c \
@@ -78,5 +77,14 @@ SOURCES_CXX 	+= \
 				$(CORE_DIR)/fmgen/fmgen.cpp \
 				$(CORE_DIR)/fmgen/fmtimer.cpp \
 				$(CORE_DIR)/fmgen/opm.cpp \
+
+ifeq ($(NO_MERCURY),1)
+FLAGS 			+= -DNO_MERCURY
+else
+SOURCES_C 		+= \
+				$(CORE_DIR)/x68k/mercury.c
+
+SOURCES_CXX 	+= \
 				$(CORE_DIR)/fmgen/opna.cpp \
 				$(CORE_DIR)/fmgen/psg.cpp
+endif

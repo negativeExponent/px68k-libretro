@@ -14,6 +14,7 @@ void OPM_SetVolume(uint8_t vol);
 void OPM_SetRate(int clock, int rate);
 void OPM_RomeoOut(uint32_t delay);
 
+#ifndef NO_MERCURY
 int M288_Init(int clock, int rate, const char* path);
 void M288_Cleanup(void);
 void M288_Reset(void);
@@ -24,5 +25,6 @@ void FASTCALL M288_Timer(uint32_t step);
 void M288_SetVolume(uint8_t vol);
 void M288_SetRate(int clock, int rate);
 void M288_RomeoOut(uint32_t delay);
+#endif /* !NO_MERCURY */
 
 #endif //_win68_opm_fmgen

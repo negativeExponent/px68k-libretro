@@ -93,7 +93,7 @@ uint8_t FASTCALL DMA_Read(uint32_t adr)
 			DMA[ch].CSR = (DMA[ch].CSR & 0xfe) | (Mcry_LRTiming & 1);
 #else
 			DMA[ch].CSR = (DMA[ch].CSR & 0xfe);
-			Mcry_LRTiming ^= 1;
+			/* Mcry_LRTiming ^= 1; */
 #endif
 		}
 		ret = DMA[ch].CSR;
