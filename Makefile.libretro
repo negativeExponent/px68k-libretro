@@ -1,5 +1,7 @@
 
 DEBUG = 0
+NO_MERCURY = 1
+
 GIT_VERSION := " $(shell git rev-parse --short HEAD)"
 
 SPACE :=
@@ -374,7 +376,7 @@ else
 	EXTRA_LDF = -lwinmm -Wl,--export-all-symbols
 endif
 
-CDEBUGFLAGS	+= -DNO_MERCURY
+# CDEBUGFLAGS	+= -DNO_MERCURY
 CDEBUGFLAGS	+= -DPX68K_VERSION=\"0.15+\" -DGIT_VERSION=\"$(GIT_VERSION)\"
 FLAGS 		+= $(CDEBUGFLAGS)
 
