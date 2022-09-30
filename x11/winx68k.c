@@ -206,7 +206,6 @@ void WinX68k_Reset(int softReset)
 	ICount = 0;
 
 	DSound_Stop();
-	SRAM_VirusCheck();
 	DSound_Play();
 
 	if (softReset)
