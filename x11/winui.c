@@ -32,11 +32,12 @@
 
 #include "common.h"
 
-#include "fdd.h"
-#include "irqh.h"
+#include "../x68k/fdd.h"
+#include "../x68k/irqh.h"
+#include "../x68k/sram.h"
+
 #include "joystick.h"
 #include "prop.h"
-#include "sram.h"
 #include "status.h"
 #include "windraw.h"
 #include "winui.h"

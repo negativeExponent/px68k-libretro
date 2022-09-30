@@ -2,8 +2,9 @@
 //   55.6fpsキープ用たいまー
 // -----------------------------------------------------------------------
 #include "common.h"
-#include "crtc.h"
-#include "mfp.h"
+
+#include "../x68k/crtc.h"
+#include "../x68k/mfp.h"
 
 extern int64_t total_usec;		/* from libretro.c */
 

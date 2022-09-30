@@ -6,7 +6,7 @@
 #include "prop.h"
 #include "winui.h"
 
-#include "libretro.h"
+#include <libretro.h>
 extern retro_input_state_t input_state_cb;
 extern uint32_t libretro_supports_input_bitmasks;
 

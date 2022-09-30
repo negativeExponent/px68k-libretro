@@ -1,13 +1,14 @@
 /* MFP.C - MFP (Multi-Function Periferal) */
 
-#include "common.h"
-#include "m68000/m68000.h"
+#include "../x11/common.h"
+#include "../m68000/m68000.h"
+
+#include "../x11/keyboard.h"
+#include "../x11/winx68k.h"
 
 #include "mfp.h"
 #include "crtc.h"
 #include "irqh.h"
-#include "keyboard.h"
-#include "winx68k.h"
 
 uint8_t MFP[24];
 uint8_t LastKey                     = 0;

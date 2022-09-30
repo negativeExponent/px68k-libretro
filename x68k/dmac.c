@@ -3,7 +3,8 @@
  *  ToDo : もっと奇麗に ^^;
  */
 
-#include "common.h"
+#include "../x11/common.h"
+
 #include "dmac.h"
 #include "adpcm.h"
 #include "fdc.h"

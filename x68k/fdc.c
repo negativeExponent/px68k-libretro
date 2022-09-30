@@ -4,7 +4,8 @@
  *    D88でのエラー処理とかマシになったはず……でもその分汚い……
  */
 
-#include "common.h"
+#include "../x11/common.h"
+
 #include "fdc.h"
 #include "dmac.h"
 #include "fdd.h"

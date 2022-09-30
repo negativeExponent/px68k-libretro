@@ -1,11 +1,12 @@
 /* PALETTE.C - Text/BG/Graphic Palette */
 
-#include "common.h"
+#include "../x11/common.h"
+#include "../x11/windraw.h"
+
 #include "palette.h"
 #include "bg.h"
 #include "crtc.h"
 #include "tvram.h"
-#include "windraw.h"
 #include "x68kmemory.h"
 
 uint8_t Pal_Regs[1024];

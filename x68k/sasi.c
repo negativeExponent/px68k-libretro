@@ -2,14 +2,17 @@
  *  SASI.C - Shugart Associates System Interface (SASI HDD)
  */
 
-#include "common.h"
+#include "../x11/common.h"
+
+#include "../win32api/dosio.h"
+
+#include "../x11/prop.h"
+#include "../x11/status.h"
+
 #include "sasi.h"
-#include "dosio.h"
 #include "ioc.h"
 #include "irqh.h"
-#include "prop.h"
 #include "sram.h"
-#include "status.h"
 
 static uint8_t SASI_Cmd[6];
 static uint8_t SASI_Buf[256];

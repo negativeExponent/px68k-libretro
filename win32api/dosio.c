@@ -33,7 +33,7 @@
 #include <sys/param.h>
 #include <time.h>
 
-#include "common.h"
+#include "../x11/common.h"
 #include "dosio.h"
 
 extern char slash;

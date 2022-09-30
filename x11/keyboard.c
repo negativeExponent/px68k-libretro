@@ -26,11 +26,12 @@
 #include "common.h"
 #include "keyboard.h"
 #include "joystick.h"
-#include "mfp.h"
 #include "prop.h"
 #include "windraw.h"
 
-#include "libretro.h"
+#include "../x68k/mfp.h"
+
+#include <libretro.h>
 
 uint8_t KeyBufWP;
 uint8_t KeyBufRP;

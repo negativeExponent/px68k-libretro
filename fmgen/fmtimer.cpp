@@ -4,7 +4,8 @@
 // ---------------------------------------------------------------------------
 //	$fmgen-Id: fmtimer.cpp,v 1.1 2000/09/08 13:45:56 cisc Exp $
 
-#include "common.h"
+#include "../x11/common.h"
+
 #include "fmgen_types.h"
 #include "headers.h"
 #include "fmtimer.h"

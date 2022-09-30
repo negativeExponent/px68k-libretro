@@ -1,6 +1,7 @@
 /* RTC.C - RTC (Real Time Clock / RICOH RP5C15) */
 
-#include "common.h"
+#include "../x11/common.h"
+
 #include "mfp.h"
 
 #include <time.h>

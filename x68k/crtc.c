@@ -1,12 +1,13 @@
 /* CRTC.C - CRT Controller / Video Controller */
 
-#include "common.h"
+#include "../x11/common.h"
+#include "../x11/windraw.h"
+#include "../x11/winx68k.h"
+
 #include "crtc.h"
 #include "bg.h"
 #include "palette.h"
 #include "tvram.h"
-#include "windraw.h"
-#include "winx68k.h"
 
 static uint16_t FastClearMask[16] = {
 	0xffff, 0xfff0, 0xff0f, 0xff00, 0xf0ff, 0xf0f0, 0xf00f, 0xf000,

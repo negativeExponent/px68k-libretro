@@ -1,11 +1,13 @@
 /* MERCURY.C - ま~きゅり~ゆにっと */
+#include <math.h>
 
-#include "common.h"
+#include "../x11/common.h"
+
+#include "../fmgen/fmg_wrap.h"
+
 #include "mercury.h"
 #include "dmac.h"
-#include "fmg_wrap.h"
 #include "irqh.h"
-#include <math.h>
 
 #define MCRY_IRQ     4
 #define Mcry_BufSize 48000 * 2

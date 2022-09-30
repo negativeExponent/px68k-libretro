@@ -1,6 +1,7 @@
 /* IOC.C - I/O Controller */
 
-#include "common.h"
+#include "../x11/common.h"
+
 #include "ioc.h"
 
 uint8_t IOC_IntStat = 0;

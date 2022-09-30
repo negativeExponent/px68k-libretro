@@ -2,10 +2,12 @@
  *  SRAM.C - SRAM (16kb) нн╟Х
  */
 
-#include "common.h"
+#include "../x11/common.h"
+
+#include "../x11/prop.h"
+#include "../win32api/dosio.h"
+
 #include "sram.h"
-#include "dosio.h"
-#include "prop.h"
 #include "sysport.h"
 #include "x68kmemory.h"
 

@@ -1,7 +1,9 @@
 /* IRQH.C - IRQ Handler (架空のデバイスにょ) */
 
-#include "common.h"
-#include "m68000/m68000.h"
+#include "../x11/common.h"
+
+#include "../m68000/m68000.h"
+
 #include "irqh.h"
 
 static uint8_t IRQH_IRQ[8];
