@@ -14,9 +14,7 @@ extern int rfd_sock;
 #define FULLSCREEN_WIDTH  800
 #define FULLSCREEN_HEIGHT 600
 
-#define TOSTR(s)    #s
-#define _TOSTR(s)   TOSTR(s)
-#define PX68KVERSTR _TOSTR(PX68K_VERSION)
+#define PX68K_VERSION "0.15+"
 
 extern uint16_t VLINE_TOTAL;
 extern uint32_t VLINE;

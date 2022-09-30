@@ -376,8 +376,7 @@ else
 	EXTRA_LDF = -lwinmm -Wl,--export-all-symbols
 endif
 
-# CDEBUGFLAGS	+= -DNO_MERCURY
-CDEBUGFLAGS	+= -DPX68K_VERSION=\"0.15+\" -DGIT_VERSION=\"$(GIT_VERSION)\"
+CDEBUGFLAGS	+= -DGIT_VERSION=\"$(GIT_VERSION)\"
 FLAGS 		+= $(CDEBUGFLAGS)
 
 include $(CORE_DIR)/Makefile.common

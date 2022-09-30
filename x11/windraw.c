@@ -1056,7 +1056,7 @@ void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_
 
 	set_mcolor(0xffff);
 	set_mlocateC(2, 1);
-	sprintf(tmp, "%s%s", title_str, PX68KVERSTR);
+	sprintf(tmp, "%s%s", title_str, PX68K_VERSION);
 	draw_str(tmp);
 
 	/* ¿¿¤óÃæ */
