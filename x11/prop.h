@@ -17,7 +17,6 @@ typedef struct
 	int JoyKey;
 	int JoyKeyReverse;
 	int JoyKeyJoy2;
-	int SRAMWarning;
 	char HDImage[16][MAX_PATH];
 	int ToneMap;
 	char ToneMapFile[MAX_PATH];

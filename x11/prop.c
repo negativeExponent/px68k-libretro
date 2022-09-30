@@ -119,7 +119,6 @@ void SetConfigDefaults(void)
 	Config.JoyKey = 0;
 	Config.JoyKeyReverse = 0;
 	Config.JoyKeyJoy2 = 0;
-	Config.SRAMWarning = 1;
 	Config.XVIMode = 0;
 	Config.ToneMap = 0;
 	Config.ToneMapFile[0] = 0;

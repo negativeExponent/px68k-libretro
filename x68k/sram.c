@@ -67,19 +67,6 @@ void SRAM_UpdateBoot(void)
 	}
 }
 
-void SRAM_VirusCheck(void)
-{
-	if (!Config.SRAMWarning)
-		return;
-
-	if ((cpu_readmem24_dword(0xed3f60) == 0x60000002) &&
-	    (cpu_readmem24_dword(0xed0010) == 0x00ed3f60)) /* Only works for specific viruses */
-	{
-		SRAM_Cleanup();
-		SRAM_Init(); /* Write data after virus cleanup */
-	}
-}
-
 void SRAM_Init(void)
 {
 	int i;
@@ -141,12 +128,6 @@ void FASTCALL SRAM_Write(uint32_t adr, uint8_t data)
 
 	if (adr < 0xed4000)
 	{
-		if ((adr == 0xed0018) && (data == 0xb0)) /* SRAM起動への切り替え（簡単なウィルス対策） */
-		{
-			if (Config.SRAMWarning) /* Warning発生モード（デフォルト） */
-			{
-			}
-		}
 		adr &= 0xffff;
 		adr ^= 1;
 		SRAM[adr] = data;
