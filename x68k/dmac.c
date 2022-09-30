@@ -99,6 +99,121 @@ static int32_t FASTCALL DMA_Int(int32_t irq)
 	return ret;
 }
 
+static void FASTCALL SetCCR(int ch, uint8_t data)
+{
+	uint8_t old = DMA[ch].CCR;
+
+	DMA[ch].CCR = (data & 0xef) |
+	              (DMA[ch].CCR & 0x80); /* CCRのSTRは書き込みでは落とせない */
+
+	if ((data & 0x10) && (DMA[ch].CCR & 0x80))
+	{
+		/* Software Abort */
+		DMAERR(ch, 0x11)
+		return;
+	}
+
+	if (data & 0x20) /* Halt */
+	{
+		/* 本来は落ちるはず。Nemesis'90で調子悪いので… */
+		/* DMA[ch].CSR &= 0xf7; */
+		return;
+	}
+
+	if (data & 0x80)
+	{
+		/* 動作開始 */
+		if (old & 0x20)
+		{
+			/* Halt解除 */
+			DMA[ch].CSR |= 0x08;
+			DMA_Exec(ch);
+		}
+		else
+		{
+			if (DMA[ch].CSR & 0xf8)
+			{
+				/* タイミングエラー */
+				DMAERR(ch, 0x02)
+				return;
+			}
+			DMA[ch].CSR |= 0x08;
+			if ((DMA[ch].OCR & 8) /*&&(!DMA[ch].MTC)*/)
+			{
+				/* アレイ／リンクアレイチェイン */
+				DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR) & 0xffffff;
+				DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4);
+				if (DMA[ch].OCR & 4)
+				{
+					DMA[ch].BAR = dma_readmem24_dword(DMA[ch].BAR + 6);
+				}
+				else
+				{
+					DMA[ch].BAR += 6;
+					if (!DMA[ch].BTC)
+					{
+						/* これもカウントエラー */
+						DMAERR(ch, 0x0f)
+						return;
+					}
+				}
+			}
+			if (!DMA[ch].MTC)
+			{
+				/* カウントエラー */
+				DMAERR(ch, 0x0d)
+				return;
+			}
+			DMA[ch].CER = 0x00;
+			DMA_Exec(ch); /* 開始直後にカウンタを見て動作チェックする場合があるので、少しだけ実行しておく */
+		}
+	}
+
+	if ((data & 0x40) && (!DMA[ch].MTC))
+	{
+		/* Continuous Op. */
+		if (DMA[ch].CCR & 0x80)
+		{
+			if (DMA[ch].CCR & 0x40)
+			{
+				DMAERR(ch, 0x02)
+			}
+			else if (DMA[ch].OCR & 8)
+			{
+				/* アレイ／リンクアレイチェイン */
+				DMAERR(ch, 0x01)
+			}
+			else
+			{
+				DMA[ch].MAR = DMA[ch].BAR;
+				DMA[ch].MTC = DMA[ch].BTC;
+				DMA[ch].CSR |= 0x08;
+				DMA[ch].BAR = 0;
+				DMA[ch].BTC = 0;
+				if (!DMA[ch].MAR)
+				{
+					DMA[ch].CSR |=
+					    0x40; /* ブロック転送終了ビット／割り込み ? */
+					DMAINT(ch)
+					return;
+				}
+				else if (!DMA[ch].MTC)
+				{
+					DMAERR(ch, 0x0d)
+					return;
+				}
+				DMA[ch].CCR &= 0xbf;
+				DMA_Exec(ch);
+			}
+		}
+		else
+		{
+			/* 非Active時のCNTビットは動作タイミングエラー */
+			DMAERR(ch, 0x02)
+		}
+	}
+}
+
 uint8_t FASTCALL DMA_Read(uint32_t adr)
 {
 	int off = adr & 0x3f;
@@ -203,7 +318,6 @@ void FASTCALL DMA_Write(uint32_t adr, uint8_t data)
 {
 	int off = adr & 0x3f;
 	int ch = (adr >> 6) & 0x03;
-	uint8_t old = 0;
 
 	if (adr >= 0xe84100)
 		return; /* ばすえらー？ */
@@ -231,110 +345,7 @@ void FASTCALL DMA_Write(uint32_t adr, uint8_t data)
 		break;
 
 	case 0x07:
-		old         = DMA[ch].CCR;
-		DMA[ch].CCR = (data & 0xef) | (DMA[ch].CCR & 0x80); /* CCRのSTRは書き込みでは落とせない */
-		if ((data & 0x10) && (DMA[ch].CCR & 0x80))
-		{
-			/* Software Abort */
-			DMAERR(ch, 0x11)
-			break;
-		}
-		if (data & 0x20) /* Halt */
-		{
-			/* 本来は落ちるはず。Nemesis'90で調子悪いので… */
-			/* DMA[ch].CSR &= 0xf7; */
-			break;
-		}
-		if (data & 0x80)
-		{
-			/* 動作開始 */
-			if (old & 0x20)
-			{
-				/* Halt解除 */
-				DMA[ch].CSR |= 0x08;
-				DMA_Exec(ch);
-			}
-			else
-			{
-				if (DMA[ch].CSR & 0xf8)
-				{
-					/* タイミングエラー */
-					DMAERR(ch, 0x02)
-					break;
-				}
-				DMA[ch].CSR |= 0x08;
-				if ((DMA[ch].OCR & 8) /*&&(!DMA[ch].MTC)*/)
-				{
-					/* アレイ／リンクアレイチェイン */
-					DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR) & 0xffffff;
-					DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4);
-					if (DMA[ch].OCR & 4)
-					{
-						DMA[ch].BAR = dma_readmem24_dword(DMA[ch].BAR + 6);
-					}
-					else
-					{
-						DMA[ch].BAR += 6;
-						if (!DMA[ch].BTC)
-						{
-							/* これもカウントエラー */
-							DMAERR(ch, 0x0f)
-							break;
-						}
-					}
-				}
-				if (!DMA[ch].MTC)
-				{
-					/* カウントエラー */
-					DMAERR(ch, 0x0d)
-					break;
-				}
-				DMA[ch].CER = 0x00;
-				DMA_Exec(ch); /* 開始直後にカウンタを見て動作チェックする場合があるので、少しだけ実行しておく */
-			}
-		}
-		if ((data & 0x40) && (!DMA[ch].MTC))
-		{
-			/* Continuous Op. */
-			if (DMA[ch].CCR & 0x80)
-			{
-				if (DMA[ch].CCR & 0x40)
-				{
-					DMAERR(ch, 0x02)
-				}
-				else if (DMA[ch].OCR & 8)
-				{
-					/* アレイ／リンクアレイチェイン */
-					DMAERR(ch, 0x01)
-				}
-				else
-				{
-					DMA[ch].MAR = DMA[ch].BAR;
-					DMA[ch].MTC = DMA[ch].BTC;
-					DMA[ch].CSR |= 0x08;
-					DMA[ch].BAR = 0;
-					DMA[ch].BTC = 0;
-					if (!DMA[ch].MAR)
-					{
-						DMA[ch].CSR |= 0x40; /* ブロック転送終了ビット／割り込み ? */
-						DMAINT(ch)
-						break;
-					}
-					else if (!DMA[ch].MTC)
-					{
-						DMAERR(ch, 0x0d)
-						break;
-					}
-					DMA[ch].CCR &= 0xbf;
-					DMA_Exec(ch);
-				}
-			}
-			else
-			{
-				/* 非Active時のCNTビットは動作タイミングエラー */
-				DMAERR(ch, 0x02)
-			}
-		}
+		SetCCR(ch, data);
 		break;
 
 	case 0x0a:
