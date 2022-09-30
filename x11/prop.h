@@ -11,7 +11,6 @@ typedef struct
 	int MouseSpeed;
 	int WindowFDDStat;
 	int FullScrFDDStat;
-	int DSAlert;
 	int MIDI_SW;
 	int MIDI_Type;
 	int MIDI_Reset;

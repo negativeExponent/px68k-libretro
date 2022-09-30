@@ -569,11 +569,7 @@ int pmain(int argc, char *argv[])
 	MIDI_SetMimpiMap(Config.ToneMapFile);
 	MIDI_EnableMimpiDef(Config.ToneMap);
 
-	if (!DSound_Init(Config.SampleRate, Config.BufferSize))
-	{
-		if (Config.DSAlert)
-			fprintf(stderr, "Can't init sound.\n");
-	}
+	DSound_Init(Config.SampleRate, Config.BufferSize);
 
 	ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
 	OPM_SetVolume((uint8_t)Config.OPM_VOL);

@@ -52,17 +52,15 @@ static uint32_t ratebase = 22050;
 static long DSound_PreCounter = 0;
 static int audio_fd           = 1;
 
-int DSound_Init(uint32_t rate, uint32_t buflen)
+void DSound_Init(uint32_t rate, uint32_t buflen)
 {
 	if (rate == 0)
 	{
 		audio_fd = -1;
-		return TRUE;
+		return;
 	}
 
 	ratebase = rate;
-
-	return TRUE;
 }
 
 void DSound_Play(void)
@@ -84,12 +82,10 @@ void DSound_Stop(void)
 	}
 }
 
-int DSound_Cleanup(void)
+void DSound_Cleanup(void)
 {
 	if (audio_fd >= 0)
 		audio_fd = -1;
-
-	return TRUE;
 }
 
 static void sound_send(int length)
