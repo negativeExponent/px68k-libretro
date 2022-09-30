@@ -24,9 +24,11 @@
  */
 
 #include "common.h"
+
 #include "mouse.h"
 #include "prop.h"
-#include "scc.h"
+
+#include "../x68k/scc.h"
 
 static float MouseDX = 0;
 static float MouseDY = 0;

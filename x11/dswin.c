@@ -25,13 +25,15 @@
 
 #include "common.h"
 
+#include "../x68k/adpcm.h"
+#include "../fmgen/fmg_wrap.h"
+#include "../x68k/mercury.h"
+#include "../x68k/midi.h"
+#include "../win32api/windows.h"
+
 #include "dswin.h"
-#include "adpcm.h"
-#include "fmg_wrap.h"
-#include "mercury.h"
-#include "midi.h"
 #include "prop.h"
-#include "windows.h"
+
 
 #define PCMBUF_SIZE 2 * 2 * 48000
 

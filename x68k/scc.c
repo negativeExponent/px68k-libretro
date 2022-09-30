@@ -2,10 +2,12 @@
  *  SCC.C - Z8530 SCC（マウスのみ）
  */
 
-#include "common.h"
+#include "../x11/common.h"
+
+#include "../x11/mouse.h"
+
 #include "scc.h"
 #include "irqh.h"
-#include "mouse.h"
 
 int8_t MouseX = 0;
 int8_t MouseY = 0;

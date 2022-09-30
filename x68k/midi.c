@@ -17,12 +17,15 @@
  *         ここら辺は好みなので configで設定できてもいいかも
  */
 
-#include "common.h"
+#include "../x11/common.h"
+
+#include "../win32api/dosio.h"
+#include "../win32api/mmsystem.h"
+
+#include "../x11/prop.h"
+
 #include "midi.h"
-#include "dosio.h"
 #include "irqh.h"
-#include "mmsystem.h"
-#include "prop.h"
 #include "x68kmemory.h"
 
 #define MIDIBUFFERS  1024 /* 1024は流石に越えないでしょう^_^; */

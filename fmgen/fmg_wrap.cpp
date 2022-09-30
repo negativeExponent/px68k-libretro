@@ -9,14 +9,16 @@
 extern "C" {
 #endif
 
-#include "common.h"
-#include "winx68k.h"
-#include "dswin.h"
-#include "prop.h"
-#include "mfp.h"
-#include "adpcm.h"
-#include "mercury.h"
-#include "fdc.h"
+#include "../x11/common.h"
+#include "../x11/winx68k.h"
+#include "../x11/dswin.h"
+#include "../x11/prop.h"
+
+#include "../x68k/mfp.h"
+#include "../x68k/adpcm.h"
+#include "../x68k/mercury.h"
+#include "../x68k/fdc.h"
+
 #include "fmg_wrap.h"
 
 #include "opm.h"

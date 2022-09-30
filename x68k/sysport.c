@@ -2,10 +2,12 @@
  *  SYSPORT.C - X68k System Port
  */
 
-#include "common.h"
+#include "../x11/common.h"
+
+#include "../x11/prop.h"
+
 #include "sysport.h"
 #include "palette.h"
-#include "prop.h"
 
 uint8_t SysPort[7];
 

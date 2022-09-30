@@ -1,5 +1,7 @@
-#include "common.h"
-#include "dosio.h"
+#include "../x11/common.h"
+
+#include "../win32api/dosio.h"
+
 #include "fdc.h"
 #include "fdd.h"
 #include "disk_xdf.h"

@@ -1,13 +1,6 @@
 LIBRETRO_COMM_DIR	:= $(LIBRETRO_DIR)/libretro-common
 
-INCFLAGS		:= \
-				-I$(CORE_DIR) \
-				-I$(LIBRETRO_COMM_DIR)/include \
-				-I$(LIBRETRO_DIR) \
-				-I$(CORE_DIR)/fmgen \
-				-I$(CORE_DIR)/win32api \
-				-I$(CORE_DIR)/x11 \
-				-I$(CORE_DIR)/x68k
+INCFLAGS			:= -I$(LIBRETRO_COMM_DIR)/include
 
 SOURCES_S 		:=
 SOURCES_C 		:=

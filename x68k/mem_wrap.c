@@ -1,9 +1,9 @@
 /*	$Id: mem_wrap.c,v 1.2 2003/12/05 18:07:19 nonaka Exp $	*/
 
-#include "common.h"
-#include "m68000/m68000.h"
+#include "../x11/common.h"
 
-#include "x11/prop.h"
+#include "../m68000/m68000.h"
+#include "../x11/prop.h"
 
 #include "adpcm.h"
 #include "bg.h"
@@ -24,7 +24,7 @@
 #include "sysport.h"
 #include "tvram.h"
 
-#include "fmg_wrap.h"
+#include "../fmgen/fmg_wrap.h"
 
 static void wm_main(uint32_t addr, uint8_t val);
 static void wm_cnt(uint32_t addr, uint8_t val);

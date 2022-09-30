@@ -1,6 +1,6 @@
 //	$fmgen-Id: file.cpp,v 1.6 1999/12/28 11:14:05 cisc Exp $
 
-#include "common.h"
+#include "../x11/common.h"
 
 #include "headers.h"
 #include "file.h"

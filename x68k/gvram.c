@@ -1,6 +1,7 @@
 /* GVRAM.C - Graphic VRAM */
 
-#include "winx68k.h"
+#include "../x11/winx68k.h"
+
 #include "gvram.h"
 #include "crtc.h"
 #include "palette.h"

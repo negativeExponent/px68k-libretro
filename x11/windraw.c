@@ -25,18 +25,18 @@
 
 #include "common.h"
 
+#include "../x68k/bg.h"
+#include "../x68k/crtc.h"
+#include "../x68k/gvram.h"
+#include "../x68k/palette.h"
+#include "../x68k/tvram.h"
+#include "../x68k/x68kmemory.h"
+
 #include "winui.h"
 #include "winx68k.h"
-
-#include "bg.h"
-#include "crtc.h"
-#include "gvram.h"
 #include "mouse.h"
-#include "palette.h"
 #include "prop.h"
 #include "status.h"
-#include "tvram.h"
-#include "x68kmemory.h"
 
 extern uint8_t Debug_Text, Debug_Grp, Debug_Sp;
 extern uint16_t *videoBuffer;

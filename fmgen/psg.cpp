@@ -4,9 +4,9 @@
 // ---------------------------------------------------------------------------
 //	$fmgen-Id: psg.cpp,v 1.10 2002/05/15 21:38:01 cisc Exp $
 
-#include "common.h"
-#include "fmgen_types.h"
+#include "../x11/common.h"
 
+#include "fmgen_types.h"
 #include "headers.h"
 #include "misc.h"
 #include "psg.h"

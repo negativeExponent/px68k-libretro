@@ -6,11 +6,12 @@
 
 #include <math.h>
 
-#include "common.h"
+#include "../x11/common.h"
+#include "../x11/prop.h"
+
 #include "adpcm.h"
 #include "dmac.h"
 #include "pia.h"
-#include "prop.h"
 
 #define ADPCM_BufSize 96000
 #define ADPCMMAX      2047

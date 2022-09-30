@@ -3,12 +3,13 @@
  *  ToDo：透明色の処理チェック（特に対Text間）
  */
 
-#include "common.h"
+#include "../x11/common.h"
+#include "../x11/windraw.h"
+
 #include "bg.h"
 #include "crtc.h"
 #include "palette.h"
 #include "tvram.h"
-#include "windraw.h"
 
 static uint8_t  BG[0x8000];
 static uint8_t  Sprite_Regs[0x800];

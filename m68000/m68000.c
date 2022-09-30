@@ -6,9 +6,10 @@
 
 ******************************************************************************/
 
-#include "common.h"
-#include "m68000/m68000.h"
-#include "x68k/x68kmemory.h"
+#include "../x11/common.h"
+#include "../x68k/x68kmemory.h"
+
+#include "m68000.h"
 
 int ICount;
 

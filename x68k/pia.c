@@ -1,10 +1,12 @@
 /* PIA.C - uPD8255（必要最低限のみ） */
 
-#include "common.h"
+#include "../x11/common.h"
+
+#include "../x11/joystick.h"
+#include "../m68000/m68000.h"
+
 #include "pia.h"
-#include "m68000/m68000.h"
 #include "adpcm.h"
-#include "joystick.h"
 
 typedef struct {
 	uint8_t PortA;
