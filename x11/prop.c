@@ -110,7 +110,6 @@ void SetConfigDefaults(void)
 	Config.MouseSpeed = 10;
 	Config.WindowFDDStat = 1;
 	Config.FullScrFDDStat = 1;
-	Config.DSAlert = 1;
 	Config.Sound_LPF = 1;
 	Config.SoundROMEO = 1;
 	Config.MIDI_SW = 1;
