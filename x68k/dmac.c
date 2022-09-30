@@ -19,6 +19,30 @@ static int DMA_IntCH           = 0;
 static int DMA_LastInt         = 0;
 static int (*IsReady[4])(void) = { 0, 0, 0, 0 };
 
+static const int MACUpdateTable[8][4] = {
+	{ 0, 1, -1, 0 }, /* 8bit port, byte transfer      */
+	{ 0, 2, -2, 0 }, /* 8bit port, word transfer      */
+	{ 0, 4, -4, 0 }, /* 8bit port, longword transfer  */
+	{ 0, 1, -1, 0 }, /* 8bit port, packed bytes       */
+	{ 0, 1, -1, 0 }, /* 16bit port, byte transfer     */
+	{ 0, 2, -2, 0 }, /* 16bit port, word transfer     */
+	{ 0, 4, -4, 0 }, /* 16bit port, longword transfer */
+	{ 0, 1, -1, 0 }  /* 16bit port, packed bytes      */
+};
+
+static const int DACUpdateTable[8][4] = {
+	{ 0, 2, -2, 0 }, /* 8bit port, byte transfer      */
+	{ 0, 4, -4, 0 }, /* 8bit port, word transfer      */
+	{ 0, 8, -8, 0 }, /* 8bit port, longword transfer  */
+	{ 0, 2, -2, 0 }, /* 8bit port, packed bytes       */
+	{ 0, 1, -1, 0 }, /* 16bit port, byte transfer     */
+	{ 0, 2, -2, 0 }, /* 16bit port, word transfer     */
+	{ 0, 4, -4, 0 }, /* 16bit port, longword transfer */
+	{ 0, 1, -1, 0 }  /* 16bit port, packed bytes      */
+};
+
+static int32_t FASTCALL DMA_Int(int32_t irq);
+
 #define DMAINT(ch)                                                                                                     \
 	if (DMA[ch].CCR & 0x08)                                                                                            \
 	{                                                                                                                  \
@@ -77,7 +101,6 @@ static int32_t FASTCALL DMA_Int(int32_t irq)
 
 uint8_t FASTCALL DMA_Read(uint32_t adr)
 {
-	uint8_t ret = 0;
 	int off = adr & 0x3f;
 	int ch = (adr >> 6) & 0x03;
 
@@ -96,112 +119,84 @@ uint8_t FASTCALL DMA_Read(uint32_t adr)
 			/* Mcry_LRTiming ^= 1; */
 #endif
 		}
-		ret = DMA[ch].CSR;
-		break;
+		return DMA[ch].CSR;
 
 	case 0x01:
-		ret = DMA[ch].CER;
-		break;
+		return DMA[ch].CER;
 
 	case 0x04:
-		ret = DMA[ch].DCR;
-		break;
+		return DMA[ch].DCR;
 
 	case 0x05:
-		ret = DMA[ch].OCR;
-		break;
+		return DMA[ch].OCR;
 
 	case 0x06:
-		ret = DMA[ch].SCR;
-		break;
+		return DMA[ch].SCR;
 
 	case 0x07:
-		ret = DMA[ch].CCR;
-		break;
+		return DMA[ch].CCR;
 
 	case 0x0a:
-		ret = (DMA[ch].MTC >> 8) & 0xff;
-		break;
+		return (DMA[ch].MTC >> 8) & 0xff;
 	case 0x0b:
-		ret = DMA[ch].MTC & 0xff;
-		break;
+		return DMA[ch].MTC & 0xff;
 
 	case 0x0c:
-		ret = (DMA[ch].MAR >> 24) & 0xff;
-		break;
+		return 0;
 	case 0x0d:
-		ret = (DMA[ch].MAR >> 16) & 0xff;
-		break;
+		return (DMA[ch].MAR >> 16) & 0xff;
 	case 0x0e:
-		ret = (DMA[ch].MAR >> 8) & 0xff;
-		break;
+		return (DMA[ch].MAR >> 8) & 0xff;
 	case 0x0f:
-		ret = DMA[ch].MAR & 0xff;
-		break;
+		return DMA[ch].MAR & 0xff;
 
 	case 0x14:
-		ret = (DMA[ch].DAR >> 24) & 0xff;
-		break;
+		return 0;
 	case 0x15:
-		ret = (DMA[ch].DAR >> 16) & 0xff;
-		break;
+		return (DMA[ch].DAR >> 16) & 0xff;
 	case 0x16:
-		ret = (DMA[ch].DAR >> 8) & 0xff;
-		break;
+		return (DMA[ch].DAR >> 8) & 0xff;
 	case 0x17:
-		ret = DMA[ch].DAR & 0xff;
-		break;
+		return DMA[ch].DAR & 0xff;
 
 	case 0x1a:
-		ret = (DMA[ch].BTC >> 8) & 0xff;
-		break;
+		return (DMA[ch].BTC >> 8) & 0xff;
 	case 0x1b:
-		ret = DMA[ch].BTC & 0xff;
-		break;
+		return DMA[ch].BTC & 0xff;
 
 	case 0x1c:
-		ret = (DMA[ch].BAR >> 24) & 0xff;
-		break;
+		return 0;
 	case 0x1d:
-		ret = (DMA[ch].BAR >> 16) & 0xff;
-		break;
+		return (DMA[ch].BAR >> 16) & 0xff;
 	case 0x1e:
-		ret = (DMA[ch].BAR >> 8) & 0xff;
-		break;
+		return (DMA[ch].BAR >> 8) & 0xff;
 	case 0x1f:
-		ret = DMA[ch].BAR & 0xff;
-		break;
+		return DMA[ch].BAR & 0xff;
 
 	case 0x25:
-		ret = DMA[ch].NIV;
-		break;
+		return DMA[ch].NIV;
 
 	case 0x27:
-		ret = DMA[ch].EIV;
-		break;
+		return DMA[ch].EIV;
 
 	case 0x29:
-		ret = DMA[ch].MFC;
-		break;
+		return DMA[ch].MFC;
 
 	case 0x2d:
-		ret = DMA[ch].CPR;
-		break;
+		return DMA[ch].CPR;
 
 	case 0x31:
-		ret = DMA[ch].DFC;
-		break;
+		return DMA[ch].DFC;
 
 	case 0x39:
-		ret = DMA[ch].BFC;
-		break;
+		return DMA[ch].BFC;
 
 	case 0x3f:
-		ret = DMA[ch].GCR;
-		break;
+		/* only return for channel 3 */
+		if (ch == 3) return DMA[ch].GCR;
 	}
 
-	return ret;
+	return 0xff;
 }
 
 void FASTCALL DMA_Write(uint32_t adr, uint8_t data)
@@ -430,142 +425,115 @@ void FASTCALL DMA_Write(uint32_t adr, uint8_t data)
 		break;
 
 	case 0x3f:
-		if (ch == 3)
-			DMA[ch].GCR = data;
+		if (ch == 3) DMA[ch].GCR = data;
 		break;
 	}
 }
 
 int FASTCALL DMA_Exec(int ch)
 {
-	uint32_t *src, *dst;
-
-	/* if ( DMA_IntCH&(1<<ch) ) return 1; */
-
-	if (DMA[ch].OCR & 0x80)
-	{
-		/* Device->Memory */
-		src = &DMA[ch].DAR;
-		dst = &DMA[ch].MAR;
-	}
-	else
-	{
-		/* Memory->Device */
-		src = &DMA[ch].MAR;
-		dst = &DMA[ch].DAR;
-	}
-
-	while ((DMA[ch].CSR & 0x08) && (!(DMA[ch].CCR & 0x20)) && (!(DMA[ch].CSR & 0x80)) && (DMA[ch].MTC) &&
+	while ((DMA[ch].CSR & 0x08) && (!(DMA[ch].CCR & 0x20)) &&
+	       (!(DMA[ch].CSR & 0x80)) && (DMA[ch].MTC) &&
 	       (((DMA[ch].OCR & 3) != 2) || (IsReady[ch]())))
 	{
+		uint32_t data     = 0;
+		uint32_t dma_type = ((DMA[ch].OCR >> 4) & 3) + ((DMA[ch].DCR >> 1) & 4);
+
 		BusErrFlag = 0;
-		switch (((DMA[ch].OCR >> 4) & 3) + ((DMA[ch].DCR >> 1) & 4))
+		switch (dma_type)
 		{
 		case 0:
 		case 3:
-			dma_writemem24(*dst, dma_readmem24(*src));
-			if (DMA[ch].SCR & 4)
-				DMA[ch].MAR += 1;
-			else if (DMA[ch].SCR & 8)
-				DMA[ch].MAR -= 1;
-			if (DMA[ch].SCR & 1)
-				DMA[ch].DAR += 2;
-			else if (DMA[ch].SCR & 2)
-				DMA[ch].DAR -= 2;
+		case 7:
+			if (DMA[ch].OCR & 0x80) /* Device->Memory */
+			{
+				data = dma_readmem24(DMA[ch].DAR);
+				dma_writemem24(DMA[ch].MAR, (uint8_t)data);
+			}
+			else                   /* Memory->Device */
+			{
+				data = dma_readmem24(DMA[ch].MAR);
+				dma_writemem24(DMA[ch].DAR, (uint8_t)data);
+			}
 			break;
+
 		case 1:
-			dma_writemem24(*dst, dma_readmem24(*src));
-			if (DMA[ch].SCR & 4)
-				DMA[ch].MAR += 1;
-			else if (DMA[ch].SCR & 8)
-				DMA[ch].MAR -= 1;
-			if (DMA[ch].SCR & 1)
-				DMA[ch].DAR += 2;
-			else if (DMA[ch].SCR & 2)
-				DMA[ch].DAR -= 2;
-			dma_writemem24(*dst, dma_readmem24(*src));
-			if (DMA[ch].SCR & 4)
-				DMA[ch].MAR += 1;
-			else if (DMA[ch].SCR & 8)
-				DMA[ch].MAR -= 1;
-			if (DMA[ch].SCR & 1)
-				DMA[ch].DAR += 2;
-			else if (DMA[ch].SCR & 2)
-				DMA[ch].DAR -= 2;
+			if (DMA[ch].OCR & 0x80)
+			{
+				data  = dma_readmem24(DMA[ch].DAR) << 8;
+				data |= dma_readmem24(DMA[ch].DAR + 2);
+				dma_writemem24_word(DMA[ch].MAR, (uint16_t)data);
+			}
+			else
+			{
+				data = dma_readmem24_word(DMA[ch].MAR);
+				dma_writemem24(DMA[ch].DAR,     (uint8_t)(data >> 8));
+				dma_writemem24(DMA[ch].DAR + 2, (uint8_t)data);
+			}
 			break;
+
 		case 2:
-			dma_writemem24(*dst, dma_readmem24(*src));
-			if (DMA[ch].SCR & 4)
-				DMA[ch].MAR += 1;
-			else if (DMA[ch].SCR & 8)
-				DMA[ch].MAR -= 1;
-			if (DMA[ch].SCR & 1)
-				DMA[ch].DAR += 2;
-			else if (DMA[ch].SCR & 2)
-				DMA[ch].DAR -= 2;
-			dma_writemem24(*dst, dma_readmem24(*src));
-			if (DMA[ch].SCR & 4)
-				DMA[ch].MAR += 1;
-			else if (DMA[ch].SCR & 8)
-				DMA[ch].MAR -= 1;
-			if (DMA[ch].SCR & 1)
-				DMA[ch].DAR += 2;
-			else if (DMA[ch].SCR & 2)
-				DMA[ch].DAR -= 2;
-			dma_writemem24(*dst, dma_readmem24(*src));
-			if (DMA[ch].SCR & 4)
-				DMA[ch].MAR += 1;
-			else if (DMA[ch].SCR & 8)
-				DMA[ch].MAR -= 1;
-			if (DMA[ch].SCR & 1)
-				DMA[ch].DAR += 2;
-			else if (DMA[ch].SCR & 2)
-				DMA[ch].DAR -= 2;
-			dma_writemem24(*dst, dma_readmem24(*src));
-			if (DMA[ch].SCR & 4)
-				DMA[ch].MAR += 1;
-			else if (DMA[ch].SCR & 8)
-				DMA[ch].MAR -= 1;
-			if (DMA[ch].SCR & 1)
-				DMA[ch].DAR += 2;
-			else if (DMA[ch].SCR & 2)
-				DMA[ch].DAR -= 2;
+			if (DMA[ch].OCR & 0x80)
+			{
+				data  = dma_readmem24(DMA[ch].DAR) << 24;
+				data |= dma_readmem24(DMA[ch].DAR + 2) << 16;
+				data |= dma_readmem24(DMA[ch].DAR + 4) << 8;
+				data |= dma_readmem24(DMA[ch].DAR + 6);
+				dma_writemem24_word(DMA[ch].MAR,     (uint16_t)(data >> 16));
+				dma_writemem24_word(DMA[ch].MAR + 2, (uint16_t)data);
+			}
+			else
+			{
+				data  = dma_readmem24_word(DMA[ch].MAR) << 16;
+				data |= dma_readmem24_word(DMA[ch].MAR + 2);
+				dma_writemem24(DMA[ch].DAR,     (uint8_t)(data >> 24));
+				dma_writemem24(DMA[ch].DAR + 2, (uint8_t)(data >> 16));
+				dma_writemem24(DMA[ch].DAR + 4, (uint8_t)(data >> 8));
+				dma_writemem24(DMA[ch].DAR + 6, (uint8_t)data);
+			}
 			break;
+
 		case 4:
-			dma_writemem24(*dst, dma_readmem24(*src));
-			if (DMA[ch].SCR & 4)
-				DMA[ch].MAR += 1;
-			else if (DMA[ch].SCR & 8)
-				DMA[ch].MAR -= 1;
-			if (DMA[ch].SCR & 1)
-				DMA[ch].DAR += 1;
-			else if (DMA[ch].SCR & 2)
-				DMA[ch].DAR -= 1;
+			if (DMA[ch].OCR & 0x80)
+			{
+				data = dma_readmem24(DMA[ch].DAR);
+				dma_writemem24(DMA[ch].MAR, (uint8_t)data);
+			}
+			else
+			{
+				data = dma_readmem24(DMA[ch].MAR);
+				dma_writemem24(DMA[ch].DAR,(uint8_t)data);
+			}
 			break;
+
 		case 5:
-			dma_writemem24_word(*dst, dma_readmem24_word(*src));
-			if (DMA[ch].SCR & 4)
-				DMA[ch].MAR += 2;
-			else if (DMA[ch].SCR & 8)
-				DMA[ch].MAR -= 2;
-			if (DMA[ch].SCR & 1)
-				DMA[ch].DAR += 2;
-			else if (DMA[ch].SCR & 2)
-				DMA[ch].DAR -= 2;
+			if (DMA[ch].OCR & 0x80)
+			{
+				data = dma_readmem24_word(DMA[ch].DAR);
+				dma_writemem24_word(DMA[ch].MAR, (uint16_t)data);
+			}
+			else
+			{
+				data = dma_readmem24_word(DMA[ch].MAR);
+				dma_writemem24_word(DMA[ch].DAR, (uint16_t)data);
+			}
 			break;
+
 		case 6:
-			dma_writemem24_dword(*dst, dma_readmem24_dword(*src));
-			if (DMA[ch].SCR & 4)
-				DMA[ch].MAR += 4;
-			else if (DMA[ch].SCR & 8)
-				DMA[ch].MAR -= 4;
-			if (DMA[ch].SCR & 1)
-				DMA[ch].DAR += 4;
-			else if (DMA[ch].SCR & 2)
-				DMA[ch].DAR -= 4;
+			if (DMA[ch].OCR & 0x80)
+			{
+				data = dma_readmem24_dword(DMA[ch].DAR);
+				dma_writemem24_dword(DMA[ch].MAR, data);
+			}
+			else
+			{
+				data = dma_readmem24_dword(DMA[ch].MAR);
+				dma_writemem24_dword(DMA[ch].DAR, data);
+			}
 			break;
 		}
 
+		/* transfer error check (bus error/address error) */
 		if (BusErrFlag)
 		{
 			switch (BusErrFlag)
@@ -595,9 +563,17 @@ int FASTCALL DMA_Exec(int ch)
 					DMAERR(ch, 0x06)
 				break;
 			}
+
 			BusErrFlag = 0;
+
+			/* exit before addres update */
 			break;
 		}
+
+		DMA[ch].MAR += MACUpdateTable[dma_type][(DMA[ch].SCR >> 2) & 3];	/* mac */
+		DMA[ch].MAR &= 0xffffff;
+		DMA[ch].DAR += DACUpdateTable[dma_type][DMA[ch].SCR & 3];			/* dac */
+		DMA[ch].DAR &= 0xffffff;
 
 		DMA[ch].MTC--;
 		if (!DMA[ch].MTC)
