@@ -25,7 +25,9 @@ SOURCES_C 		+= \
 				$(CORE_DIR)/m68000/musashi/softfloat/softfloat.c
 else
 FLAGS 			+= -DHAVE_M68000
-SOURCES_C 		+= $(CORE_DIR)/m68000/c68k.c
+SOURCES_C 		+= \
+				$(CORE_DIR)/m68000/c68k.c \
+				$(CORE_DIR)/m68000/c68kexec.c
 endif
 endif
 endif
