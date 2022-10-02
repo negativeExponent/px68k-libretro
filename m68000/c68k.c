@@ -18,7 +18,6 @@
 
 #include "c68kmacro.h"
 
-
 /******************************************************************************
 	グローバル構造体
 ******************************************************************************/
@@ -29,9 +28,7 @@ c68k_struc C68K;
 	ローカル変数
 ******************************************************************************/
 
-static void *JumpTable[0x10000];
 static uint8_t c68k_bad_address[1 << C68K_FETCH_SFT];
-
 
 /******************************************************************************
 	ローカル関数
@@ -46,7 +43,6 @@ static int32_t C68k_InterruptCallback(int32_t line)
 	return C68K_INTERRUPT_AUTOVECTOR_EX + line;
 }
 
-
 /*--------------------------------------------------------
 	リセットコールバック
 --------------------------------------------------------*/
@@ -54,7 +50,6 @@ static int32_t C68k_InterruptCallback(int32_t line)
 static void C68k_ResetCallback(void)
 {
 }
-
 
 /******************************************************************************
 	C68Kインタフェース関数
@@ -82,7 +77,6 @@ void C68k_Init(c68k_struc *CPU, int32_t (*irq_cb)(int32_t level))
 	C68k_Exec(NULL, 0);
 }
 
-
 /*--------------------------------------------------------
 	CPUリセット
 --------------------------------------------------------*/
@@ -96,78 +90,6 @@ void C68k_Reset(c68k_struc *CPU)
 
 	/* SP, PCの初期化はWinX68k_Reset()側で実行する */
 }
-
-
-/*--------------------------------------------------------
-	CPU実行
---------------------------------------------------------*/
-
-extern uint32_t BusErrHandling;
-extern uint32_t BusErrAdr;
-
-int32_t C68k_Exec(c68k_struc *CPU, int32_t cycles)
-{
-	if (CPU != NULL)
-	{
-		uintptr_t PC;
-		uint32_t Opcode;
-		uint32_t adr;
-		uint32_t res;
-		uintptr_t src;
-		uintptr_t dst;
-		int32_t cycles_used;
-
-		PC = CPU->PC;
-		CPU->ICount = cycles;
-
-C68k_Check_Interrupt:
-		CHECK_INT
-		if (!CPU->HaltState)
-		{
-
-C68k_Exec_Next:
-			if (CPU->ICount > 0)
-			{
-
-				if (BusErrHandling) {
-					SWAP_SP();
-					PUSH_32_F(GET_PC() - 2);
-					PUSH_16_F(GET_SR());
-					CPU->A[7] -= 2;
-					PUSH_32_F(BusErrAdr);
-					CPU->A[7] -= 2;
-					CPU->flag_S = C68K_SR_S;
-					PC = READ_MEM_32((C68K_BUS_ERROR_EX) << 2);
-					SET_PC(PC);
-					BusErrHandling = 0;
-				}
-
-				Opcode = READ_IMM_16();
-				PC += 2;
-				goto *JumpTable[Opcode];
-
-				#include "c68k_op.c"
-			}
-		}
-
-		CPU->PC = PC;
-
-		cycles_used = cycles - CPU->ICount - CPU->ICountBk;
-
-		CPU->ICount   = 0;
-		CPU->ICountBk = 0;
-
-		return cycles_used;
-	}
-	else
-	{
-		/* initializes jump table */
-		#include "c68k_ini.c"
-	}
-
-	return 0;
-}
-
 
 /*--------------------------------------------------------
 	割り込み処理
@@ -192,7 +114,6 @@ void C68k_Set_IRQ(c68k_struc *CPU, int32_t line, int32_t state)
 		C68K.ICount = 0;                /* 苦肉の策 ^^; */
 	}
 }
-
 
 /*--------------------------------------------------------
 	レジスタ取得
@@ -225,7 +146,6 @@ uint32_t C68k_Get_Reg(c68k_struc *CPU, int32_t regnum)
 	default: return 0;
 	}
 }
-
 
 /*--------------------------------------------------------
 	レジスタ設定
@@ -273,7 +193,6 @@ void C68k_Set_Reg(c68k_struc *CPU, int32_t regnum, uint32_t val)
 
 }
 
-
 /*--------------------------------------------------------
 	フェッチアドレス設定
 --------------------------------------------------------*/
@@ -287,7 +206,6 @@ void C68k_Set_Fetch(c68k_struc *CPU, uint32_t low_adr, uint32_t high_adr, uintpt
 	fetch_adr -= i << C68K_FETCH_SFT;
 	while (i <= j) CPU->Fetch[i++] = fetch_adr;
 }
-
 
 /*--------------------------------------------------------
 	メモリリード/ライト関数設定
@@ -324,7 +242,6 @@ void C68k_Set_WriteW(c68k_struc *CPU, void (*Func)(uint32_t address, uint32_t da
 {
 	CPU->Write_Word = Func;
 }
-
 
 /*--------------------------------------------------------
 	コールバック関数設定
