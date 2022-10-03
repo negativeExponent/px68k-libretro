@@ -199,7 +199,7 @@ int32_t FASTCALL C68k_Exec(c68k_struc *cpu, int32_t cycle)
         return (CPU->Status | 0x80000000);
     }
 
-    if (cycle <= 0) return -cycle;
+    /* if (cycle <= 0) return -cycle; */
 
     CPU->CycleToDo = CCnt = cycle;
 
@@ -290,17 +290,9 @@ SwitchTable:
     #include "c68k_opE.inc"
     #include "c68k_opF.inc"
 #ifdef C68K_NO_JUMP_TABLE
-	/* fallthrough and loop to SwitchTable */
-	default:
-		if (Opcode <= 0xFFFF)
-		{
-			const uint32_t JmpTable[] = {
-				0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC,
-				0x4AFC, 0x4AFC, 0xA000, 0x4AFC, 0x4AFC, 0x4AFC, 0x4AFC, 0xF000
-			};
-			Opcode = JmpTable[(Opcode & 0xF000) >> 12];
-			goto SwitchTable;
-		}
+    default:
+        Opcode = 0x4AFC; /* illegal */
+        break;
 	}
 #endif
 
