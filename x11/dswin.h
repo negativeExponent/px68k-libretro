@@ -8,7 +8,7 @@ void DSound_Play(void);
 void DSound_Stop(void);
 void FASTCALL DSound_Send0(long clock);
 
-int audio_samples_avail();
+int audio_samples_avail(void);
 void audio_samples_discard(int discard);
 
 void raudio_callback(void *userdata, int len);

@@ -37,6 +37,7 @@
 #include "mouse.h"
 #include "prop.h"
 #include "status.h"
+#include "windraw.h"
 
 extern uint8_t Debug_Text, Debug_Grp, Debug_Sp;
 extern uint16_t *videoBuffer;

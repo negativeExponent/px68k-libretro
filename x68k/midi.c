@@ -319,7 +319,7 @@ void MIDI_Cleanup(void)
 	}
 }
 
-void MIDI_Message(uint8_t mes)
+static void MIDI_Message(uint8_t mes)
 {
 	if (!hOut)
 	{

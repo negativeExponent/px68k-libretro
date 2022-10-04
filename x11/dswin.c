@@ -131,7 +131,7 @@ static void FASTCALL DSound_Send(int length)
 	sound_send(length);
 }
 
-int audio_samples_avail()
+int audio_samples_avail(void)
 {
 	if (pbrp <= pbwp)
 		return (pbwp - pbrp) / 4;

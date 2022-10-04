@@ -276,7 +276,7 @@ int kanji1st(char *str, int pos)
 	return ret;
 }
 
-int kanji2nd(char *str, int pos)
+static int kanji2nd(char *str, int pos)
 {
 	int	ret = 0;
 	uint8_t	c;
