@@ -420,7 +420,7 @@ static bool disk_get_image_label(unsigned index, char *label, size_t len)
    return false;
 }
 
-void attach_disk_swap_interface(void)
+static void attach_disk_swap_interface(void)
 {
    dskcb.set_eject_state     = set_eject_state;
    dskcb.get_eject_state     = get_eject_state;
@@ -433,7 +433,7 @@ void attach_disk_swap_interface(void)
    environ_cb(RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE, &dskcb);
 }
 
-void attach_disk_swap_interface_ext(void)
+static void attach_disk_swap_interface_ext(void)
 {
    dskcb_ext.set_eject_state     = set_eject_state;
    dskcb_ext.get_eject_state     = get_eject_state;

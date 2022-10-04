@@ -6,6 +6,8 @@
 #include "../x68k/crtc.h"
 #include "../x68k/mfp.h"
 
+#include "timer.h"
+
 extern int64_t total_usec;		/* from libretro.c */
 
 uint32_t	timercnt = 0;

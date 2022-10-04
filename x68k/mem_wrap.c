@@ -23,6 +23,7 @@
 #include "sram.h"
 #include "sysport.h"
 #include "tvram.h"
+#include "x68kmemory.h"
 
 #include "../fmgen/fmg_wrap.h"
 

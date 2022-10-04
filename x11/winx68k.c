@@ -67,7 +67,7 @@ enum { menu_out, menu_enter, menu_in };
 static int menu_mode = menu_out;
 static int ram_size_override = 0;
 
-void WinX68k_SCSICheck(void)
+static void WinX68k_SCSICheck(void)
 {
 	static const uint8_t SCSIIMG[] = {
 		0x00, 0xfc, 0x00, 0x14,                   /* $fc0000 SCSI boot entry address */
@@ -120,7 +120,7 @@ void WinX68k_SCSICheck(void)
 	}
 }
 
-int WinX68k_LoadROMs(void)
+static int WinX68k_LoadROMs(void)
 {
 	static const char *BIOSFILE[]   = { "iplrom.dat", "iplrom30.dat", "iplromco.dat", "iplromxv.dat" };
 	static const char FONTFILE[]    = "cgrom.dat";
@@ -217,7 +217,7 @@ void WinX68k_Reset(int softReset)
 	}
 }
 
-int WinX68k_Init(void)
+static int WinX68k_Init(void)
 {
 	int MEM_SIZE = 0xc00000;
 
@@ -249,7 +249,7 @@ int WinX68k_Init(void)
 	return FALSE;
 }
 
-void WinX68k_Cleanup(void)
+static void WinX68k_Cleanup(void)
 {
 	if (IPL)
 	{
@@ -271,7 +271,7 @@ void WinX68k_Cleanup(void)
 }
 
 #define CLOCK_SLICE 200
-void WinX68k_Exec(void)
+static void WinX68k_Exec(void)
 {
 	int clk_total, clkdiv, usedclk, hsync, clk_next, clk_count, clk_line;
 	int KeyIntCnt, MouseIntCnt;
@@ -609,7 +609,7 @@ int pmain(int argc, char *argv[])
 			send_keycode(b, 1);                                                                                        \
 	}
 
-void handle_retrok()
+static void handle_retrok()
 {
 	int i;
 

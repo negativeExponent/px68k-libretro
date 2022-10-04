@@ -3,6 +3,7 @@
 #include "../x11/common.h"
 
 #include "mfp.h"
+#include "rtc.h"
 
 #include <time.h>
 
