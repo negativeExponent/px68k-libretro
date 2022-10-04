@@ -133,7 +133,7 @@ static INLINE void WinDraw_DrawGrpLine(int opaq)
 
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint16_t w;
-	int i;
+	unsigned i;
 
 	if (opaq)
 	{
