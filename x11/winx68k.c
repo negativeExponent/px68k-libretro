@@ -586,6 +586,7 @@ int pmain(int argc, char *argv[])
 		{
 		case 3:
 			strcpy(Config.FDDImage[1], argv[2]);
+			/* fallthrough */
 		case 2:
 			strcpy(Config.FDDImage[0], argv[1]);
 			break;

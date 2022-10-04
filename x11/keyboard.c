@@ -459,7 +459,7 @@ static uint8_t get_x68k_keycode(uint32_t wp)
 	case RETROK_PAGEDOWN:
 		return 0x39;
 	default:
-		return -1;
+		return 0xff;
 	}
 }
 
@@ -479,7 +479,7 @@ void Keyboard_KeyDown(uint32_t wp)
 		code = KeyTable[wp & 0xff];
 #endif
 	code = get_x68k_keycode(wp);
-	if (code < 0)
+	if (code == 0xff)
 	{
 		return;
 	}
@@ -569,7 +569,7 @@ void Keyboard_KeyUp(uint32_t wp)
 		code = KeyTable[wp & 0xff];
 #endif
 	code = get_x68k_keycode(wp);
-	if (code < 0)
+	if (code == 0xff)
 	{
 		return;
 	}

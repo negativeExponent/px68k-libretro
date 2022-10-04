@@ -176,7 +176,7 @@ float VKey_scale[] = { 3.0, 2.5, 2.0, 1.5, 1.25, 1.0 };
 
 float WinUI_get_vkscale(void)
 {
-	int n = Config.VkeyScale;
+	unsigned n = Config.VkeyScale;
 
 	/* failsafe against invalid values */
 	if (n < 0 || n >= sizeof(VKey_scale) / sizeof(float))

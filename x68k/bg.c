@@ -489,7 +489,7 @@ static INLINE void BG_DrawLineMcr16_ng(uint16_t BGTOP, uint32_t BGScrollX, uint3
 
 void FASTCALL BG_DrawLine(int opaq, int gd)
 {
-	int i;
+	unsigned i;
 	void (*func8)(uint16_t, uint32_t, uint32_t), (*func16)(uint16_t, uint32_t, uint32_t);
 
 	if (opaq)

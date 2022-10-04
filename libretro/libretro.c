@@ -260,7 +260,7 @@ uint32_t midiOutShortMsg(void *hmo, uint32_t dwMsg)
 
 uint32_t midiOutLongMsg(void *hmo, MIDIHDR *pmh, uint32_t cbmh)
 {
-   int i;
+   unsigned i;
    if (libretro_supports_midi_output && midi_cb.output_enabled())
    {
       for (i = 0; i < pmh->dwBufferLength; i++)
@@ -520,7 +520,7 @@ static bool read_m3u(const char *file)
    char name[2048];
    char line[1024];
    FILE *f = fopen(file, "r");
-   int i;
+   unsigned i;
 
    if (!f)
       return false;
