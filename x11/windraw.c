@@ -78,7 +78,7 @@ void WinDraw_Cleanup(void)
 
 void FASTCALL WinDraw_Draw(void)
 {
-	static int oldtextx = -1, oldtexty = -1;
+	static uint32_t oldtextx = 0, oldtexty = 0;
 	/* set initial value based on initial value for VID_MODE.
 	 * This avoids extra screen reinit on startup */
 	static int oldvidmode = 1;
@@ -133,7 +133,7 @@ static INLINE void WinDraw_DrawGrpLine(int opaq)
 
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint16_t w;
-	unsigned i;
+	uint32_t i;
 
 	if (opaq)
 	{
@@ -151,7 +151,7 @@ static INLINE void WinDraw_DrawGrpLineNonSP(int opaq)
 
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint16_t w;
-	int i;
+	uint32_t i;
 
 	if (opaq)
 	{
@@ -176,7 +176,7 @@ static INLINE void WinDraw_DrawTextLine(int opaq, int td)
 
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint16_t w;
-	int i;
+	uint32_t i;
 
 	if (opaq)
 	{
@@ -246,7 +246,7 @@ static INLINE void WinDraw_DrawTextLineTR(int opaq)
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint32_t v;
 	uint16_t w;
-	int i;
+	uint32_t i;
 
 	if (opaq)
 	{
@@ -271,7 +271,7 @@ static INLINE void WinDraw_DrawBGLine(int opaq, int td)
 
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint16_t w;
-	int i;
+	uint32_t i;
 
 	if (opaq)
 	{
@@ -332,7 +332,7 @@ static INLINE void WinDraw_DrawBGLineTR(int opaq)
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint32_t v;
 	uint16_t w;
-	int i;
+	uint32_t i;
 
 	if (opaq)
 	{
@@ -350,7 +350,7 @@ static INLINE void WinDraw_DrawPriLine(void)
 
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint16_t w;
-	int i;
+	uint32_t i;
 
 	WD_LOOP(0, TextDotX, _DPL_SUB);
 }
@@ -563,7 +563,7 @@ void WinDraw_DrawLine(void)
 		{
 			if ((VCReg2[1] & 0x20) && (Debug_Text))
 			{
-				int i;
+				uint32_t i;
 				for (i = 16; i < TextDotX + 16; ++i)
 					BG_LineBuf[i] = TextPal[0];
 			}
@@ -767,7 +767,7 @@ void WinDraw_DrawLine(void)
 
 		uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 		uint16_t w;
-		int i;
+		uint32_t i;
 
 		WD_LOOP(0, TextDotX, _DL_SUB);
 	}
