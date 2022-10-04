@@ -609,7 +609,7 @@ int pmain(int argc, char *argv[])
 			send_keycode(b, 1);                                                                                        \
 	}
 
-static void handle_retrok()
+static void handle_retrok(void)
 {
 	int i;
 

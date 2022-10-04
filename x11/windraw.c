@@ -930,7 +930,7 @@ static void set_mfs(int fs) {
 	p6m.mfs = fs;
 }
 
-static uint16_t *get_ml_ptr()
+static uint16_t *get_ml_ptr(void)
 {
 	p6m.mlp = p6m.sbp + MENU_WIDTH * p6m.ml_y + p6m.ml_x;
 	return p6m.mlp;
