@@ -142,7 +142,7 @@ static void FASTCALL SetCCR(int ch, uint8_t data)
 			{
 				/* アレイ／リンクアレイチェイン */
 				DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR) & 0xffffff;
-				DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4);
+				DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4) & 0xffff;
 				if (DMA[ch].OCR & 4)
 				{
 					DMA[ch].BAR = dma_readmem24_dword(DMA[ch].BAR + 6);
@@ -471,9 +471,9 @@ int FASTCALL DMA_Exec(int ch)
 		case 1:
 			if (DMA[ch].OCR & 0x80)
 			{
-				data  = dma_readmem24(DMA[ch].DAR) << 8;
-				data |= dma_readmem24(DMA[ch].DAR + 2);
-				dma_writemem24_word(DMA[ch].MAR, (uint16_t)data);
+				data  = ((uint8_t)dma_readmem24(DMA[ch].DAR)) << 8;
+				data |= (uint8_t)dma_readmem24(DMA[ch].DAR + 2);
+				dma_writemem24_word(DMA[ch].MAR, data);
 			}
 			else
 			{
@@ -486,17 +486,17 @@ int FASTCALL DMA_Exec(int ch)
 		case 2:
 			if (DMA[ch].OCR & 0x80)
 			{
-				data  = dma_readmem24(DMA[ch].DAR) << 24;
-				data |= dma_readmem24(DMA[ch].DAR + 2) << 16;
-				data |= dma_readmem24(DMA[ch].DAR + 4) << 8;
-				data |= dma_readmem24(DMA[ch].DAR + 6);
+				data  = ((uint8_t)dma_readmem24(DMA[ch].DAR)) << 24;
+				data |= ((uint8_t)dma_readmem24(DMA[ch].DAR + 2)) << 16;
+				data |= ((uint8_t)dma_readmem24(DMA[ch].DAR + 4)) << 8;
+				data |= (uint8_t)dma_readmem24(DMA[ch].DAR + 6);
 				dma_writemem24_word(DMA[ch].MAR,     (uint16_t)(data >> 16));
 				dma_writemem24_word(DMA[ch].MAR + 2, (uint16_t)data);
 			}
 			else
 			{
-				data  = dma_readmem24_word(DMA[ch].MAR) << 16;
-				data |= dma_readmem24_word(DMA[ch].MAR + 2);
+				data  = ((uint16_t)dma_readmem24_word(DMA[ch].MAR)) << 16;
+				data |= (uint16_t)dma_readmem24_word(DMA[ch].MAR + 2);
 				dma_writemem24(DMA[ch].DAR,     (uint8_t)(data >> 24));
 				dma_writemem24(DMA[ch].DAR + 2, (uint8_t)(data >> 16));
 				dma_writemem24(DMA[ch].DAR + 4, (uint8_t)(data >> 8));
@@ -508,12 +508,12 @@ int FASTCALL DMA_Exec(int ch)
 			if (DMA[ch].OCR & 0x80)
 			{
 				data = dma_readmem24(DMA[ch].DAR);
-				dma_writemem24(DMA[ch].MAR, (uint8_t)data);
+				dma_writemem24(DMA[ch].MAR, data);
 			}
 			else
 			{
 				data = dma_readmem24(DMA[ch].MAR);
-				dma_writemem24(DMA[ch].DAR,(uint8_t)data);
+				dma_writemem24(DMA[ch].DAR, data);
 			}
 			break;
 
@@ -521,12 +521,12 @@ int FASTCALL DMA_Exec(int ch)
 			if (DMA[ch].OCR & 0x80)
 			{
 				data = dma_readmem24_word(DMA[ch].DAR);
-				dma_writemem24_word(DMA[ch].MAR, (uint16_t)data);
+				dma_writemem24_word(DMA[ch].MAR, data);
 			}
 			else
 			{
 				data = dma_readmem24_word(DMA[ch].MAR);
-				dma_writemem24_word(DMA[ch].DAR, (uint16_t)data);
+				dma_writemem24_word(DMA[ch].DAR, data);
 			}
 			break;
 
@@ -599,7 +599,7 @@ int FASTCALL DMA_Exec(int ch)
 					if (DMA[ch].BAR)
 					{
 						DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR);
-						DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4);
+						DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4) & 0xffff;
 						DMA[ch].BAR = dma_readmem24_dword(DMA[ch].BAR + 6);
 						if (BusErrFlag)
 						{
@@ -625,7 +625,7 @@ int FASTCALL DMA_Exec(int ch)
 					{
 						/* 次のブロックがある */
 						DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR);
-						DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4);
+						DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4) & 0xffff;
 						DMA[ch].BAR += 6;
 						if (BusErrFlag)
 						{

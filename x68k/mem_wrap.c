@@ -135,12 +135,12 @@ uint32_t BusErrAdr      = 0;
 /*
  * write function
  */
-void dma_writemem24(uint32_t addr, uint8_t val)
+void dma_writemem24(uint32_t addr, uint32_t val)
 {
-	wm_main(addr, val);
+	wm_main(addr, val & 0xff);
 }
 
-void dma_writemem24_word(uint32_t addr, uint16_t val)
+void dma_writemem24_word(uint32_t addr, uint32_t val)
 {
 	if (addr & 1)
 	{
@@ -259,7 +259,7 @@ static void wm_nop(uint32_t addr, uint8_t val)
  */
 uint32_t dma_readmem24(uint32_t addr)
 {
-	return (uint32_t)rm_main(addr);
+	return rm_main(addr);
 }
 
 uint32_t dma_readmem24_word(uint32_t addr)

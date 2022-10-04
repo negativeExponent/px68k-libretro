@@ -19,16 +19,16 @@ uint32_t cpu_readmem24(uint32_t adr);
 uint32_t cpu_readmem24_word(uint32_t adr);
 uint32_t cpu_readmem24_dword(uint32_t adr);
 
-uint8_t  dma_readmem24(uint32_t adr);
-uint16_t dma_readmem24_word(uint32_t adr);
+uint32_t dma_readmem24(uint32_t adr);
+uint32_t dma_readmem24_word(uint32_t adr);
 uint32_t dma_readmem24_dword(uint32_t adr);
 
 void cpu_writemem24(uint32_t adr, uint32_t data);
 void cpu_writemem24_word(uint32_t adr, uint32_t data);
 void cpu_writemem24_dword(uint32_t adr, uint32_t data);
 
-void dma_writemem24(uint32_t adr, uint8_t data);
-void dma_writemem24_word(uint32_t adr, uint16_t data);
+void dma_writemem24(uint32_t adr, uint32_t data);
+void dma_writemem24_word(uint32_t adr, uint32_t data);
 void dma_writemem24_dword(uint32_t adr, uint32_t data);
 
 void Memory_SetSCSIMode(void);
