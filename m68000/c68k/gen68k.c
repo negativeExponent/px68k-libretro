@@ -1905,7 +1905,7 @@ static void GenDIVS()
     _ea_read_dst(current_ea2, current_op->reg2_sft);
 
     // division by zero
-    wf_op("\tif ((dst == 0x80000000) && (src == -1))\n");
+    wf_op("\tif ((dst == 0x80000000) && ((int32_t)src == -1))\n");
     wf_op("\t{\n");
         wf_op("\t\tCPU->flag_notZ = CPU->flag_N = 0;\n");
         wf_op("\t\tCPU->flag_V = CPU->flag_C = 0;\n");

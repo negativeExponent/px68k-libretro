@@ -2201,7 +2201,7 @@ OP_0x81C0:
 	RET(10)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2261,7 +2261,7 @@ OP_0x81D0:
 	RET(14)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2322,7 +2322,7 @@ OP_0x81D8:
 	RET(14)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2383,7 +2383,7 @@ OP_0x81E0:
 	RET(16)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2444,7 +2444,7 @@ OP_0x81E8:
 	RET(18)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2505,7 +2505,7 @@ OP_0x81F0:
 	RET(20)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2566,7 +2566,7 @@ OP_0x81F8:
 	RET(18)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2627,7 +2627,7 @@ OP_0x81F9:
 	RET(22)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2688,7 +2688,7 @@ OP_0x81FA:
 	RET(18)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2749,7 +2749,7 @@ OP_0x81FB:
 	RET(20)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2806,7 +2806,7 @@ OP_0x81FC:
 	RET(14)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2867,7 +2867,7 @@ OP_0x81DF:
 	RET(14)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
@@ -2928,7 +2928,7 @@ OP_0x81E7:
 	RET(16)
 	}
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
-	if ((dst == 0x80000000) && (src == -1))
+	if ((dst == 0x80000000) && ((int32_t)src == -1))
 	{
 		CPU->flag_notZ = CPU->flag_N = 0;
 		CPU->flag_V = CPU->flag_C = 0;
