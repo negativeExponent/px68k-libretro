@@ -41,7 +41,7 @@ static uint8_t rsndbuf[PCMBUF_SIZE];
 static uint8_t pcmbuffer[PCMBUF_SIZE];
 
 #ifndef NO_MERCURY
-static uint8_t *pcmbufp  = pcmbuffer;
+static uint8_t UNUSED *pcmbufp  = pcmbuffer;
 #endif
 static uint8_t *pbsp     = pcmbuffer;
 static uint8_t *pbrp     = pcmbuffer;

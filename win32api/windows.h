@@ -38,7 +38,7 @@ typedef int BOOL;
 #define UNUSED __attribute((unused))
 #endif
 #else
-#define UNUSED(v) ((void)(v))
+#define UNUSED
 #endif
 
 /* for dosio.c */
