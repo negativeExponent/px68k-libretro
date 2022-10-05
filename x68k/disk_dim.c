@@ -192,15 +192,19 @@ static int IncTrk(int drv, int r)
 	case DIM_2HD: /* 1024byte/sct, 8sct/trk */
 		r = (r + 1) & 7;
 		break;
+
 	case DIM_2HS: /* 1024byte/sct, 9sct/trk */
 		if (r > 8)
 			r -= 9; /* 9SCDRVÍÑ */
+		/* fallthrough */
 	case DIM_2HDE:
 		r = (r + 1) % 9;
 		break;
+
 	case DIM_2HC: /* 512byte/sct, 15sct/trk */
 		r = (r + 1) % 15;
 		break;
+
 	case DIM_2HQ: /* 512byte/sct, 18sct/trk */
 		r = (r + 1) % 18;
 		break;
