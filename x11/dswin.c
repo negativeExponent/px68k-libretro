@@ -90,10 +90,8 @@ void DSound_Cleanup(void)
 
 static void sound_send(int length)
 {
-	int rate = 0;
-
-	ADPCM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
-	OPM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
+	ADPCM_Update((int16_t *)pbwp, length, pbsp, pbep);
+	OPM_Update((int16_t *)pbwp, length, pbsp, pbep);
 #ifndef NO_MERCURY
 	// Mcry_Update((int16_t *)pcmbufp, length);
 #endif
