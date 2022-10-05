@@ -74,7 +74,6 @@ SOURCES_C 		+= \
 				$(LIBRETRO_DIR)/libretro.c
 
 SOURCES_CXX 	+= \
-				$(CORE_DIR)/fmgen/file.cpp \
 				$(CORE_DIR)/fmgen/fmg_wrap.cpp \
 				$(CORE_DIR)/fmgen/fmgen.cpp \
 				$(CORE_DIR)/fmgen/fmtimer.cpp \
