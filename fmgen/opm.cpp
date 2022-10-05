@@ -502,6 +502,8 @@ void OPM::Mix(Sample* buffer, int nsamples, uint8_t* pbsp, uint8_t* pbep)
 
 			StoreSample(dest[0], IStoSample(ibuf[1] + ibuf[3]));
 			StoreSample(dest[1], IStoSample(ibuf[2] + ibuf[3]));
+
+			dest += 2;
 		}
 	}
 #undef IStoSample
