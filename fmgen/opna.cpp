@@ -4,7 +4,11 @@
 // ---------------------------------------------------------------------------
 //	$fmgen-Id: opna.cpp,v 1.68 2003/06/12 14:03:44 cisc Exp $
 
-#include "headers.h"
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <assert.h>
+
 #include "misc.h"
 #include "opna.h"
 #include "fmgeninl.h"
@@ -25,10 +29,6 @@
 //	多少軽くなるかも
 //
 //#define NO_BITTYPE_EMULATION
-
-#ifdef BUILD_OPNA
-#include "file.h"
-#endif
 
 namespace FM
 {
@@ -1277,23 +1277,25 @@ bool OPNA::LoadRhythmSample(const char* path)
 
 	for (i=0; i<6; i++)
 	{
-		FileIO file;
+		FILE *fp;
 		uint32 fsize;
-		char buf[MAX_PATH] = "";
+		char buf[512] = "";
 		if (path)
 			strncpy(buf, path, sizeof(buf) - 1);
-		strncat(buf, "2608_", MAX_PATH - 1);
-		strncat(buf, rhythmname[i], MAX_PATH - 1);
-		strncat(buf, ".WAV", MAX_PATH - 1);
+		strncat(buf, "2608_", sizeof(buf) - strlen(buf) - 1);
+		strncat(buf, rhythmname[i], sizeof(buf) - strlen(buf) - 1);
+		strncat(buf, ".WAV", sizeof(buf) - strlen(buf) - 1);
 
-		if (!file.Open(buf, FileIO::readonly))
+		fp = fopen(buf, "rb");
+		if (!fp)
 		{
 			if (i != 5)
 				break;
 			if (path)
-				strncpy(buf, path, MAX_PATH);
-			strncpy(buf, "2608_RYM.WAV", MAX_PATH);
-			if (!file.Open(buf, FileIO::readonly))
+				strncpy(buf, path, sizeof(buf));
+			strncpy(buf, "2608_RYM.WAV", sizeof(buf));
+			fp = fopen(buf, "rb");
+			if (!fp)
 				break;
 		}
 
@@ -1309,29 +1311,36 @@ bool OPNA::LoadRhythmSample(const char* path)
 			uint16 size;
 		} whdr;
 
-		file.Seek(0x10, FileIO::begin);
-		file.Read(&whdr, sizeof(whdr));
+		fseek(fp, 0x10, SEEK_SET);
+		fread(&whdr, sizeof(whdr), 1, fp);
 
 		uint8 subchunkname[4];
 		fsize = 4 + whdr.chunksize - sizeof(whdr);
 		do
 		{
-			file.Seek(fsize, FileIO::current);
-			file.Read(&subchunkname, 4);
-			file.Read(&fsize, 4);
+			fseek(fp, fsize, SEEK_CUR);
+			fread(&subchunkname, 4, 1, fp);
+			fread(&fsize, 4, 1, fp);
 		} while (memcmp("data", subchunkname, 4));
 
 		fsize /= 2;
 		if (fsize >= 0x100000 || whdr.tag != 1 || whdr.nch != 1)
+		{
+			fclose(fp);
 			break;
+		}
 		fsize = Max(fsize, (1<<31)/1024);
 
 		delete rhythm[i].sample;
 		rhythm[i].sample = new int16[fsize];
 		if (!rhythm[i].sample)
+		{
+			fclose(fp);
 			break;
+		}
 
-		file.Read(rhythm[i].sample, fsize * 2);
+		fread(rhythm[i].sample, fsize * 2, 1, fp);
+        fclose(fp);
 
 		rhythm[i].rate = whdr.rate;
 		rhythm[i].step = rhythm[i].rate * 1024 / rate;
@@ -1983,23 +1992,25 @@ bool Y288::LoadRhythmSample(const char* path)
 
 	for (i=0; i<6; i++)
 	{
-		FileIO file;
+		FILE *fp;
 		uint32 fsize;
-		char buf[MAX_PATH + 1] = "";
+		char buf[512] = "";
 		if (path)
-			strncpy(buf, path, MAX_PATH);
-		strncat(buf, "2608_", MAX_PATH);
-		strncat(buf, rhythmname[i], MAX_PATH);
-		strncat(buf, ".WAV", MAX_PATH);
+			strncpy(buf, path, sizeof(buf) - 1);
+		strncat(buf, "2608_", sizeof(buf) - strlen(buf) - 1);
+		strncat(buf, rhythmname[i], sizeof(buf) - strlen(buf) - 1);
+		strncat(buf, ".WAV", sizeof(buf) - strlen(buf) - 1);
 
-		if (!file.Open(buf, FileIO::readonly))
+		fp = fopen(buf, "rb");
+		if (!fp)
 		{
 			if (i != 5)
 				break;
 			if (path)
-				strncpy(buf, path, MAX_PATH);
-			strncpy(buf, "2608_RYM.WAV", MAX_PATH);
-			if (!file.Open(buf, FileIO::readonly))
+				strncpy(buf, path, sizeof(buf));
+			strncpy(buf, "2608_RYM.WAV", sizeof(buf));
+			fp = fopen(buf, "rb");
+			if (!fp)
 				break;
 		}
 
@@ -2015,29 +2026,36 @@ bool Y288::LoadRhythmSample(const char* path)
 			uint16 size;
 		} whdr;
 
-		file.Seek(0x10, FileIO::begin);
-		file.Read(&whdr, sizeof(whdr));
+		fseek(fp, 0x10, SEEK_SET);
+		fread(&whdr, sizeof(whdr), 1, fp);
 
 		uint8 subchunkname[4];
 		fsize = 4 + whdr.chunksize - sizeof(whdr);
 		do
 		{
-			file.Seek(fsize, FileIO::current);
-			file.Read(&subchunkname, 4);
-			file.Read(&fsize, 4);
+			fseek(fp, fsize, SEEK_CUR);
+            fread(&subchunkname, 4, 1, fp);
+            fread(&fsize, 4, 1, fp);
 		} while (memcmp("data", subchunkname, 4));
 
 		fsize /= 2;
 		if (fsize >= 0x100000 || whdr.tag != 1 || whdr.nch != 1)
+		{
+			fclose(fp);
 			break;
+		}
 		fsize = Max(fsize, (1<<31)/1024);
 
 		delete rhythm[i].sample;
 		rhythm[i].sample = new int16[fsize];
 		if (!rhythm[i].sample)
+		{
+			fclose(fp);
 			break;
+		}
 
-		file.Read(rhythm[i].sample, fsize * 2);
+		fread(rhythm[i].sample, fsize * 2, 1, fp);
+		fclose(fp);
 
 		rhythm[i].rate = whdr.rate;
 		rhythm[i].step = rhythm[i].rate * 1024 / rate;
