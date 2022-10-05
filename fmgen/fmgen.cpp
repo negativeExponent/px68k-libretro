@@ -21,7 +21,9 @@
 //		ほか掲示板等で様々なご助言，ご支援をお寄せいただいた皆様に
 // ---------------------------------------------------------------------------
 
-#include "headers.h"
+#include <math.h>
+#include <assert.h>
+
 #include "misc.h"
 #include "fmgen.h"
 #include "fmgeninl.h"

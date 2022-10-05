@@ -6,7 +6,6 @@
 #ifndef FM_GEN_H
 #define FM_GEN_H
 
-#include "../x11/common.h"
 #include "fmgen_types.h"
 
 // ---------------------------------------------------------------------------
