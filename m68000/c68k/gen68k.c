@@ -34,6 +34,8 @@
 #include "gen68k.h"
 
 #ifdef C68K_GEN
+/* always generate with x68000 patch */
+#define X68000_PATCH
 
 #include "gen68k.inc"
 
