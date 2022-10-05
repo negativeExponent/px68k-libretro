@@ -21,6 +21,7 @@ OP_0x9008:
 	uint32_t res;
 	uintptr_t dst;
 	uintptr_t src;
+	RET(4)
 	/* can't read byte from Ax registers ! */
 	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
@@ -1468,7 +1469,7 @@ OP_0x9180:
 	dst = (uint32_t)CPU->D[(Opcode >> 9) & 7];
 	res = (uint32_t)dst - (uint32_t)src - ((CPU->flag_X >> 8) & 1);
 	CPU->flag_notZ |= res;
-	CPU->flag_X = CPU->flag_C = (((uint32_t)src & res & 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;
+	CPU->flag_X = CPU->flag_C = (((((uint32_t)src & 1) + (res & 1) + (((CPU->flag_X >> 8) & 1) & 1)) >> 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;
 	CPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 24;
 	CPU->flag_N = res >> 24;
 	*((uint32_t*)(&CPU->D[(Opcode >> 9) & 7])) = res;
@@ -1537,7 +1538,7 @@ OP_0x9188:
 	READ_LONG_F(adr, dst)
 	res = (uint32_t)dst - (uint32_t)src - ((CPU->flag_X >> 8) & 1);
 	CPU->flag_notZ |= res;
-	CPU->flag_X = CPU->flag_C = (((uint32_t)src & res & 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;
+	CPU->flag_X = CPU->flag_C = (((((uint32_t)src & 1) + (res & 1) + (((CPU->flag_X >> 8) & 1) & 1)) >> 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;
 	CPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 24;
 	CPU->flag_N = res >> 24;
 	WRITE_LONG_F(adr, res)
@@ -1607,7 +1608,7 @@ OP_0x918F:
 	READ_LONG_F(adr, dst)
 	res = (uint32_t)dst - (uint32_t)src - ((CPU->flag_X >> 8) & 1);
 	CPU->flag_notZ |= res;
-	CPU->flag_X = CPU->flag_C = (((uint32_t)src & res & 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;
+	CPU->flag_X = CPU->flag_C = (((((uint32_t)src & 1) + (res & 1) + (((CPU->flag_X >> 8) & 1) & 1)) >> 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;
 	CPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 24;
 	CPU->flag_N = res >> 24;
 	WRITE_LONG_F(adr, res)
@@ -1677,7 +1678,7 @@ OP_0x9F88:
 	READ_LONG_F(adr, dst)
 	res = (uint32_t)dst - (uint32_t)src - ((CPU->flag_X >> 8) & 1);
 	CPU->flag_notZ |= res;
-	CPU->flag_X = CPU->flag_C = (((uint32_t)src & res & 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;
+	CPU->flag_X = CPU->flag_C = (((((uint32_t)src & 1) + (res & 1) + (((CPU->flag_X >> 8) & 1) & 1)) >> 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;
 	CPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 24;
 	CPU->flag_N = res >> 24;
 	WRITE_LONG_F(adr, res)
@@ -1747,7 +1748,7 @@ OP_0x9F8F:
 	READ_LONG_F(adr, dst)
 	res = (uint32_t)dst - (uint32_t)src - ((CPU->flag_X >> 8) & 1);
 	CPU->flag_notZ |= res;
-	CPU->flag_X = CPU->flag_C = (((uint32_t)src & res & 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;
+	CPU->flag_X = CPU->flag_C = (((((uint32_t)src & 1) + (res & 1) + (((CPU->flag_X >> 8) & 1) & 1)) >> 1) + ((uint32_t)src >> 1) + (res >> 1)) >> 23;
 	CPU->flag_V = (((uint32_t)src ^ (uint32_t)dst) & (res ^ (uint32_t)dst)) >> 24;
 	CPU->flag_N = res >> 24;
 	WRITE_LONG_F(adr, res)
