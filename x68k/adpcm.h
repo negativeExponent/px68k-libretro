@@ -2,7 +2,7 @@
 #define _WINX68K_ADPCM_H
 
 void FASTCALL ADPCM_PreUpdate(uint32_t clock);
-void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, int rate, uint8_t *pbsp, uint8_t *pbep);
+void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, uint8_t *pbsp, uint8_t *pbep);
 void ADPCM_SetVolume(uint8_t vol);
 void ADPCM_SetPan(int n);
 void ADPCM_SetClock(int n);
