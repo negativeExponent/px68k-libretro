@@ -292,7 +292,7 @@ SwitchTable:
 #ifdef C68K_NO_JUMP_TABLE
     default:
         Opcode = 0x4AFC; /* illegal */
-        break;
+        goto SwitchTable;
 	}
 #endif
 
