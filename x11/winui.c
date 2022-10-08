@@ -289,7 +289,7 @@ static void menu_create_flist(int v)
 		/* failed to open StartDir, use rom folder as default */
 		/* TODO: check for path more early */
 		p6logd("Error opening StartDir, using rom path instead...\n");
-		snprintf(tmp, sizeof(tmp), "%s%c", base_dir, slash);
+		sprintf(tmp, "%s%c", base_dir, slash);
 		strcpy(mfl.dir[drv], tmp);
 		/* re-open folder */
 		dp = opendir(mfl.dir[drv]);

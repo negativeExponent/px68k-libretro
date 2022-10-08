@@ -166,10 +166,11 @@ int16_t file_attr(char *filename)
 	return (int16_t)GetFileAttributes(filename);
 }
 
-							// カレントファイル操作
+/*
+ * カレントファイル操作
+ */
 void file_setcd(char *exename)
 {
-
 	strncpy(curpath, exename, sizeof(curpath) - 1);
 	plusyen(curpath, sizeof(curpath));
 	curfilep = curpath + strlen(exename) + 1;

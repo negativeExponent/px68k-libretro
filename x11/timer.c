@@ -1,6 +1,6 @@
-// -----------------------------------------------------------------------
-//   55.6fpsキープ用たいまー
-// -----------------------------------------------------------------------
+/*
+ *   55.6fpsキープ用たいまー
+ */
 #include "common.h"
 
 #include "../x68k/crtc.h"
@@ -46,7 +46,7 @@ int Timer_GetCount(void)
 	timercnt += dif*10;  /* switch from msec to usec */
 	tick = ticknow;
 	if ( timercnt>=TIMEBASE ) {
-//		timercnt = 0;
+/*		timercnt = 0; */
 		timercnt -= TIMEBASE;
 		if ( timercnt>=(TIMEBASE*2) ) timercnt = 0;
 		return 1;

@@ -99,7 +99,7 @@ void SetConfigDefaults(void)
 {
 	int i;
 
-	Config.menuSize = 0; // start with default normal menu size
+	Config.menuSize = 0;
 	Config.FrameRate = 1;
 	filepath[0] = 0;
 	Config.OPM_VOL = 12;

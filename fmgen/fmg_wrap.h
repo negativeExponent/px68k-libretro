@@ -27,4 +27,4 @@ void M288_SetRate(int clock, int rate);
 void M288_RomeoOut(uint32_t delay);
 #endif /* !NO_MERCURY */
 
-#endif //_win68_opm_fmgen
+#endif /* _win68_opm_fmgen */
