@@ -58,4 +58,4 @@ typedef sint64 sbits64;
 | a compiler does not support explicit inlining, this macro should be defined
 | to be `static'.
 *----------------------------------------------------------------------------*/
-// MAME defines INLINE
+/* MAME defines INLINE */

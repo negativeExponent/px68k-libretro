@@ -49,7 +49,7 @@ extern void m68ki_build_opcode_table(void);
 #include "m68kcpu.h"
 
 #include "m68kfpu.c"
-#include "m68kmmu.h" // uses some functions from m68kfpu.c which are static !
+#include "m68kmmu.h" /* uses some functions from m68kfpu.c which are static ! */
 
 /* ======================================================================== */
 /* ================================= DATA ================================= */
@@ -428,7 +428,7 @@ const uint8 m68ki_exception_cycle_table[5][256] =
 		  4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
 		  4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4
 	},
-	{ /* 040 */ // TODO: these values are not correct
+	{ /* 040 */ /* TODO: these values are not correct */
 		  4, /*  0: Reset - Initial Stack Pointer                      */
 		  4, /*  1: Reset - Initial Program Counter                    */
 		 50, /*  2: Bus Error                             (unemulated) */
@@ -569,14 +569,14 @@ static void default_rte_instr_callback(void)
 /* Called when a tas instruction is executed */
 static int default_tas_instr_callback(void)
 {
-	return 1; // allow writeback
+	return 1; /* allow writeback */
 }
 
 /* Called when an illegal instruction is encountered */
 static int default_illg_instr_callback(int opcode)
 {
 	(void)opcode;
-	return 0; // not handled : exception will occur
+	return 0; /* not handled : exception will occur */
 }
 
 /* Called when the program counter changed by a large value */
@@ -888,7 +888,7 @@ void m68k_set_cpu_type(unsigned int cpu_type)
 			CYC_RESET        = 518;
 			HAS_PMMU	       = 0;		/* EC030 lacks the PMMU and is effectively a die-shrink 68020 */
 			return;
-		case M68K_CPU_TYPE_68040:		// TODO: these values are not correct
+		case M68K_CPU_TYPE_68040:		/* TODO: these values are not correct */
 			CPU_TYPE         = CPU_TYPE_040;
 			CPU_ADDRESS_MASK = 0xffffffff;
 			CPU_SR_MASK      = 0xf71f; /* T1 T0 S  M  -- I2 I1 I0 -- -- -- X  N  Z  V  C  */
@@ -905,7 +905,7 @@ void m68k_set_cpu_type(unsigned int cpu_type)
 			CYC_RESET        = 518;
 			HAS_PMMU	 = 1;
 			return;
-		case M68K_CPU_TYPE_68EC040: // Just a 68040 without pmmu apparently...
+		case M68K_CPU_TYPE_68EC040: /* Just a 68040 without pmmu apparently... */
 			CPU_TYPE         = CPU_TYPE_EC040;
 			CPU_ADDRESS_MASK = 0xffffffff;
 			CPU_SR_MASK      = 0xf71f; /* T1 T0 S  M  -- I2 I1 I0 -- -- -- X  N  Z  V  C  */

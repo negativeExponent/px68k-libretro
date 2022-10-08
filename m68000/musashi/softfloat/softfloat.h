@@ -206,7 +206,7 @@ floatx80 floatx80_scale(floatx80 a, floatx80 b);
 | extended double-precision floating-point value, returning the result.
 *----------------------------------------------------------------------------*/
 
-static inline floatx80 packFloatx80( flag zSign, int32 zExp, bits64 zSig )
+static INLINE floatx80 packFloatx80( flag zSign, int32 zExp, bits64 zSig )
 {
 	floatx80 z;
 
@@ -249,7 +249,7 @@ floatx80 floatx80_flogn(floatx80 a);
 floatx80 floatx80_flog2(floatx80 a);
 floatx80 floatx80_flog10(floatx80 a);
 
-// roundAndPackFloatx80 used to be in softfloat-round-pack, is now in softfloat.c
+/* roundAndPackFloatx80 used to be in softfloat-round-pack, is now in softfloat.c */
 floatx80 roundAndPackFloatx80(int8 roundingPrecision, flag zSign, int32 zExp, bits64 zSig0, bits64 zSig1);
 
 #endif
@@ -300,7 +300,7 @@ flag float128_is_signaling_nan( float128 );
 | significand.
 *----------------------------------------------------------------------------*/
 
-static inline float128
+static INLINE float128
 	packFloat128( flag zSign, int32 zExp, bits64 zSig0, bits64 zSig1 )
 {
 	float128 z;
@@ -332,7 +332,7 @@ static inline float128
 | overflow follows the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-static inline float128
+static INLINE float128
 	roundAndPackFloat128(
 		flag zSign, int32 zExp, bits64 zSig0, bits64 zSig1, bits64 zSig2 )
 {
@@ -432,7 +432,7 @@ static inline float128
 | point exponent.
 *----------------------------------------------------------------------------*/
 
-static inline float128
+static INLINE float128
 	normalizeRoundAndPackFloat128(
 		flag zSign, int32 zExp, bits64 zSig0, bits64 zSig1 )
 {

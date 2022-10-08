@@ -7,7 +7,7 @@ extern void exit(int);
 static void fatalerror(const char *format, ...) {
       va_list ap;
       va_start(ap,format);
-      vfprintf(stderr,format,ap);  // JFF: fixed. Was using fprintf and arguments were wrong
+      vfprintf(stderr,format,ap);  /* JFF: fixed. Was using fprintf and arguments were wrong */
       va_end(ap);
       exit(1);
 }
@@ -23,7 +23,7 @@ static void fatalerror(const char *format, ...) {
 
 extern flag floatx80_is_nan( floatx80 a );
 
-// masks for packed dwords, positive k-factor
+/* masks for packed dwords, positive k-factor */
 static uint32 pkmask2[18] =
 {
 	0xffffffff, 0, 0xf0000000, 0xff000000, 0xfff00000, 0xffff0000,
@@ -39,7 +39,7 @@ static uint32 pkmask3[18] =
 	0xfffff000, 0xffffff00, 0xfffffff0, 0xffffffff,
 };
 
-static inline double fx80_to_double(floatx80 fx)
+static INLINE double fx80_to_double(floatx80 fx)
 {
 	uint64 d;
 	double *foo;
@@ -51,7 +51,7 @@ static inline double fx80_to_double(floatx80 fx)
 	return *foo;
 }
 
-static inline floatx80 double_to_fx80(double in)
+static INLINE floatx80 double_to_fx80(double in)
 {
 	uint64 *d;
 
@@ -60,7 +60,7 @@ static inline floatx80 double_to_fx80(double in)
 	return float64_to_floatx80(*d);
 }
 
-static inline floatx80 load_extended_float80(uint32 ea)
+static INLINE floatx80 load_extended_float80(uint32 ea)
 {
 	uint32 d1,d2;
 	uint16 d3;
@@ -76,7 +76,7 @@ static inline floatx80 load_extended_float80(uint32 ea)
 	return fp;
 }
 
-static inline void store_extended_float80(uint32 ea, floatx80 fpr)
+static INLINE void store_extended_float80(uint32 ea, floatx80 fpr)
 {
 	m68ki_write_16(ea+0, fpr.high);
 	m68ki_write_16(ea+2, 0);
@@ -84,7 +84,7 @@ static inline void store_extended_float80(uint32 ea, floatx80 fpr)
 	m68ki_write_32(ea+8, fpr.low&0xffffffff);
 }
 
-static inline floatx80 load_pack_float80(uint32 ea)
+static INLINE floatx80 load_pack_float80(uint32 ea)
 {
 	uint32 dw1, dw2, dw3;
 	floatx80 result;
@@ -96,7 +96,7 @@ static inline floatx80 load_pack_float80(uint32 ea)
 	dw3 = m68ki_read_32(ea+8);
 
 	ch = &str[0];
-	if (dw1 & 0x80000000)	// mantissa sign
+	if (dw1 & 0x80000000)	/* mantissa sign */
 	{
 		*ch++ = '-';
 	}
@@ -119,7 +119,7 @@ static inline floatx80 load_pack_float80(uint32 ea)
 	*ch++ = (char)(((dw3 >> 4)  & 0xf) + '0');
 	*ch++ = (char)(((dw3 >> 0)  & 0xf) + '0');
 	*ch++ = 'E';
-	if (dw1 & 0x40000000)	// exponent sign
+	if (dw1 & 0x40000000)	/* exponent sign */
 	{
 		*ch++ = '-';
 	}
@@ -135,7 +135,7 @@ static inline floatx80 load_pack_float80(uint32 ea)
 	return result;
 }
 
-static inline void store_pack_float80(uint32 ea, int k, floatx80 fpr)
+static INLINE void store_pack_float80(uint32 ea, int k, floatx80 fpr)
 {
 	uint32 dw1, dw2, dw3;
 	char str[128], *ch;
@@ -164,7 +164,7 @@ static inline void store_pack_float80(uint32 ea, int k, floatx80 fpr)
 		ch++;
 	}
 
-	// handle negative k-factor here
+	/* handle negative k-factor here */
 	if ((k <= 0) && (k >= -13))
 	{
 		exp = 0;
@@ -182,26 +182,26 @@ static inline void store_pack_float80(uint32 ea, int k, floatx80 fpr)
 		}
 
 		k = -k;
-		// last digit is (k + exponent - 1)
+		/* last digit is (k + exponent - 1) */
 		k += (exp - 1);
 
-		// round up the last significant mantissa digit
+		/* round up the last significant mantissa digit */
 		if (ch[k+1] >= '5')
 		{
 			ch[k]++;
 		}
 
-		// zero out the rest of the mantissa digits
+		/* zero out the rest of the mantissa digits */
 		for (j = (k+1); j < 16; j++)
 		{
 			ch[j] = '0';
 		}
 
-		// now zero out K to avoid tripping the positive K detection below
+		/* now zero out K to avoid tripping the positive K detection below */
 		k = 0;
 	}
 
-	// crack 8 digits of the mantissa
+	/* crack 8 digits of the mantissa */
 	for (i = 0; i < 8; i++)
 	{
 		dw2 <<= 4;
@@ -211,7 +211,7 @@ static inline void store_pack_float80(uint32 ea, int k, floatx80 fpr)
 		}
 	}
 
-	// next 8 digits of the mantissa
+	/* next 8 digits of the mantissa */
 	for (i = 0; i < 8; i++)
 	{
 		dw3 <<= 4;
@@ -219,7 +219,7 @@ static inline void store_pack_float80(uint32 ea, int k, floatx80 fpr)
 		dw3 |= *ch++ - '0';
 	}
 
-	// handle masking if k is positive
+	/* handle masking if k is positive */
 	if (k >= 1)
 	{
 		if (k <= 17)
@@ -231,11 +231,11 @@ static inline void store_pack_float80(uint32 ea, int k, floatx80 fpr)
 		{
 			dw2 &= pkmask2[17];
 			dw3 &= pkmask3[17];
-//			m68ki_cpu.fpcr |=  (need to set OPERR bit)
+/*			m68ki_cpu.fpcr |=  (need to set OPERR bit) */
 		}
 	}
 
-	// finally, crack the exponent
+	/* finally, crack the exponent */
 	if (*ch == 'e' || *ch == 'E')
 	{
 		ch++;
@@ -267,36 +267,36 @@ static inline void store_pack_float80(uint32 ea, int k, floatx80 fpr)
 	m68ki_write_32(ea+8, dw3);
 }
 
-static inline void SET_CONDITION_CODES(floatx80 reg)
+static INLINE void SET_CONDITION_CODES(floatx80 reg)
 {
 	REG_FPSR &= ~(FPCC_N|FPCC_Z|FPCC_I|FPCC_NAN);
 
-	// sign flag
+	/* sign flag */
 	if (reg.high & 0x8000)
 	{
 		REG_FPSR |= FPCC_N;
 	}
 
-	// zero flag
+	/* zero flag */
 	if (((reg.high & 0x7fff) == 0) && ((reg.low<<1) == 0))
 	{
 		REG_FPSR |= FPCC_Z;
 	}
 
-	// infinity flag
+	/* infinity flag */
 	if (((reg.high & 0x7fff) == 0x7fff) && ((reg.low<<1) == 0))
 	{
 		REG_FPSR |= FPCC_I;
 	}
 
-	// NaN flag
+	/* NaN flag */
 	if (floatx80_is_nan(reg))
 	{
 		REG_FPSR |= FPCC_NAN;
 	}
 }
 
-static inline int TEST_CONDITION(int condition)
+static INLINE int TEST_CONDITION(int condition)
 {
 	int n = (REG_FPSR & FPCC_N) != 0;
 	int z = (REG_FPSR & FPCC_Z) != 0;
@@ -305,22 +305,22 @@ static inline int TEST_CONDITION(int condition)
 	switch (condition)
 	{
 		case 0x10:
-		case 0x00:		return 0;					// False
+		case 0x00:		return 0;					/* False */
 
 		case 0x11:
-		case 0x01:		return (z);					// Equal
+		case 0x01:		return (z);					/* Equal */
 
 		case 0x12:
-		case 0x02:		return (!(nan || z || n));			// Greater Than
+		case 0x02:		return (!(nan || z || n));			/* Greater Than */
 
 		case 0x13:
-		case 0x03:		return (z || !(nan || n));			// Greater or Equal
+		case 0x03:		return (z || !(nan || n));			/* Greater or Equal */
 
 		case 0x14:
-		case 0x04:		return (n && !(nan || z));			// Less Than
+		case 0x04:		return (n && !(nan || z));			/* Less Than */
 
 		case 0x15:
-		case 0x05:		return (z || (n && !nan));			// Less Than or Equal
+		case 0x05:		return (z || (n && !nan));			/* Less Than or Equal */
 
 		case 0x16:
 		case 0x06:		return !nan && !z;
@@ -335,22 +335,22 @@ static inline int TEST_CONDITION(int condition)
 		case 0x09:		return nan || z;
 
 		case 0x1a:
-		case 0x0a:		return (nan || !(n || z));			// Not Less Than or Equal
+		case 0x0a:		return (nan || !(n || z));			/* Not Less Than or Equal */
 
 		case 0x1b:
-		case 0x0b:		return (nan || z || !n);			// Not Less Than
+		case 0x0b:		return (nan || z || !n);			/* Not Less Than */
 
 		case 0x1c:
-		case 0x0c:		return (nan || (n && !z));			// Not Greater or Equal Than
+		case 0x0c:		return (nan || (n && !z));			/* Not Greater or Equal Than */
 
 		case 0x1d:
-		case 0x0d:		return (nan || z || n);				// Not Greater Than
+		case 0x0d:		return (nan || z || n);				/* Not Greater Than */
 
 		case 0x1e:
-		case 0x0e:		return (!z);					// Not Equal
+		case 0x0e:		return (!z);					/* Not Equal */
 
 		case 0x1f:
-		case 0x0f:		return 1;					// True
+		case 0x0f:		return 1;					/* True */
 
 		default:		fatalerror("M68kFPU: test_condition: unhandled condition %02X\n", condition);
 	}
@@ -365,21 +365,21 @@ static uint8 READ_EA_8(int ea)
 
 	switch (mode)
 	{
-		case 0:		// Dn
+		case 0:		/* Dn */
 		{
 			return REG_D[reg];
 		}
-		case 2: 	// (An)
+		case 2: 	/* (An) */
 		{
 			uint32 ea = REG_A[reg];
 			return m68ki_read_8(ea);
 		}
-		case 5:		// (d16, An)
+		case 5:		/* (d16, An) */
 		{
 			uint32 ea = EA_AY_DI_8();
 			return m68ki_read_8(ea);
 		}
-		case 6:		// (An) + (Xn) + d8
+		case 6:		/* (An) + (Xn) + d8 */
 		{
 			uint32 ea = EA_AY_IX_8();
 			return m68ki_read_8(ea);
@@ -388,19 +388,19 @@ static uint8 READ_EA_8(int ea)
 		{
 			switch (reg)
 			{
-				case 0:		// (xxx).W
+				case 0:		/* (xxx).W */
 				{
 					uint32 ea = (uint32)OPER_I_16();
 					return m68ki_read_8(ea);
 				}
-				case 1:		// (xxx).L
+				case 1:		/* (xxx).L */
 				{
 					uint32 d1 = OPER_I_16();
 					uint32 d2 = OPER_I_16();
 					uint32 ea = (d1 << 16) | d2;
 					return m68ki_read_8(ea);
 				}
-				case 4:		// #<data>
+				case 4:		/* #<data> */
 				{
 					return  OPER_I_8();
 				}
@@ -421,21 +421,21 @@ static uint16 READ_EA_16(int ea)
 
 	switch (mode)
 	{
-		case 0:		// Dn
+		case 0:		/* Dn */
 		{
 			return (uint16)(REG_D[reg]);
 		}
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea = REG_A[reg];
 			return m68ki_read_16(ea);
 		}
-		case 5:		// (d16, An)
+		case 5:		/* (d16, An) */
 		{
 			uint32 ea = EA_AY_DI_16();
 			return m68ki_read_16(ea);
 		}
-		case 6:		// (An) + (Xn) + d8
+		case 6:		/* (An) + (Xn) + d8 */
 		{
 			uint32 ea = EA_AY_IX_16();
 			return m68ki_read_16(ea);
@@ -444,19 +444,19 @@ static uint16 READ_EA_16(int ea)
 		{
 			switch (reg)
 			{
-				case 0:		// (xxx).W
+				case 0:		/* (xxx).W */
 				{
 					uint32 ea = (uint32)OPER_I_16();
 					return m68ki_read_16(ea);
 				}
-				case 1:		// (xxx).L
+				case 1:		/* (xxx).L */
 				{
 					uint32 d1 = OPER_I_16();
 					uint32 d2 = OPER_I_16();
 					uint32 ea = (d1 << 16) | d2;
 					return m68ki_read_16(ea);
 				}
-				case 4:		// #<data>
+				case 4:		/* #<data> */
 				{
 					return OPER_I_16();
 				}
@@ -478,26 +478,26 @@ static uint32 READ_EA_32(int ea)
 
 	switch (mode)
 	{
-		case 0:		// Dn
+		case 0:		/* Dn */
 		{
 			return REG_D[reg];
 		}
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea = REG_A[reg];
 			return m68ki_read_32(ea);
 		}
-		case 3:		// (An)+
+		case 3:		/* (An)+ */
 		{
 			uint32 ea = EA_AY_PI_32();
 			return m68ki_read_32(ea);
 		}
-		case 5:		// (d16, An)
+		case 5:		/* (d16, An) */
 		{
 			uint32 ea = EA_AY_DI_32();
 			return m68ki_read_32(ea);
 		}
-		case 6:		// (An) + (Xn) + d8
+		case 6:		/* (An) + (Xn) + d8 */
 		{
 			uint32 ea = EA_AY_IX_32();
 			return m68ki_read_32(ea);
@@ -506,24 +506,24 @@ static uint32 READ_EA_32(int ea)
 		{
 			switch (reg)
 			{
-				case 0:		// (xxx).W
+				case 0:		/* (xxx).W */
 				{
 					uint32 ea = (uint32)OPER_I_16();
 					return m68ki_read_32(ea);
 				}
-				case 1:		// (xxx).L
+				case 1:		/* (xxx).L */
 				{
 					uint32 d1 = OPER_I_16();
 					uint32 d2 = OPER_I_16();
 					uint32 ea = (d1 << 16) | d2;
 					return m68ki_read_32(ea);
 				}
-				case 2:		// (d16, PC)
+				case 2:		/* (d16, PC) */
 				{
 					uint32 ea = EA_PCDI_32();
 					return m68ki_read_32(ea);
 				}
-				case 4:		// #<data>
+				case 4:		/* #<data> */
 				{
 					return  OPER_I_32();
 				}
@@ -544,14 +544,14 @@ static uint64 READ_EA_64(int ea)
 
 	switch (mode)
 	{
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea = REG_A[reg];
 			h1 = m68ki_read_32(ea+0);
 			h2 = m68ki_read_32(ea+4);
 			return  (uint64)(h1) << 32 | (uint64)(h2);
 		}
-		case 3:		// (An)+
+		case 3:		/* (An)+ */
 		{
 			uint32 ea = REG_A[reg];
 			REG_A[reg] += 8;
@@ -559,7 +559,7 @@ static uint64 READ_EA_64(int ea)
 			h2 = m68ki_read_32(ea+4);
 			return  (uint64)(h1) << 32 | (uint64)(h2);
 		}
-		case 5:		// (d16, An)
+		case 5:		/* (d16, An) */
 		{
 			uint32 ea = EA_AY_DI_32();
 			h1 = m68ki_read_32(ea+0);
@@ -570,13 +570,13 @@ static uint64 READ_EA_64(int ea)
 		{
 			switch (reg)
 			{
-				case 4:		// #<data>
+				case 4:		/* #<data> */
 				{
 					h1 = OPER_I_32();
 					h2 = OPER_I_32();
 					return  (uint64)(h1) << 32 | (uint64)(h2);
 				}
-				case 2:		// (d16, PC)
+				case 2:		/* (d16, PC) */
 				{
 					uint32 ea = EA_PCDI_32();
 					h1 = m68ki_read_32(ea+0);
@@ -600,44 +600,44 @@ static floatx80 READ_EA_FPE(int mode, int reg, uint32 di_mode_ea)
 
 	switch (mode)
 	{
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea = REG_A[reg];
 			fpr = load_extended_float80(ea);
 			break;
 		}
 
-		case 3:		// (An)+
+		case 3:		/* (An)+ */
 		{
 			uint32 ea = REG_A[reg];
 			REG_A[reg] += 12;
 			fpr = load_extended_float80(ea);
 			break;
 		}
-      case 5:		// (d16, An)  (added by JFF)
+      case 5:		/* (d16, An)  (added by JFF) */
 		{
 		  fpr = load_extended_float80(di_mode_ea);
 	  	break;
 
 		}
-		case 7:	// extended modes
+		case 7:	/* extended modes */
 		{
 			switch (reg)
 			{
-				case 2:	// (d16, PC)
+				case 2:	/* (d16, PC) */
 					{
 						uint32 ea = EA_PCDI_32();
 					 	fpr = load_extended_float80(ea);
 					}
 					break;
 
-				case 3:	// (d16,PC,Dx.w)
+				case 3:	/* (d16,PC,Dx.w) */
 					{
 						uint32 ea = EA_PCIX_32();
 						fpr = load_extended_float80(ea);
 					}
 					break;
-	      		case 4: // immediate (JFF)
+	      		case 4: /* immediate (JFF) */
 				{
 				  uint32 ea = REG_PC;
 				  fpr = load_extended_float80(ea);
@@ -665,14 +665,14 @@ static floatx80 READ_EA_PACK(int ea)
 
 	switch (mode)
 	{
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea = REG_A[reg];
 			fpr = load_pack_float80(ea);
 			break;
 		}
 
-		case 3:		// (An)+
+		case 3:		/* (An)+ */
 		{
 			uint32 ea = REG_A[reg];
 			REG_A[reg] += 12;
@@ -680,11 +680,11 @@ static floatx80 READ_EA_PACK(int ea)
 			break;
 		}
 
-		case 7:	// extended modes
+		case 7:	/* extended modes */
 		{
 			switch (reg)
 			{
-				case 3:	// (d16,PC,Dx.w)
+				case 3:	/* (d16,PC,Dx.w) */
 					{
 						uint32 ea = EA_PCIX_32();
 						fpr = load_pack_float80(ea);
@@ -711,36 +711,36 @@ static void WRITE_EA_8(int ea, uint8 data)
 
 	switch (mode)
 	{
-		case 0:		// Dn
+		case 0:		/* Dn */
 		{
 			REG_D[reg] = data;
 			break;
 		}
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea = REG_A[reg];
 			m68ki_write_8(ea, data);
 			break;
 		}
-		case 3:		// (An)+
+		case 3:		/* (An)+ */
 		{
 			uint32 ea = EA_AY_PI_8();
 			m68ki_write_8(ea, data);
 			break;
 		}
-		case 4:		// -(An)
+		case 4:		/* -(An) */
 		{
 			uint32 ea = EA_AY_PD_8();
 			m68ki_write_8(ea, data);
 			break;
 		}
-		case 5:		// (d16, An)
+		case 5:		/* (d16, An) */
 		{
 			uint32 ea = EA_AY_DI_8();
 			m68ki_write_8(ea, data);
 			break;
 		}
-		case 6:		// (An) + (Xn) + d8
+		case 6:		/* (An) + (Xn) + d8 */
 		{
 			uint32 ea = EA_AY_IX_8();
 			m68ki_write_8(ea, data);
@@ -750,7 +750,7 @@ static void WRITE_EA_8(int ea, uint8 data)
 		{
 			switch (reg)
 			{
-				case 1:		// (xxx).B
+				case 1:		/* (xxx).B */
 				{
 					uint32 d1 = OPER_I_16();
 					uint32 d2 = OPER_I_16();
@@ -758,7 +758,7 @@ static void WRITE_EA_8(int ea, uint8 data)
 					m68ki_write_8(ea, data);
 					break;
 				}
-				case 2:		// (d16, PC)
+				case 2:		/* (d16, PC) */
 				{
 					uint32 ea = EA_PCDI_16();
 					m68ki_write_8(ea, data);
@@ -779,36 +779,36 @@ static void WRITE_EA_16(int ea, uint16 data)
 
 	switch (mode)
 	{
-		case 0:		// Dn
+		case 0:		/* Dn */
 		{
 			REG_D[reg] = data;
 			break;
 		}
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea = REG_A[reg];
 			m68ki_write_16(ea, data);
 			break;
 		}
-		case 3:		// (An)+
+		case 3:		/* (An)+ */
 		{
 			uint32 ea = EA_AY_PI_16();
 			m68ki_write_16(ea, data);
 			break;
 		}
-		case 4:		// -(An)
+		case 4:		/* -(An) */
 		{
 			uint32 ea = EA_AY_PD_16();
 			m68ki_write_16(ea, data);
 			break;
 		}
-		case 5:		// (d16, An)
+		case 5:		/* (d16, An) */
 		{
 			uint32 ea = EA_AY_DI_16();
 			m68ki_write_16(ea, data);
 			break;
 		}
-		case 6:		// (An) + (Xn) + d8
+		case 6:		/* (An) + (Xn) + d8 */
 		{
 			uint32 ea = EA_AY_IX_16();
 			m68ki_write_16(ea, data);
@@ -818,7 +818,7 @@ static void WRITE_EA_16(int ea, uint16 data)
 		{
 			switch (reg)
 			{
-				case 1:		// (xxx).W
+				case 1:		/* (xxx).W */
 				{
 					uint32 d1 = OPER_I_16();
 					uint32 d2 = OPER_I_16();
@@ -826,7 +826,7 @@ static void WRITE_EA_16(int ea, uint16 data)
 					m68ki_write_16(ea, data);
 					break;
 				}
-				case 2:		// (d16, PC)
+				case 2:		/* (d16, PC) */
 				{
 					uint32 ea = EA_PCDI_16();
 					m68ki_write_16(ea, data);
@@ -847,41 +847,41 @@ static void WRITE_EA_32(int ea, uint32 data)
 
 	switch (mode)
 	{
-		case 0:		// Dn
+		case 0:		/* Dn */
 		{
 			REG_D[reg] = data;
 			break;
 		}
-		case 1:		// An
+		case 1:		/* An */
 		{
 			REG_A[reg] = data;
 			break;
 		}
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea = REG_A[reg];
 			m68ki_write_32(ea, data);
 			break;
 		}
-		case 3:		// (An)+
+		case 3:		/* (An)+ */
 		{
 			uint32 ea = EA_AY_PI_32();
 			m68ki_write_32(ea, data);
 			break;
 		}
-		case 4:		// -(An)
+		case 4:		/* -(An) */
 		{
 			uint32 ea = EA_AY_PD_32();
 			m68ki_write_32(ea, data);
 			break;
 		}
-		case 5:		// (d16, An)
+		case 5:		/* (d16, An) */
 		{
 			uint32 ea = EA_AY_DI_32();
 			m68ki_write_32(ea, data);
 			break;
 		}
-		case 6:		// (An) + (Xn) + d8
+		case 6:		/* (An) + (Xn) + d8 */
 		{
 			uint32 ea = EA_AY_IX_32();
 			m68ki_write_32(ea, data);
@@ -891,7 +891,7 @@ static void WRITE_EA_32(int ea, uint32 data)
 		{
 			switch (reg)
 			{
-				case 1:		// (xxx).L
+				case 1:		/* (xxx).L */
 				{
 					uint32 d1 = OPER_I_16();
 					uint32 d2 = OPER_I_16();
@@ -899,7 +899,7 @@ static void WRITE_EA_32(int ea, uint32 data)
 					m68ki_write_32(ea, data);
 					break;
 				}
-				case 2:		// (d16, PC)
+				case 2:		/* (d16, PC) */
 				{
 					uint32 ea = EA_PCDI_32();
 					m68ki_write_32(ea, data);
@@ -920,14 +920,14 @@ static void WRITE_EA_64(int ea, uint64 data)
 
 	switch (mode)
 	{
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea = REG_A[reg];
 			m68ki_write_32(ea, (uint32)(data >> 32));
 			m68ki_write_32(ea+4, (uint32)(data));
 			break;
 		}
-		case 4:		// -(An)
+		case 4:		/* -(An) */
 		{
 			uint32 ea;
 			REG_A[reg] -= 8;
@@ -936,7 +936,7 @@ static void WRITE_EA_64(int ea, uint64 data)
 			m68ki_write_32(ea+4, (uint32)(data));
 			break;
 		}
-		case 5:		// (d16, An)
+		case 5:		/* (d16, An) */
 		{
 			uint32 ea = EA_AY_DI_32();
 			m68ki_write_32(ea+0, (uint32)(data >> 32));
@@ -953,7 +953,7 @@ static void WRITE_EA_FPE(int mode, int reg, floatx80 fpr, uint32 di_mode_ea)
 
 	switch (mode)
 	{
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea;
 			ea = REG_A[reg];
@@ -961,7 +961,7 @@ static void WRITE_EA_FPE(int mode, int reg, floatx80 fpr, uint32 di_mode_ea)
 			break;
 		}
 
-		case 3:		// (An)+
+		case 3:		/* (An)+ */
 		{
 			uint32 ea;
 			ea = REG_A[reg];
@@ -970,7 +970,7 @@ static void WRITE_EA_FPE(int mode, int reg, floatx80 fpr, uint32 di_mode_ea)
 			break;
 		}
 
-		case 4:		// -(An)
+		case 4:		/* -(An) */
 		{
 			uint32 ea;
 			REG_A[reg] -= 12;
@@ -978,11 +978,11 @@ static void WRITE_EA_FPE(int mode, int reg, floatx80 fpr, uint32 di_mode_ea)
 			store_extended_float80(ea, fpr);
 			break;
 		}
-    	  case 5:		// (d16, An)  (added by JFF)
+    	  case 5:		/* (d16, An)  (added by JFF) */
 		{
-		  // EA_AY_DI_32() should not be done here because fmovem would increase
-		  // PC each time, reading incorrect displacement & advancing PC too much
-		  // uint32 ea = EA_AY_DI_32();
+		  /* EA_AY_DI_32() should not be done here because fmovem would increase */
+		  /* PC each time, reading incorrect displacement & advancing PC too much */
+		  /* uint32 ea = EA_AY_DI_32(); */
 		  store_extended_float80(di_mode_ea, fpr);
 	 	 break;
 
@@ -1006,7 +1006,7 @@ static void WRITE_EA_PACK(int ea, int k, floatx80 fpr)
 
 	switch (mode)
 	{
-		case 2:		// (An)
+		case 2:		/* (An) */
 		{
 			uint32 ea;
 			ea = REG_A[reg];
@@ -1014,7 +1014,7 @@ static void WRITE_EA_PACK(int ea, int k, floatx80 fpr)
 			break;
 		}
 
-		case 3:		// (An)+
+		case 3:		/* (An)+ */
 		{
 			uint32 ea;
 			ea = REG_A[reg];
@@ -1023,7 +1023,7 @@ static void WRITE_EA_PACK(int ea, int k, floatx80 fpr)
 			break;
 		}
 
-		case 4:		// -(An)
+		case 4:		/* -(An) */
 		{
 			uint32 ea;
 			REG_A[reg] -= 12;
@@ -1054,25 +1054,25 @@ static void fpgen_rm_reg(uint16 w2)
 	int opmode = w2 & 0x7f;
 	floatx80 source;
 
-	// fmovecr #$f, fp0	f200 5c0f
+	/* fmovecr #$f, fp0	f200 5c0f */
 
 	if (rm)
 	{
 		switch (src)
 		{
-			case 0:		// Long-Word Integer
+			case 0:		/* Long-Word Integer */
 			{
 				sint32 d = READ_EA_32(ea);
 				source = int32_to_floatx80(d);
 				break;
 			}
-			case 1:		// Single-precision Real
+			case 1:		/* Single-precision Real */
 			{
 				uint32 d = READ_EA_32(ea);
 				source = float32_to_floatx80(d);
 				break;
 			}
-			case 2:		// Extended-precision Real
+			case 2:		/* Extended-precision Real */
 			{
 	  	    	int imode = (ea >> 3) & 0x7;
 	  	    	int reg = (ea & 0x7);
@@ -1080,82 +1080,82 @@ static void fpgen_rm_reg(uint16 w2)
 		      	source = READ_EA_FPE(imode,reg,di_mode_ea);
 			  	break;
 			}
-			case 3:		// Packed-decimal Real
+			case 3:		/* Packed-decimal Real */
 			{
 				source = READ_EA_PACK(ea);
 				break;
 			}
-			case 4:		// Word Integer
+			case 4:		/* Word Integer */
 			{
 				sint16 d = READ_EA_16(ea);
 				source = int32_to_floatx80((sint32)d);
 				break;
 			}
-			case 5:		// Double-precision Real
+			case 5:		/* Double-precision Real */
 			{
 				uint64 d = READ_EA_64(ea);
 
 				source = float64_to_floatx80(d);
 				break;
 			}
-			case 6:		// Byte Integer
+			case 6:		/* Byte Integer */
 			{
 				sint8 d = READ_EA_8(ea);
 				source = int32_to_floatx80((sint32)d);
 				break;
 			}
-			case 7:		// FMOVECR load from constant ROM
+			case 7:		/* FMOVECR load from constant ROM */
 			{
 				switch (w2 & 0x7f)
 				{
-					case 0x0:	// Pi
+					case 0x0:	/* Pi */
 						source.high = 0x4000;
 						source.low = U64(0xc90fdaa22168c235);
 						break;
 
-					case 0xb:	// log10(2)
+					case 0xb:	/* log10(2) */
 						source.high = 0x3ffd;
 						source.low = U64(0x9a209a84fbcff798);
 						break;
 
-					case 0xc:	// e
+					case 0xc:	/* e */
 						source.high = 0x4000;
 						source.low = U64(0xadf85458a2bb4a9b);
 						break;
 
-					case 0xd:	// log2(e)
+					case 0xd:	/* log2(e) */
 						source.high = 0x3fff;
 						source.low = U64(0xb8aa3b295c17f0bc);
 						break;
 
-					case 0xe:	// log10(e)
+					case 0xe:	/* log10(e) */
 						source.high = 0x3ffd;
 						source.low = U64(0xde5bd8a937287195);
 						break;
 
-					case 0xf:	// 0.0
+					case 0xf:	/* 0.0 */
 						source = int32_to_floatx80((sint32)0);
 						break;
 
-					case 0x30:	// ln(2)
+					case 0x30:	/* ln(2) */
 						source.high = 0x3ffe;
 						source.low = U64(0xb17217f7d1cf79ac);
 						break;
 
-					case 0x31:	// ln(10)
+					case 0x31:	/* ln(10) */
 						source.high = 0x4000;
 						source.low = U64(0x935d8dddaaa8ac17);
 						break;
 
-					case 0x32:	// 1 (or 100?  manuals are unclear, but 1 would make more sense)
+					case 0x32:	/* 1 (or 100?  manuals are unclear, but 1 would make more sense) */
 						source = int32_to_floatx80((sint32)1);
 						break;
 
-					case 0x33:	// 10^1
+					case 0x33:	/* 10^1 */
 						source = int32_to_floatx80((sint32)10);
 						break;
 
-					case 0x34:	// 10^2
+					case 0x34:	/* 10^2 */
 						source = int32_to_floatx80((sint32)10*10);
 						break;
 
@@ -1164,9 +1164,9 @@ static void fpgen_rm_reg(uint16 w2)
 						break;
 				}
 
-				// handle it right here, the usual opmode bits aren't valid in the FMOVECR case
+				/* handle it right here, the usual opmode bits aren't valid in the FMOVECR case */
 				REG_FP[dst] = source;
-	     		SET_CONDITION_CODES(REG_FP[dst]); // JFF when destination is a register, we HAVE to update FPCR
+	     		SET_CONDITION_CODES(REG_FP[dst]); /* JFF when destination is a register, we HAVE to update FPCR */
 				USE_CYCLES(4);
 				return;
 			}
@@ -1182,37 +1182,37 @@ static void fpgen_rm_reg(uint16 w2)
 
 	switch (opmode)
 	{
-		case 0x00:		// FMOVE
+		case 0x00:		/* FMOVE */
 		{
 			REG_FP[dst] = source;
-		    SET_CONDITION_CODES(REG_FP[dst]);  // JFF needs update condition codes
+		    SET_CONDITION_CODES(REG_FP[dst]);  /* JFF needs update condition codes */
 			USE_CYCLES(4);
 			break;
 		}
-		case 0x01:		// Fsint
+		case 0x01:		/* Fsint */
 		{
 			sint32 temp;
 			temp = floatx80_to_int32(source);
 			REG_FP[dst] = int32_to_floatx80(temp);
-	  		SET_CONDITION_CODES(REG_FP[dst]);  // JFF needs update condition codes
+	  		SET_CONDITION_CODES(REG_FP[dst]);  /* JFF needs update condition codes */
 			break;
 		}
-		case 0x03:		// FsintRZ
+		case 0x03:		/* FsintRZ */
 		{
 			sint32 temp;
 			temp = floatx80_to_int32_round_to_zero(source);
 			REG_FP[dst] = int32_to_floatx80(temp);
-			SET_CONDITION_CODES(REG_FP[dst]);  // JFF needs update condition codes
+			SET_CONDITION_CODES(REG_FP[dst]);  /* JFF needs update condition codes */
 			break;
 		}
-		case 0x04:		// FSQRT
+		case 0x04:		/* FSQRT */
 		{
 			REG_FP[dst] = floatx80_sqrt(source);
 			SET_CONDITION_CODES(REG_FP[dst]);
 			USE_CYCLES(109);
 			break;
 		}
-		case 0x18:		// FABS
+		case 0x18:		/* FABS */
 		{
 			REG_FP[dst] = source;
 			REG_FP[dst].high &= 0x7fff;
@@ -1220,7 +1220,7 @@ static void fpgen_rm_reg(uint16 w2)
 			USE_CYCLES(3);
 			break;
 		}
-		case 0x1a:		// FNEG
+		case 0x1a:		/* FNEG */
 		{
 			REG_FP[dst] = source;
 			REG_FP[dst].high ^= 0x8000;
@@ -1228,54 +1228,54 @@ static void fpgen_rm_reg(uint16 w2)
 			USE_CYCLES(3);
 			break;
 		}
-		case 0x1e:		// FGETEXP
+		case 0x1e:		/* FGETEXP */
 		{
 			sint16 temp;
-			temp = source.high;	// get the exponent
-			temp -= 0x3fff;	// take off the bias
+			temp = source.high;	/* get the exponent */
+			temp -= 0x3fff;	/* take off the bias */
 			REG_FP[dst] = double_to_fx80((double)temp);
 			SET_CONDITION_CODES(REG_FP[dst]);
 			USE_CYCLES(6);
 			break;
 		}
-  	    case 0x60:		// FSDIVS (JFF) (source has already been converted to floatx80)
-		case 0x20:		// FDIV
+  	    case 0x60:		/* FSDIVS (JFF) (source has already been converted to floatx80) */
+		case 0x20:		/* FDIV */
 		{
 			REG_FP[dst] = floatx80_div(REG_FP[dst], source);
-		    SET_CONDITION_CODES(REG_FP[dst]); // JFF
+		    SET_CONDITION_CODES(REG_FP[dst]); /* JFF */
 			USE_CYCLES(43);
 			break;
 		}
-		case 0x22:		// FADD
+		case 0x22:		/* FADD */
 		{
 			REG_FP[dst] = floatx80_add(REG_FP[dst], source);
 			SET_CONDITION_CODES(REG_FP[dst]);
 			USE_CYCLES(9);
 			break;
 		}
-   		case 0x63:		// FSMULS (JFF) (source has already been converted to floatx80)
-		case 0x23:		// FMUL
+   		case 0x63:		/* FSMULS (JFF) (source has already been converted to floatx80) */
+		case 0x23:		/* FMUL */
 		{
 			REG_FP[dst] = floatx80_mul(REG_FP[dst], source);
 			SET_CONDITION_CODES(REG_FP[dst]);
 			USE_CYCLES(11);
 			break;
 		}
-		case 0x25:		// FREM
+		case 0x25:		/* FREM */
 		{
 			REG_FP[dst] = floatx80_rem(REG_FP[dst], source);
 			SET_CONDITION_CODES(REG_FP[dst]);
-			USE_CYCLES(43);	// guess
+			USE_CYCLES(43);	/* guess */
 			break;
 		}
-		case 0x28:		// FSUB
+		case 0x28:		/* FSUB */
 		{
 			REG_FP[dst] = floatx80_sub(REG_FP[dst], source);
 			SET_CONDITION_CODES(REG_FP[dst]);
 			USE_CYCLES(9);
 			break;
 		}
-		case 0x38:		// FCMP
+		case 0x38:		/* FCMP */
 		{
 			floatx80 res;
 			res = floatx80_sub(REG_FP[dst], source);
@@ -1283,7 +1283,7 @@ static void fpgen_rm_reg(uint16 w2)
 			USE_CYCLES(7);
 			break;
 		}
-		case 0x3a:		// FTST
+		case 0x3a:		/* FTST */
 		{
 			floatx80 res;
 			res = source;
@@ -1305,19 +1305,19 @@ static void fmove_reg_mem(uint16 w2)
 
 	switch (dst)
 	{
-		case 0:		// Long-Word Integer
+		case 0:		/* Long-Word Integer */
 		{
 			sint32 d = (sint32)floatx80_to_int32(REG_FP[src]);
 			WRITE_EA_32(ea, d);
 			break;
 		}
-		case 1:		// Single-precision Real
+		case 1:		/* Single-precision Real */
 		{
 			uint32 d = floatx80_to_float32(REG_FP[src]);
 			WRITE_EA_32(ea, d);
 			break;
 		}
-		case 2:		// Extended-precision Real
+		case 2:		/* Extended-precision Real */
 		{
 		  	int mode = (ea >> 3) & 0x7;
 		  	int reg = (ea & 0x7);
@@ -1325,19 +1325,19 @@ static void fmove_reg_mem(uint16 w2)
 			WRITE_EA_FPE(mode, reg, REG_FP[src], di_mode_ea);
 			break;
 		}
-		case 3:		// Packed-decimal Real with Static K-factor
+		case 3:		/* Packed-decimal Real with Static K-factor */
 		{
-			// sign-extend k
+			/* sign-extend k */
 			k = (k & 0x40) ? (k | 0xffffff80) : (k & 0x7f);
 			WRITE_EA_PACK(ea, k, REG_FP[src]);
 			break;
 		}
-		case 4:		// Word Integer
+		case 4:		/* Word Integer */
 		{
 			WRITE_EA_16(ea, (sint16)floatx80_to_int32(REG_FP[src]));
 			break;
 		}
-		case 5:		// Double-precision Real
+		case 5:		/* Double-precision Real */
 		{
 			uint64 d;
 
@@ -1346,12 +1346,12 @@ static void fmove_reg_mem(uint16 w2)
 			WRITE_EA_64(ea, d);
 			break;
 		}
-		case 6:		// Byte Integer
+		case 6:		/* Byte Integer */
 		{
 			WRITE_EA_8(ea, (sint8)floatx80_to_int32(REG_FP[src]));
 			break;
 		}
-		case 7:		// Packed-decimal Real with Dynamic K-factor
+		case 7:		/* Packed-decimal Real with Dynamic K-factor */
 		{
 			WRITE_EA_PACK(ea, REG_D[k>>4], REG_FP[src]);
 			break;
@@ -1367,18 +1367,18 @@ static void fmove_fpcr(uint16 w2)
 	int dir = (w2 >> 13) & 0x1;
 	int reg = (w2 >> 10) & 0x7;
 
-	if (dir)	// From system control reg to <ea>
+	if (dir)	/* From system control reg to <ea> */
 	{
 		if (reg & 4) WRITE_EA_32(ea, REG_FPCR);
 		if (reg & 2) WRITE_EA_32(ea, REG_FPSR);
 		if (reg & 1) WRITE_EA_32(ea, REG_FPIAR);
 	}
-	else		// From <ea> to system control reg
+	else		/* From <ea> to system control reg */
 	{
       if (reg & 4) 
 		{
 		  REG_FPCR = READ_EA_32(ea);
-		  // JFF: need to update rounding mode from softfloat module
+		  /* JFF: need to update rounding mode from softfloat module */
 		  float_rounding_mode = (REG_FPCR >> 4) & 0x3;
 		}
 		if (reg & 2) REG_FPSR = READ_EA_32(ea);
@@ -1396,11 +1396,11 @@ static void fmovem(uint16 w2)
 	int mode = (w2 >> 11) & 0x3;
 	int reglist = w2 & 0xff;
 
-	if (dir)	// From FP regs to mem
+	if (dir)	/* From FP regs to mem */
 	{
 		switch (mode)
 	{
-	  	case 2:		// (JFF): Static register list, postincrement or control addressing mode.     
+	  	case 2:		/* (JFF): Static register list, postincrement or control addressing mode.      */
 	    {
 	      int imode = (ea >> 3) & 0x7;
 	      int reg = (ea & 0x7);
@@ -1420,14 +1420,15 @@ static void fmovem(uint16 w2)
 			}
 	      break;
 	   	 }
-			case 0:		// Static register list, predecrement addressing mode
+			case 0:		/* Static register list, predecrement addressing mode */
 			{
 	      int imode = (ea >> 3) & 0x7;
 	      int reg = (ea & 0x7);
-	      // the "di_mode_ea" parameter kludge is required here else WRITE_EA_FPE would have
-	      // to call EA_AY_DI_32() (that advances PC & reads displacement) each time
-	      // when the proper behaviour is 1) read once, 2) increment ea for each matching register
-	      // this forces to pre-read the mode (named "imode") so we can decide to read displacement, only once
+	      /* the "di_mode_ea" parameter kludge is required here else WRITE_EA_FPE would have
+	         to call EA_AY_DI_32() (that advances PC & reads displacement) each time
+	         when the proper behaviour is 1) read once, 2) increment ea for each matching register
+	         this forces to pre-read the mode (named "imode") so we can decide to read displacement, only once
+		   */
 	      int di_mode = imode == 5;	      
 	      uint32 di_mode_ea =  di_mode ? (REG_A[reg]+MAKE_INT_16(m68ki_read_imm_16())) : 0;
 				for (i=0; i < 8; i++)
@@ -1448,11 +1449,11 @@ static void fmovem(uint16 w2)
 			default:	fatalerror("040fpu0: FMOVEM: mode %d unimplemented at %08X\n", mode, REG_PC-4);
 		}
 	}
-	else		// From mem to FP regs
+	else		/* From mem to FP regs */
 	{
 		switch (mode)
 		{
-			case 2:		// Static register list, postincrement addressing mode
+			case 2:		/* Static register list, postincrement addressing mode */
 			{
 		      int imode = (ea >> 3) & 0x7;
 		      int reg = (ea & 0x7);
@@ -1480,7 +1481,7 @@ static void fmovem(uint16 w2)
 
 static void fscc()
 {
-  // added by JFF, this seems to work properly now 
+  /* added by JFF, this seems to work properly now  */
   int condition = OPER_I_16() & 0x3f;
 
   int cc = TEST_CONDITION(condition);
@@ -1489,15 +1490,15 @@ static void fscc()
   
   switch (mode)
   {
-  case 0:  // fscc Dx
+  case 0:  /* fscc Dx */
     {
-      // If the specified floating-point condition is true, sets the byte integer operand at
-      // the destination to TRUE (all ones); otherwise, sets the byte to FALSE (all zeros).
+      /* If the specified floating-point condition is true, sets the byte integer operand at */
+      /* the destination to TRUE (all ones); otherwise, sets the byte to FALSE (all zeros). */
       
       REG_D[REG_IR & 7] = (REG_D[REG_IR & 7] & 0xFFFFFF00) | v;
       break;
     }
-    case 5: // (disp,Ax)
+    case 5: /* (disp,Ax) */
     {
     int reg = REG_IR & 7;
     uint32 ea = REG_A[reg]+MAKE_INT_16(m68ki_read_imm_16());
@@ -1507,11 +1508,11 @@ static void fscc()
     
   default:
     {
-      // unimplemented see fpu_uae.cpp around line 1300
+      /* unimplemented see fpu_uae.cpp around line 1300 */
       fatalerror("040fpu0: fscc: mode %d not implemented at %08X\n", mode, REG_PC-4);
     }
     }
-  USE_CYCLES(7);  // JFF unsure of the number of cycles!!
+  USE_CYCLES(7);  /* JFF unsure of the number of cycles!! */
 }
 static void fbcc16(void)
 {
@@ -1520,7 +1521,7 @@ static void fbcc16(void)
 
 	offset = (sint16)(OPER_I_16());
 
-	// TODO: condition and jump!!!
+	/* TODO: condition and jump!!! */
 	if (TEST_CONDITION(condition))
 	{
 		m68ki_trace_t0();			   /* auto-disable (see m68kcpu.h) */
@@ -1537,7 +1538,7 @@ static void fbcc32(void)
 
 	offset = OPER_I_32();
 
-	// TODO: condition and jump!!!
+	/* TODO: condition and jump!!! */
 	if (TEST_CONDITION(condition))
 	{
 		m68ki_trace_t0();			   /* auto-disable (see m68kcpu.h) */
@@ -1559,28 +1560,28 @@ void m68040_fpu_op0()
 			uint16 w2 = OPER_I_16();
 			switch ((w2 >> 13) & 0x7)
 			{
-				case 0x0:	// FPU ALU FP, FP
-				case 0x2:	// FPU ALU ea, FP
+				case 0x0:	/* FPU ALU FP, FP */
+				case 0x2:	/* FPU ALU ea, FP */
 				{
 					fpgen_rm_reg(w2);
 					break;
 				}
 
-				case 0x3:	// FMOVE FP, ea
+				case 0x3:	/* FMOVE FP, ea */
 				{
 					fmove_reg_mem(w2);
 					break;
 				}
 
-				case 0x4:	// FMOVEM ea, FPCR
-				case 0x5:	// FMOVEM FPCR, ea
+				case 0x4:	/* FMOVEM ea, FPCR */
+				case 0x5:	/* FMOVEM FPCR, ea */
 				{
 					fmove_fpcr(w2);
 					break;
 				}
 
-				case 0x6:	// FMOVEM ea, list
-				case 0x7:	// FMOVEM list, ea
+				case 0x6:	/* FMOVEM ea, list */
+				case 0x7:	/* FMOVEM list, ea */
 				{
 					fmovem(w2);
 					break;
@@ -1591,17 +1592,17 @@ void m68040_fpu_op0()
 			break;
 		}
 
-	    case 1:           // FScc (JFF)
+	    case 1:           /* FScc (JFF) */
 		{
 		  fscc();
 		  break;
 		}
-		case 2:		// FBcc disp16
+		case 2:		/* FBcc disp16 */
 		{
 			fbcc16();
 			break;
 		}
-		case 3:		// FBcc disp32
+		case 3:		/* FBcc disp32 */
 		{
 			fbcc32();
 			break;
@@ -1615,7 +1616,7 @@ static void perform_fsave(uint32 addr, int inc)
 {
 	if (inc)
 	{
-		// 68881 IDLE, version 0x1f
+		/* 68881 IDLE, version 0x1f */
 		m68ki_write_32(addr, 0x1f180000);
 		m68ki_write_32(addr+4, 0);
 		m68ki_write_32(addr+8, 0);
@@ -1636,7 +1637,7 @@ static void perform_fsave(uint32 addr, int inc)
 	}
 }
 
-// FRESTORE on a NULL frame reboots the FPU - all registers to NaN, the 3 status regs to 0
+/* FRESTORE on a NULL frame reboots the FPU - all registers to NaN, the 3 status regs to 0 */
 static void do_frestore_null()
 {
 	int i;
@@ -1650,8 +1651,8 @@ static void do_frestore_null()
 		REG_FP[i].low = U64(0xffffffffffffffff);
 	}
 
-	// Mac IIci at 408458e6 wants an FSAVE of a just-restored NULL frame to also be NULL
-	// The PRM says it's possible to generate a NULL frame, but not how/when/why.  (need the 68881/68882 manual!)
+	/* Mac IIci at 408458e6 wants an FSAVE of a just-restored NULL frame to also be NULL */
+	/* The PRM says it's possible to generate a NULL frame, but not how/when/why.  (need the 68881/68882 manual!) */
 	m68ki_cpu.fpu_just_reset = 1;
 }
 
@@ -1664,11 +1665,11 @@ void m68040_fpu_op1()
 
 	switch ((REG_IR >> 6) & 0x3)
 	{
-		case 0:		// FSAVE <ea>
+		case 0:		/* FSAVE <ea> */
 		{
 			switch (mode)
 			{
-				case 3:	// (An)+
+				case 3:	/* (An)+ */
 		    			addr = EA_AY_PI_32();
 
 					if (m68ki_cpu.fpu_just_reset)
@@ -1677,13 +1678,13 @@ void m68040_fpu_op1()
 					}
 					else
 					{
-						// we normally generate an IDLE frame
+						/* we normally generate an IDLE frame */
 						REG_A[reg] += 6*4;
 						perform_fsave(addr, 1);
 					}
 					break;
 
-				case 4: // -(An)
+				case 4: /* -(An) */
 		    			addr = EA_AY_PD_32();
 
 					if (m68ki_cpu.fpu_just_reset)
@@ -1692,7 +1693,7 @@ void m68040_fpu_op1()
 					}
 					else
 					{
-						// we normally generate an IDLE frame
+						/* we normally generate an IDLE frame */
 						REG_A[reg] -= 6*4;
 						perform_fsave(addr, 0);
 					}
@@ -1705,18 +1706,18 @@ void m68040_fpu_op1()
 		}
 		break;
 
-		case 1:		// FRESTORE <ea>
+		case 1:		/* FRESTORE <ea> */
 		{
 			switch (mode)
 			{
-				case 2: // (An)
+				case 2: /* (An) */
 					addr = REG_A[reg];
 					temp = m68ki_read_32(addr);
 
-					// check for NULL frame
+					/* check for NULL frame */
 					if (temp & 0xff000000)
 					{
-						// we don't handle non-NULL frames and there's no pre/post inc/dec to do here
+						/* we don't handle non-NULL frames and there's no pre/post inc/dec to do here */
 						m68ki_cpu.fpu_just_reset = 0;
 					}
 					else
@@ -1725,24 +1726,24 @@ void m68040_fpu_op1()
 					}
 					break;
 
-				case 3:	// (An)+
+				case 3:	/* (An)+ */
 		    			addr = EA_AY_PI_32();
 					temp = m68ki_read_32(addr);
 
-					// check for NULL frame
+					/* check for NULL frame */
 					if (temp & 0xff000000)
 					{
 						m68ki_cpu.fpu_just_reset = 0;
 
-						// how about an IDLE frame?
+						/* how about an IDLE frame? */
 						if ((temp & 0x00ff0000) == 0x00180000)
 						{
 							REG_A[reg] += 6*4;
-						} // check UNIMP
+						} /* check UNIMP */
 						else if ((temp & 0x00ff0000) == 0x00380000)
 						{
 							REG_A[reg] += 14*4;
-						} // check BUSY
+						} /* check BUSY */
 						else if ((temp & 0x00ff0000) == 0x00b40000)
 						{
 							REG_A[reg] += 45*4;
@@ -1764,6 +1765,3 @@ void m68040_fpu_op1()
 		default:	fatalerror("m68040_fpu_op1: unimplemented op %d at %08X\n", (REG_IR >> 6) & 0x3, REG_PC-2);
 	}
 }
-
-
-

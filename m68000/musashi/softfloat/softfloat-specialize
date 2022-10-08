@@ -344,7 +344,7 @@ floatx80 propagateFloatx80NaN( floatx80 a, floatx80 b )
 | value `a'.
 *----------------------------------------------------------------------------*/
 
-static inline bits64 extractFloatx80Frac( floatx80 a )
+static INLINE bits64 extractFloatx80Frac( floatx80 a )
 {
 
     return a.low;
@@ -356,7 +356,7 @@ static inline bits64 extractFloatx80Frac( floatx80 a )
 | value `a'.
 *----------------------------------------------------------------------------*/
 
-static inline int32 extractFloatx80Exp( floatx80 a )
+static INLINE int32 extractFloatx80Exp( floatx80 a )
 {
 
     return a.high & 0x7FFF;
@@ -368,7 +368,7 @@ static inline int32 extractFloatx80Exp( floatx80 a )
 | `a'.
 *----------------------------------------------------------------------------*/
 
-static inline flag extractFloatx80Sign( floatx80 a )
+static INLINE flag extractFloatx80Sign( floatx80 a )
 {
 
     return a.high>>15;
