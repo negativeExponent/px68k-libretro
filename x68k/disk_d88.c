@@ -113,6 +113,7 @@ int D88_SetFD(int drv, char *filename)
 	return TRUE;
 
 d88_set_error:
+	memset(D88File[drv], 0, MAX_PATH);
 	file_close(fp);
 	FDD_SetReadOnly(drv);
 	return FALSE;
