@@ -91,10 +91,10 @@ BOOL WritePrivateProfileString(const char *sect, const char *key, const char *st
 		 * Now create new section and key.
 		 */
 		rewind(fp);
-		snprintf(newbuf, sizeof(newbuf), "[%s]\n", sect);
+		sprintf(newbuf, "[%s]\n", sect);
 		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
 			goto writefail;
-		snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+		sprintf(newbuf, "%s=%s\n", key, str);
 		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
 			goto writefail;
 		fclose(fp);
@@ -114,7 +114,7 @@ BOOL WritePrivateProfileString(const char *sect, const char *key, const char *st
 		if (!strncasecmp(key, lbuf, strlen(key))
 		    && lbuf[strlen(key)] == '=') {
 			found = 1;
-			snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+			sprintf(newbuf, "%s=%s\n", key, str);
 			delta = strlen(newbuf) - strlen(lbuf);
 			if (delta == 0) {
 				if (!strncasecmp(newbuf, lbuf, strlen(newbuf)))
@@ -140,12 +140,12 @@ BOOL WritePrivateProfileString(const char *sect, const char *key, const char *st
 		 * Now create new key.
 		 */
 		fseek(fp, 0L, SEEK_END);
-		snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+		sprintf(newbuf, "%s=%s\n", key, str);
 		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
 			goto writefail;
 	}
 	else if (notfound) {
-		snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+		sprintf(newbuf, "%s=%s\n", key, str);
 		if (!_WritePrivateProfileString_subr(&fp, pos,
 		    ftell(fp), newbuf, inifile))
 			goto writefail;

@@ -60,4 +60,4 @@ void StatBar_HDD(int sw);
 };
 #endif
 
-#endif //winx68k_statusbar_h
+#endif /* winx68k_statusbar_h */

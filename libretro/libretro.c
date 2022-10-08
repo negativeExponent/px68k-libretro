@@ -173,7 +173,7 @@ void p6logd(const char *fmt, ...)
    char p6l_buf[256];
 
    va_start(args, fmt);
-   vsnprintf(p6l_buf, 256, fmt, args);
+   vsprintf(p6l_buf, fmt, args);
    va_end(args);
 
    if (log_cb)
@@ -380,9 +380,9 @@ static bool add_image_index(void)
 static bool replace_image_index(unsigned index, const struct retro_game_info *info)
 {
    char image[MAX_PATH];
-   strcpy(disk.path[index], info->path);
    extract_basename(image, info->path, sizeof(image));
-   snprintf(disk.label[index], sizeof(disk.label), "%s", image);
+   strcpy(disk.path[index], info->path);
+   strcpy(disk.label[index], image);
    return true;
 }
 
@@ -555,7 +555,7 @@ static bool read_m3u(const char *file)
          if (is_path_absolute(line))
             strncpy(name, line, sizeof(name) - 1);
          else
-            snprintf(name, sizeof(name), "%s%c%s", base_dir, slash, line);
+            sprintf(name, "%s%c%s", base_dir, slash, line);
 
          custom_label = strchr(name, '|');
          if (custom_label)
@@ -691,7 +691,7 @@ static int load_file_cmd(const char *argv)
          char tmp[2048] = { 0 };
          strcpy(tmp, ARGUV[i]);
          ARGUV[i][0] = '\0';
-         snprintf(ARGUV[i], sizeof(ARGUV[i]), "%s%c%s", base_dir, slash, tmp);
+         sprintf(ARGUV[i], "%s%c%s", base_dir, slash, tmp);
       }
 
       /* verify that file exists */
@@ -1357,7 +1357,7 @@ void retro_init(void)
       log_cb = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
-      snprintf(retro_system_conf, sizeof(retro_system_conf) - 1, "%s%ckeropi", system_dir, slash);
+      sprintf(retro_system_conf, "%s%ckeropi", system_dir, slash);
 
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
@@ -1443,7 +1443,7 @@ void retro_run(void)
       CHANGEAV_TIMING = 0;
    }
 
-   soundbuf_size = (int)round(SAMPLERATE / FRAMERATE);
+   soundbuf_size = (int)(SAMPLERATE / FRAMERATE);
 
    if (Config.AudioDesyncHack)
    {
