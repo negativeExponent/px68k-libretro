@@ -6,6 +6,13 @@
 #include "fdd.h"
 #include "disk_dim.h"
 
+/*
+	22-10-08
+		-add header identifier check
+		-prevent image corruption when loading invalid or unknown headers
+		 by freeing DIMImg[drv] upon failed DIM_SetFD
+ */
+
 /* DIM Image Header */
 typedef struct {
 	uint8_t type;
@@ -82,6 +89,9 @@ int DIM_SetFD(int drv, char *filename)
 	if (file_read(fp, DIMImg[drv], sizeof(DIM_HEADER)) != sizeof(DIM_HEADER))
 		goto dim_set_error;
 	dh = (DIM_HEADER *)DIMImg[drv];
+	/* check for header string identifier */
+	if (strcmp((char *)&dh->headerinfo[0], "DIFC HEADER  ") != 0)
+		goto dim_set_error;
 	if (dh->type > 9)
 		goto dim_set_error;
 	len = SctLength[dh->type];
@@ -103,6 +113,8 @@ int DIM_SetFD(int drv, char *filename)
 	return TRUE;
 
 dim_set_error:
+	free(DIMImg[drv]);
+	DIMImg[drv] = 0;
 	file_close(fp);
 	FDD_SetReadOnly(drv);
 	return FALSE;
