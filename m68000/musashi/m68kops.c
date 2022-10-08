@@ -9897,7 +9897,7 @@ static void m68k_op_chk2cmp2_8_pcdi(void)
 		if(!BIT_F(word2))
 			compare = (int32)(int8)compare;
       
-		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -9923,7 +9923,7 @@ static void m68k_op_chk2cmp2_8_pcix(void)
 
 		if(!BIT_F(word2))
 			compare = (int32)(int8)compare;
-		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||, faster operation short circuits
+		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => ||, faster operation short circuits */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -9949,7 +9949,7 @@ static void m68k_op_chk2cmp2_8_ai(void)
 		if(!BIT_F(word2))
 			compare = (int32)(int8)compare;
       
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -9974,7 +9974,7 @@ static void m68k_op_chk2cmp2_8_di(void)
 		if(!BIT_F(word2))
 			compare = (int32)(int8)compare;
       
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -9999,7 +9999,7 @@ static void m68k_op_chk2cmp2_8_ix(void)
 		if(!BIT_F(word2))
 			compare = (int32)(int8)compare;
       
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -10024,7 +10024,7 @@ static void m68k_op_chk2cmp2_8_aw(void)
 		if(!BIT_F(word2))
 			compare = (int32)(int8)compare;
       
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -10049,7 +10049,7 @@ static void m68k_op_chk2cmp2_8_al(void)
 		if(!BIT_F(word2))
 			compare = (int32)(int8)compare;
       
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -10073,7 +10073,7 @@ static void m68k_op_chk2cmp2_16_pcdi(void)
 
 		if(!BIT_F(word2))
 			compare = (int32)(int16)compare;
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -10097,7 +10097,7 @@ static void m68k_op_chk2cmp2_16_pcix(void)
 
 		if(!BIT_F(word2))
 			compare = (int32)(int16)compare;
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -10121,7 +10121,7 @@ static void m68k_op_chk2cmp2_16_ai(void)
 
 		if(!BIT_F(word2))
 			compare = (int32)(int16)compare;
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
         FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -10145,7 +10145,7 @@ static void m68k_op_chk2cmp2_16_di(void)
 
 		if(!BIT_F(word2))
 			compare = (int32)(int16)compare;
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
         FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -10169,7 +10169,7 @@ static void m68k_op_chk2cmp2_16_ix(void)
 
 		if(!BIT_F(word2))
 			compare = (int32)(int16)compare;
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
         FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -10193,7 +10193,7 @@ static void m68k_op_chk2cmp2_16_aw(void)
 
 		if(!BIT_F(word2))
 			compare = (int32)(int16)compare;
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
         FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -10217,7 +10217,7 @@ static void m68k_op_chk2cmp2_16_al(void)
 
 		if(!BIT_F(word2))
 			compare = (int32)(int16)compare;
- 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+ 		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
         FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
 
@@ -10239,7 +10239,7 @@ static void m68k_op_chk2cmp2_32_pcdi(void)
 		sint lower_bound = m68ki_read_pcrel_32(ea);
 		sint upper_bound = m68ki_read_pcrel_32(ea + 4);
 
-		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
     
@@ -10261,7 +10261,7 @@ static void m68k_op_chk2cmp2_32_pcix(void)
 		sint lower_bound = m68ki_read_32(ea);
 		sint upper_bound = m68ki_read_32(ea + 4);
 
-		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
     FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
     
@@ -10278,13 +10278,13 @@ static void m68k_op_chk2cmp2_32_ai(void)
 	if(CPU_TYPE_IS_EC020_PLUS(CPU_TYPE))
 	{   
 		uint word2 = OPER_I_16();
-		// JFF changed the logic. chk2/cmp2 uses signed values, not unsigned
+		/* JFF changed the logic. chk2/cmp2 uses signed values, not unsigned */
 		sint compare = REG_DA[(word2 >> 12) & 15];
 		uint ea = EA_AY_AI_32();
 		sint lower_bound = m68ki_read_32(ea);
 		sint upper_bound = m68ki_read_32(ea + 4);
 
-		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
         FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
     
@@ -10301,13 +10301,13 @@ static void m68k_op_chk2cmp2_32_di(void)
 	if(CPU_TYPE_IS_EC020_PLUS(CPU_TYPE))
 	{   
 		uint word2 = OPER_I_16();
-		// JFF changed the logic. chk2/cmp2 uses signed values, not unsigned
+		/* JFF changed the logic. chk2/cmp2 uses signed values, not unsigned */
 		sint compare = REG_DA[(word2 >> 12) & 15];
 		uint ea = EA_AY_DI_32();
 		sint lower_bound = m68ki_read_32(ea);
 		sint upper_bound = m68ki_read_32(ea + 4);
 
-		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
         FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
     
@@ -10324,13 +10324,13 @@ static void m68k_op_chk2cmp2_32_ix(void)
 	if(CPU_TYPE_IS_EC020_PLUS(CPU_TYPE))
 	{   
 		uint word2 = OPER_I_16();
-		// JFF changed the logic. chk2/cmp2 uses signed values, not unsigned
+		/* JFF changed the logic. chk2/cmp2 uses signed values, not unsigned */
 		sint compare = REG_DA[(word2 >> 12) & 15];
 		uint ea = EA_AY_IX_32();
 		sint lower_bound = m68ki_read_32(ea);
 		sint upper_bound = m68ki_read_32(ea + 4);
 
-		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
         FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
     
@@ -10347,13 +10347,13 @@ static void m68k_op_chk2cmp2_32_aw(void)
 	if(CPU_TYPE_IS_EC020_PLUS(CPU_TYPE))
 	{   
 		uint word2 = OPER_I_16();
-		// JFF changed the logic. chk2/cmp2 uses signed values, not unsigned
+		/* JFF changed the logic. chk2/cmp2 uses signed values, not unsigned */
 		sint compare = REG_DA[(word2 >> 12) & 15];
 		uint ea = EA_AW_32();
 		sint lower_bound = m68ki_read_32(ea);
 		sint upper_bound = m68ki_read_32(ea + 4);
 
-		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
         FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
     
@@ -10370,13 +10370,13 @@ static void m68k_op_chk2cmp2_32_al(void)
 	if(CPU_TYPE_IS_EC020_PLUS(CPU_TYPE))
 	{   
 		uint word2 = OPER_I_16();
-		// JFF changed the logic. chk2/cmp2 uses signed values, not unsigned
+		/* JFF changed the logic. chk2/cmp2 uses signed values, not unsigned */
 		sint compare = REG_DA[(word2 >> 12) & 15];
 		uint ea = EA_AL_32();
 		sint lower_bound = m68ki_read_32(ea);
 		sint upper_bound = m68ki_read_32(ea + 4);
 
-		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  // JFF: | => ||
+		FLAG_Z = !((upper_bound==compare) || (lower_bound==compare));  /* JFF: | => || */
 
         FLAG_C = (lower_bound <= upper_bound ? compare < lower_bound || compare > upper_bound : compare > upper_bound || compare < lower_bound) << 8;
     
@@ -12051,7 +12051,7 @@ static void m68k_op_cptrapcc_32(void)
 		M68K_DO_LOG((M68K_LOG_FILEHANDLE "%s at %08x: called unimplemented instruction %04x (%s)\n",
 					 m68ki_cpu_names[CPU_TYPE], ADDRESS_68K(REG_PC - 2), REG_IR,
 					 m68k_disassemble_quick(ADDRESS_68K(REG_PC - 2))));
-        // JFF: unsupported, but at least if the trap doesn't occur, app should still work, so at least PC increase is correct
+        /* JFF: unsupported, but at least if the trap doesn't occur, app should still work, so at least PC increase is correct */
         REG_PC += 4;  
 		return;
 	}
@@ -33185,7 +33185,7 @@ static void m68k_op_trapt_16(void)
 {
 	if(CPU_TYPE_IS_EC020_PLUS(CPU_TYPE))
 	{
-        REG_PC += 2; // JFF else stackframe & return addresses are incorrect
+        REG_PC += 2; /* JFF else stackframe & return addresses are incorrect */
 		m68ki_exception_trap(EXCEPTION_TRAPV);	/* HJB 990403 */
 		return;
 	}
@@ -33197,7 +33197,7 @@ static void m68k_op_trapt_32(void)
 {
 	if(CPU_TYPE_IS_EC020_PLUS(CPU_TYPE))
 	{
-        REG_PC += 4; // JFF else stackframe & return addresses are incorrect
+        REG_PC += 4; /* JFF else stackframe & return addresses are incorrect */
 		m68ki_exception_trap(EXCEPTION_TRAPV);	/* HJB 990403 */
 		return;
 	}
@@ -36500,15 +36500,15 @@ void m68ki_build_opcode_table(void)
 				m68ki_instruction_jump_table[instr] = ostruct->opcode_handler;
 				for(k=0;k<NUM_CPU_TYPES;k++)
 					m68ki_cycles[k][instr] = ostruct->cycles[k];
-				// For all shift operations with known shift distance (encoded in instruction word)
+				/* For all shift operations with known shift distance (encoded in instruction word) */
 				if((instr & 0xf000) == 0xe000 && (!(instr & 0x20)))
 				{
-					// On the 68000 and 68010 shift distance affect execution time.
-					// Add the cycle cost of shifting; 2 times the shift distance
+					/* On the 68000 and 68010 shift distance affect execution time. */
+					/* Add the cycle cost of shifting; 2 times the shift distance */
 					cycle_cost = ((((i-1)&7)+1)<<1);
 					m68ki_cycles[0][instr] += cycle_cost;
 					m68ki_cycles[1][instr] += cycle_cost;
-					// On the 68020 shift distance does not affect execution time
+					/* On the 68020 shift distance does not affect execution time */
 					m68ki_cycles[2][instr] += 0;
 				}
 			}
