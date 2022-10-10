@@ -8,8 +8,6 @@
  *
  *****************************************************************************/
 
-#include <stdio.h>
-
 #include "c68k.h"
 #include "c68kmacro.h"
 
@@ -20,7 +18,7 @@ extern uint32_t BusErrAdr;
 
 int32_t C68k_Exec(c68k_struc *cpu, int32_t cycles)
 {
-	if (cpu != NULL)
+	if (cpu != 0)
 	{
 		c68k_struc *CPU;
 		uintptr_t PC;

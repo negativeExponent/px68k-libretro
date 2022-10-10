@@ -1,6 +1,6 @@
 #include "../x11/common.h"
 
-#include "../win32api/dosio.h"
+#include "dosio.h"
 
 #include "fdc.h"
 #include "fdd.h"
@@ -33,7 +33,7 @@ void XDF_Cleanup(void)
 
 int XDF_SetFD(int drv, char *filename)
 {
-	void *fp;
+	FILEH *fp;
 
 	strncpy(XDFFile[drv], filename, MAX_PATH);
 	XDFFile[drv][MAX_PATH - 1] = 0;
@@ -42,7 +42,7 @@ int XDF_SetFD(int drv, char *filename)
 	if (!XDFImg[drv])
 		return FALSE;
 	memset(XDFImg[drv], 0xe5, 1261568);
-	fp = file_open(XDFFile[drv]);
+	fp = file_open_rb(XDFFile[drv]);
 	if (!fp)
 	{
 		memset(XDFFile[drv], 0, MAX_PATH);
@@ -57,7 +57,7 @@ int XDF_SetFD(int drv, char *filename)
 
 int XDF_Eject(int drv)
 {
-	void *fp;
+	FILEH *fp;
 
 	if (!XDFImg[drv])
 	{

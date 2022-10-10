@@ -5,7 +5,7 @@
 #include "../x11/common.h"
 
 #include "../x11/prop.h"
-#include "../win32api/dosio.h"
+#include "dosio.h"
 
 #include "sram.h"
 #include "sysport.h"
@@ -78,7 +78,7 @@ void SRAM_Init(void)
 
 	SRAM_Clear();
 
-	fp = file_open_c(SRAMFILE);
+	fp = file_open_rb_c(SRAMFILE);
 	if (fp)
 	{
 		file_read(fp, SRAM, 0x4000);
