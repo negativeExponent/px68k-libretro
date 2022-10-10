@@ -27,8 +27,7 @@
  *  WINUI.C - UI                                                              *
  * -------------------------------------------------------------------------- */
 
-#include <dirent.h>
-#include <sys/stat.h>
+#include <stdio.h>
 
 #include "common.h"
 
@@ -36,6 +35,7 @@
 #include "../x68k/irqh.h"
 #include "../x68k/sram.h"
 
+#include "dosio.h"
 #include "joystick.h"
 #include "prop.h"
 #include "status.h"
@@ -251,7 +251,7 @@ static void menu_create_flist(int v)
 {
 	int drv;
 	int i, a;
-	DIR *dp;
+	DIRH *dp;
 
 	/* file extension of FD image */
 	char support[] = "D8888DHDMDUP2HDDIMXDFIMG";
@@ -285,7 +285,7 @@ static void menu_create_flist(int v)
 	}
 
 	/* This routine gets file lists. */
-	dp = opendir(mfl.dir[drv]);
+	dp = wrap_vfs_opendir(mfl.dir[drv]);
 
 	/* xxx check if dp is null... */
 	if (!dp)
@@ -297,7 +297,7 @@ static void menu_create_flist(int v)
 		sprintf(tmp, "%s%c", base_dir, slash);
 		strcpy(mfl.dir[drv], tmp);
 		/* re-open folder */
-		dp = opendir(mfl.dir[drv]);
+		dp = wrap_vfs_opendir(mfl.dir[drv]);
 	}
 
 #ifdef DEBUG
@@ -307,21 +307,20 @@ static void menu_create_flist(int v)
 	/* xxx You can get only MFL_MAX files. */
 	for (i = 0; i < MFL_MAX; i++)
 	{
-		char *n;
 		char ent_name[MAX_PATH];
-		struct stat buf;
-		struct dirent *dent = readdir(dp);
+		const char *n;
+		int st_mode = 0;
+		int st_size = 0;
 
-		if (dent == NULL)
-		{
+		if (!(wrap_vfs_readdir(dp)))
 			break;
-		}
-		n = dent->d_name;
+
+		n = dp->d_name;
 		strcpy(ent_name, mfl.dir[drv]);
 		strcat(ent_name, n);
-		stat(ent_name, &buf);
+		st_mode = wrap_vfs_stat(ent_name, &st_size);
 
-		if (!S_ISDIR(buf.st_mode))
+		if (!(st_mode & STAT_IS_DIRECTORY))
 		{
 			char *p;
 			char ext[4];
@@ -360,13 +359,13 @@ static void menu_create_flist(int v)
 
 		strcpy(mfl.name[i], n);
 		/* set 1 if this is directory */
-		mfl.type[i] = S_ISDIR(buf.st_mode) ? 1 : 0;
+		mfl.type[i] = (st_mode & STAT_IS_DIRECTORY) ? 1 : 0;
 #ifdef DEBUG
 		p6logd("%s 0x%x\n", n, buf.st_mode);
 #endif
 	}
 
-	closedir(dp);
+	wrap_vfs_closedir(dp);
 
 	strcpy(mfl.name[i], "");
 	mfl.num = i;
@@ -646,7 +645,7 @@ int WinUI_Menu(int first)
 				{
 					mfl.y++;
 #ifdef DEBUG
-					printf("mfl.y %d\n", mfl.y);
+					p6logd("mfl.y %d\n", mfl.y);
 #endif
 				}
 				mfile_redraw = 1;

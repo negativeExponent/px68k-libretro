@@ -27,10 +27,11 @@
  *  PROP.C - 各種設定用プロパティシートと設定値管理                           *
  * -------------------------------------------------------------------------- */
 
-#include <sys/stat.h>
+#include <stdio.h>
 
 #include "common.h"
 #include "prop.h"
+#include "config.h"
 
 static char ini_title[] = "WinX68k";
 static int initialized = 0;

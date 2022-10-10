@@ -4,10 +4,11 @@
 // ---------------------------------------------------------------------------
 //	$fmgen-Id: opna.cpp,v 1.68 2003/06/12 14:03:44 cisc Exp $
 
-#include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <assert.h>
+
+#include "dosio.h"
 
 #include "misc.h"
 #include "opna.h"
@@ -1277,7 +1278,7 @@ bool OPNA::LoadRhythmSample(const char* path)
 
 	for (i=0; i<6; i++)
 	{
-		FILE *fp;
+		FILEH *fp;
 		uint32 fsize;
 		char buf[512] = "";
 		if (path)
@@ -1286,7 +1287,7 @@ bool OPNA::LoadRhythmSample(const char* path)
 		strncat(buf, rhythmname[i], sizeof(buf) - strlen(buf) - 1);
 		strncat(buf, ".WAV", sizeof(buf) - strlen(buf) - 1);
 
-		fp = fopen(buf, "rb");
+		fp = file_open_rb(buf);
 		if (!fp)
 		{
 			if (i != 5)
@@ -1294,7 +1295,7 @@ bool OPNA::LoadRhythmSample(const char* path)
 			if (path)
 				strncpy(buf, path, sizeof(buf));
 			strncpy(buf, "2608_RYM.WAV", sizeof(buf));
-			fp = fopen(buf, "rb");
+			fp = file_open_rb(buf);
 			if (!fp)
 				break;
 		}
@@ -1311,22 +1312,22 @@ bool OPNA::LoadRhythmSample(const char* path)
 			uint16 size;
 		} whdr;
 
-		fseek(fp, 0x10, SEEK_SET);
-		fread(&whdr, sizeof(whdr), 1, fp);
+		file_seek(fp, 0x10, FSEEK_SET);
+		file_read(fp, &whdr, sizeof(whdr));
 
 		uint8 subchunkname[4];
 		fsize = 4 + whdr.chunksize - sizeof(whdr);
 		do
 		{
-			fseek(fp, fsize, SEEK_CUR);
-			fread(&subchunkname, 4, 1, fp);
-			fread(&fsize, 4, 1, fp);
+			file_seek(fp, fsize, FSEEK_CUR);
+			file_read(fp, &subchunkname, 4);
+			file_read(fp, &fsize, 4);
 		} while (memcmp("data", subchunkname, 4));
 
 		fsize /= 2;
 		if (fsize >= 0x100000 || whdr.tag != 1 || whdr.nch != 1)
 		{
-			fclose(fp);
+			file_close(fp);
 			break;
 		}
 		fsize = Max(fsize, (1<<31)/1024);
@@ -1335,12 +1336,12 @@ bool OPNA::LoadRhythmSample(const char* path)
 		rhythm[i].sample = new int16[fsize];
 		if (!rhythm[i].sample)
 		{
-			fclose(fp);
+			file_close(fp);
 			break;
 		}
 
-		fread(rhythm[i].sample, fsize * 2, 1, fp);
-        fclose(fp);
+		file_read(fp, rhythm[i].sample, fsize * 2);
+        file_close(fp);
 
 		rhythm[i].rate = whdr.rate;
 		rhythm[i].step = rhythm[i].rate * 1024 / rate;
@@ -1992,7 +1993,7 @@ bool Y288::LoadRhythmSample(const char* path)
 
 	for (i=0; i<6; i++)
 	{
-		FILE *fp;
+		FILEH *fp;
 		uint32 fsize;
 		char buf[512] = "";
 		if (path)
@@ -2001,7 +2002,7 @@ bool Y288::LoadRhythmSample(const char* path)
 		strncat(buf, rhythmname[i], sizeof(buf) - strlen(buf) - 1);
 		strncat(buf, ".WAV", sizeof(buf) - strlen(buf) - 1);
 
-		fp = fopen(buf, "rb");
+		fp = file_open_rb(buf);
 		if (!fp)
 		{
 			if (i != 5)
@@ -2009,7 +2010,7 @@ bool Y288::LoadRhythmSample(const char* path)
 			if (path)
 				strncpy(buf, path, sizeof(buf));
 			strncpy(buf, "2608_RYM.WAV", sizeof(buf));
-			fp = fopen(buf, "rb");
+			fp = file_open_rb(buf);
 			if (!fp)
 				break;
 		}
@@ -2026,22 +2027,22 @@ bool Y288::LoadRhythmSample(const char* path)
 			uint16 size;
 		} whdr;
 
-		fseek(fp, 0x10, SEEK_SET);
-		fread(&whdr, sizeof(whdr), 1, fp);
+		file_seek(fp, 0x10, FSEEK_SET);
+		file_read(fp, &whdr, sizeof(whdr));
 
 		uint8 subchunkname[4];
 		fsize = 4 + whdr.chunksize - sizeof(whdr);
 		do
 		{
-			fseek(fp, fsize, SEEK_CUR);
-            fread(&subchunkname, 4, 1, fp);
-            fread(&fsize, 4, 1, fp);
+			file_seek(fp, fsize, FSEEK_CUR);
+            file_read(fp, &subchunkname, 4);
+            file_read(fp, &fsize, 4);
 		} while (memcmp("data", subchunkname, 4));
 
 		fsize /= 2;
 		if (fsize >= 0x100000 || whdr.tag != 1 || whdr.nch != 1)
 		{
-			fclose(fp);
+			file_close(fp);
 			break;
 		}
 		fsize = Max(fsize, (1<<31)/1024);
@@ -2050,12 +2051,12 @@ bool Y288::LoadRhythmSample(const char* path)
 		rhythm[i].sample = new int16[fsize];
 		if (!rhythm[i].sample)
 		{
-			fclose(fp);
+			file_close(fp);
 			break;
 		}
 
-		fread(rhythm[i].sample, fsize * 2, 1, fp);
-		fclose(fp);
+		file_read(fp, rhythm[i].sample, fsize * 2);
+		file_close(fp);
 
 		rhythm[i].rate = whdr.rate;
 		rhythm[i].step = rhythm[i].rate * 1024 / rate;

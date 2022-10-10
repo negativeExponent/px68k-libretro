@@ -1,6 +1,6 @@
 #include "../x11/common.h"
 
-#include "../win32api/dosio.h"
+#include "dosio.h"
 
 #include "fdc.h"
 #include "fdd.h"
@@ -55,13 +55,13 @@ void D88_Cleanup(void)
 int D88_SetFD(int drv, char *filename)
 {
 	int trk, sct;
-	void *fp;
+	FILEH *fp;
 	D88_SECTOR d88s;
 
 	strncpy(D88File[drv], filename, MAX_PATH);
 	D88File[drv][MAX_PATH - 1] = 0;
 
-	fp = file_open(D88File[drv]);
+	fp = file_open_rb(D88File[drv]);
 	if (!fp)
 	{
 		memset(D88File[drv], 0, MAX_PATH);
@@ -122,7 +122,7 @@ d88_set_error:
 int D88_Eject(int drv)
 {
 	int trk, pos;
-	void *fp;
+	FILEH *fp;
 
 	if (!D88File[drv][0])
 		return FALSE;

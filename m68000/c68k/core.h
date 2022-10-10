@@ -21,7 +21,6 @@
 #ifndef CORE_H
 #define CORE_H
 
-#include <stdio.h>
 #include <string.h>
 
 #ifndef ALIGNED
@@ -173,11 +172,11 @@ static INLINE int StateFinishHeader(FILE *fp, int offset) {
    IOCheck_struct check;
    int size = 0;
    size = ftell(fp) - offset;
-   fseek(fp, offset - 4, SEEK_SET);
+   fseek(fp, offset - 4, FSEEK_SET);
    check.done = 0;
    check.size = 0;
    ywrite(&check, (void *)&size, sizeof(size), 1, fp); // write true size
-   fseek(fp, 0, SEEK_END);
+   fseek(fp, 0, FSEEK_END);
    return (check.done == check.size) ? (size + 12) : -1;
 }
 
