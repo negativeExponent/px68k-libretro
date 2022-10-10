@@ -423,7 +423,7 @@ WARNINGS := -Wall -Wno-strict-aliasing
 FLAGS    += -D__LIBRETRO__ $(ENDIANNESS_DEFINES) $(WARNINGS) $(fpic)
 
 CXXFLAGS += $(FLAGS) $(CPU_FLAGS)
-CFLAGS   += $(FLAGS) $(CPU_FLAGS) -Werror-implicit-function-declaration
+CFLAGS   += $(FLAGS) $(CPU_FLAGS) -Werror-implicit-function-declaration -std=c89 -D_GNU_SOURCE
 
 $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
