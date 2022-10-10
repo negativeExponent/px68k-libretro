@@ -508,7 +508,7 @@ void Keyboard_KeyDown(uint32_t wp)
 	switch (wp)
 	{
 	case RETROK_UP:
-		puts("key up");
+		p6logd("key up\n");
 		if (!(JoyKeyState & JOY_DOWN))
 			JoyKeyState |= JOY_UP;
 		break;
@@ -536,7 +536,7 @@ void Keyboard_KeyDown(uint32_t wp)
 		break;
 
 	case RETROK_z:
-		puts("key z");
+		p6logd("key z\n");
 		if (Config.JoyKeyReverse)
 			JoyKeyState |= JOY_TRG2;
 		else
@@ -544,7 +544,7 @@ void Keyboard_KeyDown(uint32_t wp)
 		break;
 
 	case RETROK_x:
-		puts("key x");
+		p6logd("key x\n");
 		if (Config.JoyKeyReverse)
 			JoyKeyState |= JOY_TRG1;
 		else

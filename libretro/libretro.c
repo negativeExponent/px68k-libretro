@@ -1,12 +1,12 @@
 
 #include <ctype.h>
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <libretro.h>
 #include <string/stdstring.h>
+#include <streams/file_stream.h>
 
 #include "libretro_core_options.h"
 
@@ -123,14 +123,16 @@ void Error(const char *s)
 
 static bool file_exists(const char *path)
 {
-   FILE *dummy;
+   RFILE *dummy;
 
    if (!path || !*path)
       return false;
-   dummy = fopen(path, "rb");
+   dummy = filestream_open(path,
+      RETRO_VFS_FILE_ACCESS_READ,
+      RETRO_VFS_FILE_ACCESS_HINT_NONE);
    if (!dummy)
       return false;
-   fclose(dummy);
+   filestream_close(dummy);
    return true;
 }
 
@@ -501,13 +503,16 @@ static int loadcmdfile(char *argv)
 {
    int res = 0;
 
-   FILE *fp = fopen(argv, "r");
-
+   RFILE *fp;
+   
+   fp = filestream_open(argv,
+      RETRO_VFS_FILE_ACCESS_READ,
+      RETRO_VFS_FILE_ACCESS_HINT_NONE);
    if (fp != NULL)
    {
-      if (fgets(CMDFILE, 512, fp) != NULL)
+      if (filestream_gets(fp, CMDFILE, 512) != NULL)
          res = 1;
-      fclose(fp);
+      filestream_close(fp);
    }
 
    return res;
@@ -519,13 +524,16 @@ static bool read_m3u(const char *file)
    unsigned index = 0;
    char name[2048];
    char line[1024];
-   FILE *f = fopen(file, "r");
    unsigned i;
+   RFILE *f;
 
+   f = filestream_open(file,
+      RETRO_VFS_FILE_ACCESS_READ,
+      RETRO_VFS_FILE_ACCESS_HINT_NONE);
    if (!f)
       return false;
 
-   while (fgets(line, sizeof(line), f) && index < sizeof(disk.path) / sizeof(disk.path[0]))
+   while (filestream_gets(f, line, sizeof(line)) && index < sizeof(disk.path) / sizeof(disk.path[0]))
    {
       if (line[0] == '#')
          continue;
@@ -583,7 +591,7 @@ static bool read_m3u(const char *file)
    }
 
    disk.total_images = index;
-   fclose(f);
+   filestream_close(f);
 
    for (i = 0; i < index; i++)
    {
@@ -843,7 +851,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 void retro_set_environment(retro_environment_t cb)
 {
    int nocontent = 1;
-
+   struct retro_vfs_interface_info vfs_iface_info;
    static const struct retro_controller_description port[] = {
       { "RetroPad", RETRO_DEVICE_JOYPAD },
       { "RetroKeyboard", RETRO_DEVICE_KEYBOARD },
@@ -857,6 +865,12 @@ void retro_set_environment(retro_environment_t cb)
    };
 
    environ_cb = cb;
+
+   vfs_iface_info.required_interface_version = 1;
+   vfs_iface_info.iface                      = NULL;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
+	   filestream_vfs_init(&vfs_iface_info);
+
    cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void *)ports);
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &nocontent);
 

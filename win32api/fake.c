@@ -33,7 +33,6 @@
 #include <sys/types.h>
 
 #include <fcntl.h>
-#include <stdio.h>
 #include <stdlib.h>
 #ifdef _WIN32
 #include <direct.h>
@@ -43,6 +42,9 @@
 
 #include "windows.h"
 #include "mmsystem.h"
+
+#include "dosio.h"
+#include <streams/file_stream.h>
 
 uint32_t FAKE_GetLastError(void)
 {
@@ -55,114 +57,10 @@ BOOL SetEndOfFile(void *hFile)
 	return FALSE;
 }
 
-static int _WritePrivateProfileString_subr(
-			FILE **, long, long, const char *, const char *);
-
-BOOL WritePrivateProfileString(const char *sect, const char *key, const char *str, const char *inifile)
-{
-	char lbuf[256];
-	char newbuf[256];
-	struct stat sb;
-	FILE *fp;
-	long pos;
-	int found = 0;
-	int notfound = 0;
-	int delta;
-
-	if (stat(inifile, &sb) == 0)
-		fp = fopen(inifile, "r+");
-	else
-		fp = fopen(inifile, "w+");
-	if (!fp)
-		return FALSE;
-
-	while (!feof(fp)) {
-		fgets(lbuf, sizeof(lbuf), fp);
-		/* XXX should be case insensitive */
-		if (lbuf[0] == '['
-		    && !strncasecmp(sect, &lbuf[1], strlen(sect))
-		    && lbuf[strlen(sect) + 1] == ']') {
-			found = 1;
-			break;
-		}
-	}
-	if (feof(fp) && !found) {
-		/*
-		 * Now create new section and key.
-		 */
-		rewind(fp);
-		sprintf(newbuf, "[%s]\n", sect);
-		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
-			goto writefail;
-		sprintf(newbuf, "%s=%s\n", key, str);
-		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
-			goto writefail;
-		fclose(fp);
-		return TRUE;
-	}
-
-	pos = 0;	/* gcc happy */
-	found = 0;
-	while (!feof(fp)) {
-		pos = ftell(fp);
-		fgets(lbuf, sizeof(lbuf), fp);
-		if (lbuf[0] == '[' && strchr(lbuf, ']')) {
-			notfound = 1;
-			break;
-		}
-		/* XXX should be case insensitive */
-		if (!strncasecmp(key, lbuf, strlen(key))
-		    && lbuf[strlen(key)] == '=') {
-			found = 1;
-			sprintf(newbuf, "%s=%s\n", key, str);
-			delta = strlen(newbuf) - strlen(lbuf);
-			if (delta == 0) {
-				if (!strncasecmp(newbuf, lbuf, strlen(newbuf)))
-					break;
-				/* overwrite */
-				fseek(fp, pos, SEEK_SET);
-				if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
-					goto writefail;
-			} else if (delta > 0) {
-				if (!_WritePrivateProfileString_subr(&fp, pos,
-				    ftell(fp), newbuf, inifile))
-					goto writefail;
-			} else {
-				if (!_WritePrivateProfileString_subr(&fp, pos,
-				    ftell(fp), newbuf, inifile))
-					goto writefail;
-			}
-			break;
-		}
-	}
-	if (feof(fp) && !found) {
-		/*
-		 * Now create new key.
-		 */
-		fseek(fp, 0L, SEEK_END);
-		sprintf(newbuf, "%s=%s\n", key, str);
-		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
-			goto writefail;
-	}
-	else if (notfound) {
-		sprintf(newbuf, "%s=%s\n", key, str);
-		if (!_WritePrivateProfileString_subr(&fp, pos,
-		    ftell(fp), newbuf, inifile))
-			goto writefail;
-	}
-
-	fclose(fp);
-	return TRUE;
-
-writefail:
-	fclose(fp);
-	return FALSE;
-}
-
 /*
  * XXX: REWRITE ME!!!
  */
-static int _WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
+static int _WritePrivateProfileString_subr(RFILE **fp, long pos, long nowpos,
 		const char *buf, const char *file)
 {
 	struct stat sb;
@@ -174,20 +72,20 @@ static int _WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
 	p = (char *)malloc(sb.st_size);
 	if (!p)
 		return 1;
-	rewind(*fp);
-	if (fread(p, sb.st_size, 1, *fp) < 1)
+	file_rewind(*fp);
+	if (file_read(*fp, p, sb.st_size) < 1)
 		goto out;
-	fclose(*fp);
+	file_close(*fp);
 
-	*fp = fopen(file, "w+");
+	*fp = file_create(file);
 	if (*fp == NULL)
 		goto out;
-	if (fwrite(p, pos, 1, *fp) < 1)
+	if (file_write(*fp, p, pos) < 1)
 		goto out;
-	if (fwrite(buf, strlen(buf), 1, *fp) < 1)
+	if (file_write(*fp, buf, strlen(buf)) < 1)
 		goto out;
 	if (sb.st_size - nowpos > 0)
-		if (fwrite(p + nowpos, sb.st_size - nowpos, 1, *fp) < 1)
+		if (file_write(*fp, p + nowpos, sb.st_size - nowpos) < 1)
 			goto out;
 	free(p);
 	return 0;
@@ -195,4 +93,105 @@ static int _WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
 out:
 	free(p);
 	return 1;
+}
+
+BOOL WritePrivateProfileString(const char *sect, const char *key, const char *str, const char *inifile)
+{
+	char lbuf[256];
+	char newbuf[256];
+	struct stat sb;
+	RFILE *fp;
+	long pos;
+	int found = 0;
+	int notfound = 0;
+	int delta;
+
+	if (stat(inifile, &sb) == 0)
+		fp = file_open(inifile);
+	else
+		fp = file_create(inifile);
+	if (!fp)
+		return FALSE;
+
+	while (!file_eof(fp)) {
+		file_gets(fp, lbuf, sizeof(lbuf));
+		/* XXX should be case insensitive */
+		if (lbuf[0] == '['
+		    && !strncasecmp(sect, &lbuf[1], strlen(sect))
+		    && lbuf[strlen(sect) + 1] == ']') {
+			found = 1;
+			break;
+		}
+	}
+	if (file_eof(fp) && !found) {
+		/*
+		 * Now create new section and key.
+		 */
+		file_rewind(fp);
+		snprintf(newbuf, sizeof(newbuf), "[%s]\n", sect);
+		if (file_write(fp, newbuf, strlen(newbuf)) < 1)
+			goto writefail;
+		snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+		if (file_write(fp, newbuf, strlen(newbuf)) < 1)
+			goto writefail;
+		file_close(fp);
+		return TRUE;
+	}
+
+	pos = 0;	/* gcc happy */
+	found = 0;
+	while (!file_eof(fp)) {
+		pos = file_tell(fp);
+		file_gets(fp, lbuf, sizeof(lbuf));
+		if (lbuf[0] == '[' && strchr(lbuf, ']')) {
+			notfound = 1;
+			break;
+		}
+		/* XXX should be case insensitive */
+		if (!strncasecmp(key, lbuf, strlen(key))
+		    && lbuf[strlen(key)] == '=') {
+			found = 1;
+			snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+			delta = strlen(newbuf) - strlen(lbuf);
+			if (delta == 0) {
+				if (!strncasecmp(newbuf, lbuf, strlen(newbuf)))
+					break;
+				/* overwrite */
+				file_seek(fp, pos, FSEEK_SET);
+				if (file_write(fp, newbuf, strlen(newbuf)) < 1)
+					goto writefail;
+			} else if (delta > 0) {
+				if (!_WritePrivateProfileString_subr(&fp, pos,
+					file_tell(fp), newbuf, inifile))
+					goto writefail;
+			} else {
+				if (!_WritePrivateProfileString_subr(&fp, pos,
+					file_tell(fp), newbuf, inifile))
+					goto writefail;
+			}
+			break;
+		}
+	}
+	if (file_eof(fp) && !found) {
+		/*
+		 * Now create new key.
+		 */
+		file_seek(fp, 0L, FSEEK_END);
+		snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+		if (file_write(fp, newbuf, strlen(newbuf)) < 1)
+			goto writefail;
+	}
+	else if (notfound) {
+		snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+		if (!_WritePrivateProfileString_subr(&fp, pos,
+			file_tell(fp), newbuf, inifile))
+			goto writefail;
+	}
+
+	file_close(fp);
+	return TRUE;
+
+writefail:
+	file_close(fp);
+	return FALSE;
 }

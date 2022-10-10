@@ -122,7 +122,7 @@ static void *JumpTable[0x10000];
 #endif
 #endif
 
-static uint32_t C68k_Initialised = 0;
+static uint32_t UNUSED C68k_Initialised = 0;
 
 #endif  /* C68K_GEN */
 

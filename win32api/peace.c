@@ -30,7 +30,6 @@
 #include <sys/types.h>
 
 #include <fcntl.h>
-#include <stdio.h>
 #include <stdlib.h>
 #ifdef _WIN32
 #include <direct.h>
@@ -40,6 +39,7 @@
 
 #include "windows.h"
 
+#include "dosio.h"
 
 /*-----
  *
@@ -324,7 +324,7 @@ uint32_t GetPrivateProfileString(const char *sect, const char *key, const char *
 			 char *buf, uint32_t len, const char *inifile)
 {
 	char lbuf[256];
-	FILE *fp;
+	RFILE *fp;
 
 	if (sect == NULL
 	 || key == NULL
@@ -336,21 +336,21 @@ uint32_t GetPrivateProfileString(const char *sect, const char *key, const char *
 
 	memset(buf, 0, len);
 
-	fp = fopen(inifile, "r");
+	fp = file_open(inifile);
 	if (fp == NULL)
 		goto nofile;
-	while (!feof(fp)) {
-		fgets(lbuf, sizeof(lbuf), fp);
+	while (!file_eof(fp)) {
+		file_gets(fp, lbuf, sizeof(lbuf));
 		/* XXX should be case insensitive */
 		if (lbuf[0] == '['
 		    && !strncasecmp(sect, &lbuf[1], strlen(sect))
 		    && lbuf[strlen(sect) + 1] == ']')
 			break;
 	}
-	if (feof(fp))
+	if (file_eof(fp))
 		goto notfound;
-	while (!feof(fp)) {
-		fgets(lbuf, sizeof(lbuf), fp);
+	while (!file_eof(fp)) {
+		file_gets(fp, lbuf, sizeof(lbuf));
 		if (lbuf[0] == '[' && strchr(lbuf, ']'))
 			goto notfound;
 		/* XXX should be case insensitive */
@@ -362,7 +362,7 @@ uint32_t GetPrivateProfileString(const char *sect, const char *key, const char *
 			while (*src != '\r' && *src != '\n' && *src != '\0')
 				*dst++ = *src++;
 			*dst = '\0';
-			fclose(fp);
+			file_close(fp);
 			return strlen(buf);
 		}
 	}
@@ -370,7 +370,7 @@ notfound:
 #ifdef DEBUG
 	p6logd(("[%s]:%s not found\n", sect, key));
 #endif
-	fclose(fp);
+	file_close(fp);
 nofile:
 	strncpy(buf, defvalue, len);
 	/* not include nul */
@@ -380,28 +380,28 @@ nofile:
 uint32_t GetPrivateProfileInt(const char *sect, const char *key, int defvalue, const char *inifile)
 {
 	char lbuf[256];
-	FILE *fp;
+	RFILE *fp;
 
 	if (sect == NULL
 	 || key == NULL
 	 || inifile == NULL)
 		return 0;
 
-	fp = fopen(inifile, "r");
+	fp = file_open(inifile);
 	if (fp == NULL)
 		goto nofile;
-	while (!feof(fp)) {
-		fgets(lbuf, sizeof(lbuf), fp);
+	while (!file_eof(fp)) {
+		file_gets(fp, lbuf, sizeof(lbuf));
 		/* XXX should be case insensitive */
 		if (lbuf[0] == '['
 		    && !strncasecmp(sect, &lbuf[1], strlen(sect))
 		    && lbuf[strlen(sect) + 1] == ']')
 			break;
 	}
-	if (feof(fp))
+	if (file_eof(fp))
 		goto notfound;
-	while (!feof(fp)) {
-		fgets(lbuf, sizeof(lbuf), fp);
+	while (!file_eof(fp)) {
+		file_gets(fp, lbuf, sizeof(lbuf));
 		if (lbuf[0] == '[' && strchr(lbuf, ']'))
 			goto notfound;
 		/* XXX should be case insensitive */
@@ -409,12 +409,12 @@ uint32_t GetPrivateProfileInt(const char *sect, const char *key, int defvalue, c
 		    && lbuf[strlen(key)] == '=') {
 			int value;
 			sscanf(&lbuf[strlen(key) + 1], "%d", &value);
-			fclose(fp);
+			file_close(fp);
 			return value;
 		}
 	}
 notfound:
-	fclose(fp);
+	file_close(fp);
 nofile:
 	return defvalue;
 }
