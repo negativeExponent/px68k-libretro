@@ -44,6 +44,8 @@
 #include "windows.h"
 #include "mmsystem.h"
 
+#include <streams/file_stream.h>
+
 uint32_t FAKE_GetLastError(void)
 {
 	return NO_ERROR;
@@ -56,28 +58,33 @@ BOOL SetEndOfFile(void *hFile)
 }
 
 static int _WritePrivateProfileString_subr(
-			FILE **, long, long, const char *, const char *);
+			RFILE **, long, long, const char *, const char *);
 
 BOOL WritePrivateProfileString(const char *sect, const char *key, const char *str, const char *inifile)
 {
 	char lbuf[256];
 	char newbuf[256];
 	struct stat sb;
-	FILE *fp;
+	RFILE *fp;
 	long pos;
 	int found = 0;
 	int notfound = 0;
 	int delta;
 
 	if (stat(inifile, &sb) == 0)
-		fp = fopen(inifile, "r+");
+		fp = filestream_open(inifile,
+				RETRO_VFS_FILE_ACCESS_READ_WRITE |
+            	RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING,
+				RETRO_VFS_FILE_ACCESS_HINT_NONE);
 	else
-		fp = fopen(inifile, "w+");
+		fp = filestream_open(inifile,
+				RETRO_VFS_FILE_ACCESS_READ_WRITE,
+				RETRO_VFS_FILE_ACCESS_HINT_NONE);
 	if (!fp)
 		return FALSE;
 
-	while (!feof(fp)) {
-		fgets(lbuf, sizeof(lbuf), fp);
+	while (!filestream_eof(fp)) {
+		filestream_gets(fp, lbuf, sizeof(lbuf));
 		/* XXX should be case insensitive */
 		if (lbuf[0] == '['
 		    && !strncasecmp(sect, &lbuf[1], strlen(sect))
@@ -86,26 +93,26 @@ BOOL WritePrivateProfileString(const char *sect, const char *key, const char *st
 			break;
 		}
 	}
-	if (feof(fp) && !found) {
+	if (filestream_eof(fp) && !found) {
 		/*
 		 * Now create new section and key.
 		 */
-		rewind(fp);
+		filestream_seek(fp, 0, SEEK_SET);
 		sprintf(newbuf, "[%s]\n", sect);
-		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
+		if (filestream_write(fp, newbuf, strlen(newbuf)) < 1)
 			goto writefail;
 		sprintf(newbuf, "%s=%s\n", key, str);
-		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
+		if (filestream_write(fp, newbuf, strlen(newbuf)) < 1)
 			goto writefail;
-		fclose(fp);
+		filestream_close(fp);
 		return TRUE;
 	}
 
 	pos = 0;	/* gcc happy */
 	found = 0;
-	while (!feof(fp)) {
-		pos = ftell(fp);
-		fgets(lbuf, sizeof(lbuf), fp);
+	while (!filestream_eof(fp)) {
+		pos = filestream_tell(fp);
+		filestream_gets(fp, lbuf, sizeof(lbuf));
 		if (lbuf[0] == '[' && strchr(lbuf, ']')) {
 			notfound = 1;
 			break;
@@ -120,49 +127,49 @@ BOOL WritePrivateProfileString(const char *sect, const char *key, const char *st
 				if (!strncasecmp(newbuf, lbuf, strlen(newbuf)))
 					break;
 				/* overwrite */
-				fseek(fp, pos, SEEK_SET);
-				if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
+				filestream_seek(fp, pos, SEEK_SET);
+				if (filestream_write(fp, newbuf, strlen(newbuf)) < 1)
 					goto writefail;
 			} else if (delta > 0) {
 				if (!_WritePrivateProfileString_subr(&fp, pos,
-				    ftell(fp), newbuf, inifile))
+					filestream_tell(fp), newbuf, inifile))
 					goto writefail;
 			} else {
 				if (!_WritePrivateProfileString_subr(&fp, pos,
-				    ftell(fp), newbuf, inifile))
+					filestream_tell(fp), newbuf, inifile))
 					goto writefail;
 			}
 			break;
 		}
 	}
-	if (feof(fp) && !found) {
+	if (filestream_eof(fp) && !found) {
 		/*
 		 * Now create new key.
 		 */
-		fseek(fp, 0L, SEEK_END);
+		filestream_seek(fp, 0L, SEEK_END);
 		sprintf(newbuf, "%s=%s\n", key, str);
-		if (fwrite(newbuf, strlen(newbuf), 1, fp) < 1)
+		if (filestream_write(fp, newbuf, strlen(newbuf)) < 1)
 			goto writefail;
 	}
 	else if (notfound) {
 		sprintf(newbuf, "%s=%s\n", key, str);
 		if (!_WritePrivateProfileString_subr(&fp, pos,
-		    ftell(fp), newbuf, inifile))
+			filestream_tell(fp), newbuf, inifile))
 			goto writefail;
 	}
 
-	fclose(fp);
+	filestream_close(fp);
 	return TRUE;
 
 writefail:
-	fclose(fp);
+	filestream_close(fp);
 	return FALSE;
 }
 
 /*
  * XXX: REWRITE ME!!!
  */
-static int _WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
+static int _WritePrivateProfileString_subr(RFILE **fp, long pos, long nowpos,
 		const char *buf, const char *file)
 {
 	struct stat sb;
@@ -174,20 +181,22 @@ static int _WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
 	p = (char *)malloc(sb.st_size);
 	if (!p)
 		return 1;
-	rewind(*fp);
-	if (fread(p, sb.st_size, 1, *fp) < 1)
+	filestream_seek(*fp, 0, SEEK_SET);
+	if (filestream_read(*fp, p, sb.st_size) < 1)
 		goto out;
-	fclose(*fp);
+	filestream_close(*fp);
 
-	*fp = fopen(file, "w+");
+	*fp = filestream_open(file,
+				RETRO_VFS_FILE_ACCESS_READ_WRITE,
+				RETRO_VFS_FILE_ACCESS_HINT_NONE);
 	if (*fp == NULL)
 		goto out;
-	if (fwrite(p, pos, 1, *fp) < 1)
+	if (filestream_write(*fp, p, pos) < 1)
 		goto out;
-	if (fwrite(buf, strlen(buf), 1, *fp) < 1)
+	if (filestream_write(*fp, buf, strlen(buf)) < 1)
 		goto out;
 	if (sb.st_size - nowpos > 0)
-		if (fwrite(p + nowpos, sb.st_size - nowpos, 1, *fp) < 1)
+		if (filestream_write(*fp, p + nowpos, sb.st_size - nowpos) < 1)
 			goto out;
 	free(p);
 	return 0;
