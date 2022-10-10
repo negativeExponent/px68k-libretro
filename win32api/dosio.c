@@ -33,6 +33,9 @@
 #include <sys/param.h>
 #include <time.h>
 
+#include <string/stdstring.h>
+#include <streams/file_stream.h>
+
 #include "../x11/common.h"
 #include "dosio.h"
 
@@ -41,129 +44,67 @@ extern char slash;
 static char	curpath[MAX_PATH] = "";
 static char *curfilep = curpath;
 
-void dosio_init(void)
+void dosio_init(void) {}
+void dosio_term(void) {}
+
+RFILE *file_open(char *filename)
 {
+	RFILE *ret;
 
-	/* Nothing to do. */
-}
-
-void dosio_term(void)
-{
-
-	/* Nothing to do. */
-}
-
-/* ファイル操作 */
-void *file_open(char *filename)
-{
-	void *ret;
-
-	ret = CreateFile(filename, GENERIC_READ | GENERIC_WRITE,
-	    0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (ret == INVALID_HANDLE_VALUE) {
-		ret = CreateFile(filename, GENERIC_READ,
-		    0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (ret == INVALID_HANDLE_VALUE)
-			return NULL;
-	}
-	return ret;
-}
-
-void *file_create(char *filename)
-{
-	void *ret;
-
-	ret = CreateFile(filename, GENERIC_READ | GENERIC_WRITE,
-	    0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (ret == INVALID_HANDLE_VALUE)
+	if (string_is_empty(filename))
 		return NULL;
-	return ret;
-}
 
-uint32_t file_seek(void *handle, long pointer, int16_t mode)
-{
-	return SetFilePointer(handle, pointer, 0, mode);
-}
+	ret = filestream_open(filename,
+			RETRO_VFS_FILE_ACCESS_READ_WRITE |
+        	RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING,
+			RETRO_VFS_FILE_ACCESS_HINT_NONE);
 
-uint32_t file_read(void *handle, void *data, uint32_t length)
-{
-	uint32_t	readsize;
-
-	if (ReadFile(handle, data, length, &readsize, NULL) == 0)
-		return 0;
-	return readsize;
-}
-
-uint32_t file_write(void *handle, void *data, uint32_t length)
-{
-	uint32_t	writesize;
-
-	if (WriteFile(handle, data, length, &writesize, NULL) == 0)
-		return 0;
-	return writesize;
-}
-
-uint32_t file_zeroclr(void *handle, uint32_t length)
-{
-	char	buf[256];
-	uint32_t	size;
-	uint32_t	wsize;
-	uint32_t	ret = 0;
-
-	memset(buf, 0, sizeof(buf));
-	while (length > 0) {
-		wsize = (length >= sizeof(buf)) ? sizeof(buf) : length;
-
-		size = file_write(handle, buf, wsize);
-		if (size == (uint32_t)-1)
-			return -1;
-
-		ret += size;
-		if (size != wsize)
-			break;
-		length -= wsize;
+	if (ret == NULL)
+	{
+		/* open file in read-only mode */
+		ret = filestream_open(filename,
+				RETRO_VFS_FILE_ACCESS_READ,
+				RETRO_VFS_FILE_ACCESS_HINT_NONE);
 	}
-	return ret;
-}
-
-uint16_t file_lineread(void *handle, void *data, uint16_t length)
-{
-	char *p = (char *)data;
-	uint32_t	readsize;
-	uint32_t	pos;
-	uint16_t	ret = 0;
-
-	if ((length == 0) || ((pos = file_seek(handle, 0, 1)) == (uint32_t)-1))
-		return 0;
-
-	memset(data, 0, length);
-	if (ReadFile(handle, data, length-1, &readsize, NULL) == 0)
-		return 0;
-
-	while (*p) {
-		ret++;
-		pos++;
-		if ((*p == 0x0d) || (*p == 0x0a)) {
-			break;
-		}
-		p++;
-	}
-	*p = '\0';
-
-	file_seek(handle, pos, 0);
 
 	return ret;
 }
 
-int16_t file_close(void *handle)
+RFILE *file_create(char *filename)
 {
-	FAKE_CloseHandle(handle);
+	RFILE *ret;
+
+	if (string_is_empty(filename))
+		return NULL;
+
+	ret = filestream_open(filename,
+			RETRO_VFS_FILE_ACCESS_READ_WRITE,
+			RETRO_VFS_FILE_ACCESS_HINT_NONE);
+	return ret;
+}
+
+/**
+ * Returns 0 on success
+ */
+int64_t file_seek(RFILE *handle, int64_t pointer, int mode)
+{
+	return filestream_seek(handle, pointer, mode);
+}
+
+int64_t file_read(RFILE *handle, void *data, int64_t length)
+{
+	return filestream_read(handle, data, length);
+}
+
+int64_t file_write(RFILE *handle, void *data, int64_t length)
+{
+	return filestream_write(handle, data, length);
+}
+
+int file_close(RFILE *handle)
+{
+	filestream_close(handle);
 	return 0;
-}
-
-int16_t file_attr(char *filename)
-{
-	return (int16_t)GetFileAttributes(filename);
 }
 
 /*
@@ -183,22 +124,16 @@ char *file_getcd(char *filename)
 	return curpath;
 }
 
-void *file_open_c(char *filename)
+RFILE *file_open_c(char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_open(curpath);
 }
 
-void *file_create_c(char *filename)
+RFILE *file_create_c(char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_create(curpath);
-}
-
-int16_t file_attr_c(char *filename)
-{
-	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
-	return file_attr(curpath);
 }
 
 int file_getftype(char *filename)

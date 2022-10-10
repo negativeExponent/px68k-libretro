@@ -31,6 +31,8 @@
 #ifndef __NP2_DOSIO_H__
 #define __NP2_DOSIO_H__
 
+#include <streams/file_stream.h>
+
 #define FSEEK_SET 0
 #define FSEEK_CUR 1
 #define FSEEK_END 2
@@ -42,21 +44,17 @@ extern "C"
 	void dosio_init(void);
 	void dosio_term(void);
 
-	void *file_open(char *filename);
-	void *file_create(char *filename);
-	uint32_t file_seek(void *handle, long pointer, int16_t mode);
-	uint32_t file_read(void *handle, void *data, uint32_t length);
-	uint32_t file_write(void *handle, void *data, uint32_t length);
-	uint32_t file_zeroclr(void *handle, uint32_t length);
-	uint16_t file_lineread(void *handle, void *data, uint16_t length);
-	int16_t file_close(void *handle);
-	int16_t file_attr(char *filename);
+	RFILE *file_open(char *filename);
+	RFILE *file_create(char *filename);
+	int64_t file_seek(RFILE *handle, int64_t pointer, int mode);
+	int64_t file_read(RFILE *handle, void *data, int64_t length);
+	int64_t file_write(RFILE *handle, void *data, int64_t length);
+	int file_close(RFILE *handle);
 
 	void file_setcd(char *exename);
 	char *file_getcd(char *filename);
-	void *file_open_c(char *filename);
-	void *file_create_c(char *filename);
-	int16_t file_attr_c(char *filename);
+	RFILE *file_open_c(char *filename);
+	RFILE *file_create_c(char *filename);
 
 	int file_getftype(char *filename);
 

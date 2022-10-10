@@ -7,6 +7,7 @@
 
 #include <libretro.h>
 #include <string/stdstring.h>
+#include <streams/file_stream.h>
 
 #include "libretro_core_options.h"
 
@@ -843,7 +844,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 void retro_set_environment(retro_environment_t cb)
 {
    int nocontent = 1;
-
+   struct retro_vfs_interface_info vfs_iface_info;
    static const struct retro_controller_description port[] = {
       { "RetroPad", RETRO_DEVICE_JOYPAD },
       { "RetroKeyboard", RETRO_DEVICE_KEYBOARD },
@@ -857,6 +858,12 @@ void retro_set_environment(retro_environment_t cb)
    };
 
    environ_cb = cb;
+
+   vfs_iface_info.required_interface_version = 1;
+   vfs_iface_info.iface                      = NULL;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
+	   filestream_vfs_init(&vfs_iface_info);
+
    cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void *)ports);
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &nocontent);
 

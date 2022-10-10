@@ -641,7 +641,7 @@ int WinUI_Menu(int first)
 				{
 					mfl.y++;
 #ifdef DEBUG
-					printf("mfl.y %d\n", mfl.y);
+					p6logd("mfl.y %d\n", mfl.y);
 #endif
 				}
 				mfile_redraw = 1;

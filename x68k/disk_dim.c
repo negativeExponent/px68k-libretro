@@ -65,7 +65,7 @@ void DIM_Cleanup(void)
 
 int DIM_SetFD(int drv, char *filename)
 {
-	void *fp;
+	RFILE *fp;
 	DIM_HEADER *dh;
 	uint32_t i, len;
 	uint8_t *p;
@@ -122,7 +122,7 @@ dim_set_error:
 
 int DIM_Eject(int drv)
 {
-	void *fp;
+	RFILE *fp;
 	DIM_HEADER *dh;
 	uint32_t i, len;
 	uint8_t *p;
