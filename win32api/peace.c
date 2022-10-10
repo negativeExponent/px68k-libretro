@@ -30,7 +30,6 @@
 #include <sys/types.h>
 
 #include <fcntl.h>
-#include <stdio.h>
 #include <stdlib.h>
 #ifdef _WIN32
 #include <direct.h>
