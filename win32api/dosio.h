@@ -31,9 +31,13 @@
 #ifndef __NP2_DOSIO_H__
 #define __NP2_DOSIO_H__
 
-#define FSEEK_SET 0
-#define FSEEK_CUR 1
-#define FSEEK_END 2
+#include <streams/file_stream.h>
+
+typedef RFILE *		FILEH;
+
+#define FSEEK_SET 	0
+#define FSEEK_CUR 	1
+#define FSEEK_END 	2
 
 #ifdef __cplusplus
 extern "C"
@@ -42,38 +46,40 @@ extern "C"
 	void dosio_init(void);
 	void dosio_term(void);
 
-	void *file_open(char *filename);
-	void *file_create(char *filename);
-	uint32_t file_seek(void *handle, long pointer, int16_t mode);
-	uint32_t file_read(void *handle, void *data, uint32_t length);
-	uint32_t file_write(void *handle, void *data, uint32_t length);
-	uint32_t file_zeroclr(void *handle, uint32_t length);
-	uint16_t file_lineread(void *handle, void *data, uint16_t length);
-	int16_t file_close(void *handle);
-	int16_t file_attr(char *filename);
+	FILEH	file_open(char *filename);
+	FILEH	file_open_rb(char *filename);
+	FILEH	file_create(char *filename);
+	char 	*file_gets(FILEH handle, char *buffer, size_t length);
+	int64_t file_seek(FILEH handle, int64_t offset, int origin);
+	int64_t file_read(FILEH handle, void *buffer, int64_t length);
+	int64_t file_write(FILEH handle, void *buffer, int64_t length);
+	int64_t file_tell(FILEH handle);
+	void 	file_rewind(FILEH handle);
+	int 	file_eof(FILEH handle);
+	int 	file_close(FILEH handle);
 
-	void file_setcd(char *exename);
-	char *file_getcd(char *filename);
-	void *file_open_c(char *filename);
-	void *file_create_c(char *filename);
-	int16_t file_attr_c(char *filename);
+	void 	file_setcd(char *exename);
+	char 	*file_getcd(char *filename);
+	FILEH	file_open_c(char *filename);
+	FILEH	file_open_rb_c(char *filename);
+	FILEH	file_create_c(char *filename);
 
-	int file_getftype(char *filename);
+	int 	file_getftype(char *filename);
 
-	void dosdateset(uint8_t *dat);
-	void dostimeset(uint8_t *dat);
+	void 	dosdateset(uint8_t *dat);
+	void 	dostimeset(uint8_t *dat);
 
-	char *getFileName(char *filename);
-	void cutFileName(char *filename);
-	char *getExtName(char *filename);
-	void cutExtName(char *filename);
-	void plusyen(char *str, int len);
-	void cutyen(char *str);
+	char 	*getFileName(char *filename);
+	void 	cutFileName(char *filename);
+	char 	*getExtName(char *filename);
+	void 	cutExtName(char *filename);
+	void 	plusyen(char *str, int len);
+	void 	cutyen(char *str);
 
-	int kanji1st(char *str, int pos);
-	int ex_a2i(char *str, int min, int max);
+	int 	kanji1st(char *str, int pos);
+	int 	ex_a2i(char *str, int min, int max);
 
-	void fname_mix(char *str, char *mix, int size);
+	void 	fname_mix(char *str, char *mix, int size);
 
 #ifdef __cplusplus
 };

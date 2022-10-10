@@ -125,14 +125,14 @@ static int WinX68k_LoadROMs(void)
 	static const char *BIOSFILE[]   = { "iplrom.dat", "iplrom30.dat", "iplromco.dat", "iplromxv.dat" };
 	static const char FONTFILE[]    = "cgrom.dat";
 	static const char FONTFILETMP[] = "cgrom.tmp";
-	void *fp;
+	FILEH fp;
 	uint8_t tmp;
 	int i;
 
 	fp = NULL;
 	for (i = 0; i < NELEMENTS(BIOSFILE); ++i)
 	{
-		fp = file_open_c((char *)BIOSFILE[i]);
+		fp = file_open_rb_c((char *)BIOSFILE[i]);
 		if (fp) break;
 	}
 
@@ -156,11 +156,11 @@ static int WinX68k_LoadROMs(void)
 		IPL[i + 1] = tmp;
 	}
 
-	fp = file_open_c((char *)FONTFILE);
+	fp = file_open_rb_c((char *)FONTFILE);
 	if (fp == 0)
 	{
 		/* cgrom.tmp present? */
-		fp = file_open_c((char *)FONTFILETMP);
+		fp = file_open_rb_c((char *)FONTFILETMP);
 		if (fp == 0)
 		{
 			p6logd("Font ROM image can't be found.\n");

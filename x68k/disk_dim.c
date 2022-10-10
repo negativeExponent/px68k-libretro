@@ -65,7 +65,7 @@ void DIM_Cleanup(void)
 
 int DIM_SetFD(int drv, char *filename)
 {
-	void *fp;
+	FILEH fp;
 	DIM_HEADER *dh;
 	uint32_t i, len;
 	uint8_t *p;
@@ -77,7 +77,7 @@ int DIM_SetFD(int drv, char *filename)
 	if (!DIMImg[drv])
 		return FALSE;
 	memset(DIMImg[drv], 0xe5, 1024 * 9 * 170 + sizeof(DIM_HEADER));
-	fp = file_open(DIMFile[drv]);
+	fp = file_open_rb(DIMFile[drv]);
 	if (!fp)
 	{
 		memset(DIMFile[drv], 0, MAX_PATH);
@@ -122,7 +122,7 @@ dim_set_error:
 
 int DIM_Eject(int drv)
 {
-	void *fp;
+	FILEH fp;
 	DIM_HEADER *dh;
 	uint32_t i, len;
 	uint8_t *p;

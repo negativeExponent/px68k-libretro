@@ -33,6 +33,10 @@
 #include <sys/param.h>
 #include <time.h>
 
+#include <file/file_path.h>
+#include <string/stdstring.h>
+#include <streams/file_stream.h>
+
 #include "../x11/common.h"
 #include "dosio.h"
 
@@ -41,133 +45,114 @@ extern char slash;
 static char	curpath[MAX_PATH] = "";
 static char *curfilep = curpath;
 
-void dosio_init(void)
-{
+void dosio_init(void) {}
+void dosio_term(void) {}
 
-	/* Nothing to do. */
+/**
+ * Open a file for both reading and writting ("rb+").
+ * The file must exist.
+ */
+FILEH file_open(char *filename)
+{
+	if (string_is_empty(filename)) return NULL;
+	if (path_is_directory(filename)) return NULL;
+
+	return filestream_open(filename,
+		RETRO_VFS_FILE_ACCESS_READ_WRITE |
+		RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING,
+		RETRO_VFS_FILE_ACCESS_HINT_NONE);
 }
 
-void dosio_term(void)
+/**
+ * Open a file for reading ("rb").
+ * The file must exist.
+ */
+FILEH file_open_rb(char *filename)
 {
+	if (string_is_empty(filename)) return NULL;
+	if (path_is_directory(filename)) return NULL;
 
-	/* Nothing to do. */
+	return filestream_open(filename,
+		RETRO_VFS_FILE_ACCESS_READ,
+		RETRO_VFS_FILE_ACCESS_HINT_NONE);
 }
 
-/* ファイル操作 */
-void *file_open(char *filename)
+/**
+ * Creates and empty file for and writing ("wb+")
+ * If a file with the same name already exists, its content
+ * is erased and the file is considered as a new empty file.
+ */
+FILEH file_create(char *filename)
 {
-	void *ret;
+	if (string_is_empty(filename)) return NULL;
+	if (path_is_directory(filename)) return NULL;
 
-	ret = CreateFile(filename, GENERIC_READ | GENERIC_WRITE,
-	    0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (ret == INVALID_HANDLE_VALUE) {
-		ret = CreateFile(filename, GENERIC_READ,
-		    0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (ret == INVALID_HANDLE_VALUE)
-			return NULL;
+	return filestream_open(filename,
+		RETRO_VFS_FILE_ACCESS_READ_WRITE,
+		RETRO_VFS_FILE_ACCESS_HINT_NONE);
+}
+
+/**
+ * Returns 0 on success
+ */
+int64_t file_seek(FILEH handle, int64_t offset, int origin)
+{
+	int seek_position = -1;
+
+	switch (origin)
+	{
+	case FSEEK_SET:
+		seek_position = RETRO_VFS_SEEK_POSITION_START;
+		break;
+	case FSEEK_CUR:
+		seek_position = RETRO_VFS_SEEK_POSITION_CURRENT;
+		break;
+	case FSEEK_END:
+		seek_position = RETRO_VFS_SEEK_POSITION_END;
+		break;
 	}
-	return ret;
+
+	return filestream_seek(handle, offset, seek_position);
 }
 
-void *file_create(char *filename)
+int64_t file_read(FILEH handle, void *buffer, int64_t length)
 {
-	void *ret;
-
-	ret = CreateFile(filename, GENERIC_READ | GENERIC_WRITE,
-	    0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (ret == INVALID_HANDLE_VALUE)
-		return NULL;
-	return ret;
+	return filestream_read(handle, buffer, length);
 }
 
-uint32_t file_seek(void *handle, long pointer, int16_t mode)
+int64_t file_write(FILEH handle, void *buffer, int64_t length)
 {
-	return SetFilePointer(handle, pointer, 0, mode);
+	return filestream_write(handle, buffer, length);
 }
 
-uint32_t file_read(void *handle, void *data, uint32_t length)
+char *file_gets(FILEH handle, char *buffer, size_t length)
 {
-	uint32_t	readsize;
-
-	if (ReadFile(handle, data, length, &readsize, NULL) == 0)
-		return 0;
-	return readsize;
+	return filestream_gets(handle, buffer, length);
 }
 
-uint32_t file_write(void *handle, void *data, uint32_t length)
+int64_t file_tell(FILEH handle)
 {
-	uint32_t	writesize;
-
-	if (WriteFile(handle, data, length, &writesize, NULL) == 0)
-		return 0;
-	return writesize;
+	return filestream_tell(handle);
 }
 
-uint32_t file_zeroclr(void *handle, uint32_t length)
+void file_rewind(FILEH handle)
 {
-	char	buf[256];
-	uint32_t	size;
-	uint32_t	wsize;
-	uint32_t	ret = 0;
-
-	memset(buf, 0, sizeof(buf));
-	while (length > 0) {
-		wsize = (length >= sizeof(buf)) ? sizeof(buf) : length;
-
-		size = file_write(handle, buf, wsize);
-		if (size == (uint32_t)-1)
-			return -1;
-
-		ret += size;
-		if (size != wsize)
-			break;
-		length -= wsize;
-	}
-	return ret;
+	filestream_rewind(handle);
 }
 
-uint16_t file_lineread(void *handle, void *data, uint16_t length)
+int file_eof(FILEH handle)
 {
-	char *p = (char *)data;
-	uint32_t	readsize;
-	uint32_t	pos;
-	uint16_t	ret = 0;
-
-	if ((length == 0) || ((pos = file_seek(handle, 0, 1)) == (uint32_t)-1))
-		return 0;
-
-	memset(data, 0, length);
-	if (ReadFile(handle, data, length-1, &readsize, NULL) == 0)
-		return 0;
-
-	while (*p) {
-		ret++;
-		pos++;
-		if ((*p == 0x0d) || (*p == 0x0a)) {
-			break;
-		}
-		p++;
-	}
-	*p = '\0';
-
-	file_seek(handle, pos, 0);
-
-	return ret;
+	return filestream_eof(handle);
 }
 
-int16_t file_close(void *handle)
+int file_close(FILEH handle)
 {
-	FAKE_CloseHandle(handle);
+	filestream_close(handle);
 	return 0;
 }
 
-int16_t file_attr(char *filename)
-{
-	return (int16_t)GetFileAttributes(filename);
-}
-
 /*
- * カレントファイル操作
+ * Sets a default path for current file operation
  */
 void file_setcd(char *exename)
 {
@@ -183,22 +168,38 @@ char *file_getcd(char *filename)
 	return curpath;
 }
 
-void *file_open_c(char *filename)
+/**
+ * Open a file for both reading and writing ("rb+")
+ * from a path provided from file_setcd().
+ * The file must exist.
+ */
+FILEH file_open_c(char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_open(curpath);
 }
 
-void *file_create_c(char *filename)
+/**
+ * Open a file for reading ("rb")
+ * from a path provided from file_setcd().
+ * The file must exist.
+ */
+FILEH file_open_rb_c(char *filename)
+{
+	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
+	return file_open_rb(curpath);
+}
+
+/**
+ * Creates and empty file for and writing ("wb+")
+ * from a path provided from file_setcd().
+ * If a file with the same name already exists, its content
+ * is erased and the file is considered as a new empty file.
+ */
+FILEH file_create_c(char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_create(curpath);
-}
-
-int16_t file_attr_c(char *filename)
-{
-	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
-	return file_attr(curpath);
 }
 
 int file_getftype(char *filename)

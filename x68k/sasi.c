@@ -71,16 +71,16 @@ void SASI_Init(void)
 /* し−く（リード時）*/
 static int SASI_Seek(void)
 {
-	void *fp;
+	FILEH fp;
 
 	memset(SASI_Buf, 0, 256);
-	fp = file_open(Config.HDImage[SASI_Device * 2 + SASI_Unit]);
+	fp = file_open_rb(Config.HDImage[SASI_Device * 2 + SASI_Unit]);
 	if (!fp)
 	{
 		memset(SASI_Buf, 0, 256);
 		return -1;
 	}
-	if (file_seek(fp, SASI_Sector << 8, FSEEK_SET) != (SASI_Sector << 8))
+	if (file_seek(fp, SASI_Sector << 8, FSEEK_SET) != 0)
 	{
 		file_close(fp);
 		return 0;
@@ -100,12 +100,12 @@ static int SASI_Seek(void)
  */
 static int SASI_Flush(void)
 {
-	void *fp;
+	FILEH fp;
 
 	fp = file_open(Config.HDImage[SASI_Device * 2 + SASI_Unit]);
 	if (!fp)
 		return -1;
-	if (file_seek(fp, SASI_Sector << 8, FSEEK_SET) != (SASI_Sector << 8))
+	if (file_seek(fp, SASI_Sector << 8, FSEEK_SET) != 0)
 	{
 		file_close(fp);
 		return 0;

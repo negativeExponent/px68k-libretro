@@ -28,6 +28,7 @@
  * -------------------------------------------------------------------------- */
 
 #include <sys/stat.h>
+#include <stdio.h>
 
 #include "common.h"
 #include "prop.h"
