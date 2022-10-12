@@ -230,11 +230,9 @@ static int WinX68k_Init(void)
 	if (!MEM)
 	{
 		/* try to provide a minimum ram size (2MB) */
-		ram_size_override = Config.ramSize;
-		Config.ramSize    = ram_size_override;
-
-		MEM_SIZE = Config.ramSize * 0x100000;
-		MEM      = (uint8_t *)malloc(Config.ramSize * MEM_SIZE);
+		ram_size_override = 2;
+		MEM_SIZE = ram_size_override * 0x100000;
+		MEM      = (uint8_t *)malloc(MEM_SIZE);
 	}
 
 	if (MEM)
