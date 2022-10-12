@@ -22,6 +22,9 @@ void SRAM_SetMem(uint16_t adr, uint8_t val)
 	}
 }
 
+/**
+ * Set RAM size (in MB)
+ */
 void SRAM_SetRAMSize(int size)
 {
 	if ((SRAM[0x09 ^ 1] >> 4) == size)
