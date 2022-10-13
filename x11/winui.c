@@ -43,6 +43,8 @@
 #include "winui.h"
 #include "winx68k.h"
 
+#include <file/file_path.h>
+
 uint8_t Debug_Text = 1, Debug_Grp = 1, Debug_Sp = 1;
 
 char filepath[MAX_PATH] = ".";
@@ -58,6 +60,8 @@ struct menu_flist mfl;
 #define MENU_WINDOW 7
 
 int mval_y[] = { 0, 0, 0, 0, 0 };
+
+extern void plusyen(char *str, int len);
 
 enum menu_id
 {
@@ -123,7 +127,8 @@ int WinUI_get_drv_num(int key)
 
 static void menu_hwjoy_print(int v)
 {
-	/*if (v <= 1) {
+#if 0
+	if (v <= 1) {
 	    sprintf(menu_items[M_HJS][v], "Axis%d(%s): %d",
 	        v,
 	        (v == 0)? "Left/Right" : "Up/Down",
@@ -134,7 +139,8 @@ static void menu_hwjoy_print(int v)
 	    sprintf(menu_items[M_HJS][v], "Button%d: %d",
 	        v - 3,
 	        Config.HwJoyBtn[v - 3]);
-	}*/
+	}
+#endif
 }
 
 /******************************************************************************
@@ -156,9 +162,14 @@ void WinUI_Init(void)
 #endif
 
 	if (filepath[0] != 0)
+	{
 		strcpy(cur_dir_str, filepath);
+		plusyen(cur_dir_str, sizeof(cur_dir_str));
+	}
 	else
+	{
 		strcpy(cur_dir_str, CUR_DIR_STR);
+	}
 
 	cur_dir_slen = strlen(cur_dir_str);
 
