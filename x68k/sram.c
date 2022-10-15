@@ -107,7 +107,7 @@ void SRAM_Cleanup(void)
 		SRAM[i + 1] = tmp;
 	}
 
-	fp = file_open_rb_c(SRAMFILE);
+	fp = file_open_c(SRAMFILE);
 	if (!fp)
 		fp = file_create_c(SRAMFILE);
 	if (fp)
