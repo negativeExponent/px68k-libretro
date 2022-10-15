@@ -104,13 +104,12 @@ void C68k_Set_IRQ(c68k_struc *CPU, int32_t line, int32_t state)
 	else
 	{
 		CPU->IRQLine = line;
+		if (C68K.ICount)
+		{                                   /* 多重割り込み時（CARAT）*/
+			C68K.ICountBk += C68K.ICount;   /* 強制的に割り込みチェックをさせる */
+			C68K.ICount = 0;                /* 苦肉の策 ^^; */
+		}
 		CPU->HaltState = 0;
-	}
-
-	if (C68K.ICount)
-	{                                   /* 多重割り込み時（CARAT）*/
-		C68K.ICountBk += C68K.ICount;   /* 強制的に割り込みチェックをさせる */
-		C68K.ICount = 0;                /* 苦肉の策 ^^; */
 	}
 }
 

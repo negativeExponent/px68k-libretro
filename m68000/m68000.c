@@ -192,7 +192,7 @@ void m68000_set_irq_line(int irqline)
 #if defined(HAVE_CYCLONE)
 	m68k.irq = irqline;
 #elif defined(HAVE_M68000)
-	C68k_Set_IRQ(&C68K, irqline, (irqline > 0 ) ? HOLD_LINE : CLEAR_LINE);
+	C68k_Set_IRQ(&C68K, irqline, (irqline <= 0) ? CLEAR_LINE : HOLD_LINE);
 #elif defined(HAVE_C68K)
 	C68k_Set_IRQ(&C68K, irqline);
 #elif defined(HAVE_MUSASHI)
