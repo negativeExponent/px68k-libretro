@@ -43,8 +43,6 @@
 #include "winui.h"
 #include "winx68k.h"
 
-#include <file/file_path.h>
-
 uint8_t Debug_Text = 1, Debug_Grp = 1, Debug_Sp = 1;
 
 char filepath[MAX_PATH] = ".";
@@ -162,15 +160,11 @@ void WinUI_Init(void)
 #endif
 
 	if (filepath[0] != 0)
-	{
 		strcpy(cur_dir_str, filepath);
-		plusyen(cur_dir_str, sizeof(cur_dir_str));
-	}
 	else
-	{
 		strcpy(cur_dir_str, CUR_DIR_STR);
-	}
 
+	plusyen(cur_dir_str, sizeof(cur_dir_str));
 	cur_dir_slen = strlen(cur_dir_str);
 
 #ifdef DEBUG
