@@ -94,7 +94,7 @@ int D88_SetFD(int drv, char *filename)
 					goto d88_set_error;
 				if (sct)
 				{
-					oldsi->next = si;
+					if (oldsi) oldsi->next = si;
 				}
 				else
 				{
@@ -104,8 +104,7 @@ int D88_SetFD(int drv, char *filename)
 				if (file_read(fp, ((uint8_t *)si) + sizeof(D88_SECTINFO), d88s.size) != d88s.size)
 					goto d88_set_error;
 				si->next = 0;
-				if (oldsi)
-					oldsi = si;
+				oldsi = si;
 			}
 		}
 	}
