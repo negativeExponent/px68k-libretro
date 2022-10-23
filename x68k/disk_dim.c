@@ -7,6 +7,10 @@
 #include "disk_dim.h"
 
 /*
+	22-10-24
+		https://pc98.org/main.html
+		- respect header trackflag instead of overriding it,
+		prevents unnecessary resizing upon eject or saving of image file
 	22-10-08
 		-add header identifier check
 		-prevent image corruption when loading invalid or unknown headers
@@ -50,6 +54,7 @@ void DIM_Init(void)
 	for (drv = 0; drv < 4; drv++)
 	{
 		DIMCur[drv] = 0;
+		DIMTrk[drv] = 0;
 		DIMImg[drv] = 0;
 		memset(DIMFile[drv], 0, MAX_PATH);
 	}
@@ -108,8 +113,6 @@ int DIM_SetFD(int drv, char *filename)
 		p += len;
 	}
 	file_close(fp);
-	if (!dh->overtrack)
-		memset(dh->trkflag, 1, 170);
 	return TRUE;
 
 dim_set_error:
@@ -268,6 +271,7 @@ static int GetPos(int drv, FDCID *id)
 		ret = 0;
 		break;
 	}
+
 	return ret;
 }
 
