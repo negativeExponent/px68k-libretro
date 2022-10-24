@@ -46,7 +46,7 @@ extern "C"
 	struct DIRH
 	{
 		struct RDIR *dir;
-		char *d_name;
+		const char *d_name;
 	};
 
 	typedef struct DIRH DIRH;
