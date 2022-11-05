@@ -122,16 +122,16 @@ void FASTCALL WinDraw_Draw(void)
 		}                                        \
 	}
 
-#define WD_SUB(SUFFIX, src)          \
+#define WD_SUB(src)                  \
 	{                                \
 		w = (src);                   \
 		if (w != 0)                  \
-			ScrBuf##SUFFIX[adr] = w; \
+			ScrBuf[adr] = w;         \
 	}
 
 static INLINE void WinDraw_DrawGrpLine(int opaq)
 {
-#define _DGL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf[i])
+#define _DGL_SUB() WD_SUB(Grp_LineBuf[i])
 
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint16_t w;
@@ -149,7 +149,7 @@ static INLINE void WinDraw_DrawGrpLine(int opaq)
 
 static INLINE void WinDraw_DrawGrpLineNonSP(int opaq)
 {
-#define _DGL_NSP_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBufSP2[i])
+#define _DGL_NSP_SUB() WD_SUB(Grp_LineBufSP2[i])
 
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint16_t w;
@@ -167,12 +167,12 @@ static INLINE void WinDraw_DrawGrpLineNonSP(int opaq)
 
 static INLINE void WinDraw_DrawTextLine(int opaq, int td)
 {
-#define _DTL_SUB2(SUFFIX) WD_SUB(SUFFIX, BG_LineBuf[i])
-#define _DTL_SUB(SUFFIX)        \
+#define _DTL_SUB2() WD_SUB(BG_LineBuf[i])
+#define _DTL_SUB()              \
 	{                           \
 		if (Text_TrFlag[i] & 1) \
 		{                       \
-			_DTL_SUB2(SUFFIX);  \
+			_DTL_SUB2();        \
 		}                       \
 	}
 
@@ -199,7 +199,7 @@ static INLINE void WinDraw_DrawTextLine(int opaq, int td)
 
 static INLINE void WinDraw_DrawTextLineTR(int opaq)
 {
-#define _DTL_TR_SUB(SUFFIX)                \
+#define _DTL_TR_SUB()                      \
 	{                                      \
 		w = Grp_LineBufSP[i - 16];         \
 		if (w != 0)                        \
@@ -219,10 +219,10 @@ static INLINE void WinDraw_DrawTextLineTR(int opaq)
 			else                           \
 				v = 0;                     \
 		}                                  \
-		ScrBuf##SUFFIX[adr] = (uint16_t)v; \
+		ScrBuf[adr] = (uint16_t)v;         \
 	}
 
-#define _DTL_TR_SUB2(SUFFIX)                       \
+#define _DTL_TR_SUB2()                             \
 	{                                              \
 		if (Text_TrFlag[i] & 1)                    \
 		{                                          \
@@ -240,7 +240,7 @@ static INLINE void WinDraw_DrawTextLineTR(int opaq)
 					v += w;                        \
 					v >>= 1;                       \
 				}                                  \
-				ScrBuf##SUFFIX[adr] = (uint16_t)v; \
+				ScrBuf[adr] = (uint16_t)v;         \
 			}                                      \
 		}                                          \
 	}
@@ -262,12 +262,12 @@ static INLINE void WinDraw_DrawTextLineTR(int opaq)
 
 static INLINE void WinDraw_DrawBGLine(int opaq, int td)
 {
-#define _DBL_SUB2(SUFFIX) WD_SUB(SUFFIX, BG_LineBuf[i])
-#define _DBL_SUB(SUFFIX)        \
+#define _DBL_SUB2() WD_SUB(BG_LineBuf[i])
+#define _DBL_SUB()              \
 	{                           \
 		if (Text_TrFlag[i] & 2) \
 		{                       \
-			_DBL_SUB2(SUFFIX);  \
+			_DBL_SUB2();        \
 		}                       \
 	}
 
@@ -307,16 +307,16 @@ static INLINE void WinDraw_DrawBGLineTR(int opaq)
 		}                      \
 	}
 
-#define _DBL_TR_SUB(SUFFIX)                \
+#define _DBL_TR_SUB()                      \
 	{                                      \
 		w = Grp_LineBufSP[i - 16];         \
 		v = BG_LineBuf[i];                 \
                                            \
 		_DBL_TR_SUB3()                     \
-		ScrBuf##SUFFIX[adr] = (uint16_t)v; \
+		ScrBuf[adr] = (uint16_t)v;         \
 	}
 
-#define _DBL_TR_SUB2(SUFFIX)                       \
+#define _DBL_TR_SUB2()                             \
 	{                                              \
 		if (Text_TrFlag[i] & 2)                    \
 		{                                          \
@@ -326,7 +326,7 @@ static INLINE void WinDraw_DrawBGLineTR(int opaq)
 			if (v != 0)                            \
 			{                                      \
 				_DBL_TR_SUB3()                     \
-				ScrBuf##SUFFIX[adr] = (uint16_t)v; \
+				ScrBuf[adr] = (uint16_t)v;         \
 			}                                      \
 		}                                          \
 	}
@@ -348,7 +348,7 @@ static INLINE void WinDraw_DrawBGLineTR(int opaq)
 
 static INLINE void WinDraw_DrawPriLine(void)
 {
-#define _DPL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBufSP[i])
+#define _DPL_SUB() WD_SUB(Grp_LineBufSP[i])
 
 	uint32_t adr = VLINE * FULLSCREEN_WIDTH;
 	uint16_t w;
@@ -760,11 +760,11 @@ void WinDraw_DrawLine(void)
 	else if (((VCReg2[0] & 0x5d) == 0x1c) && (tron)) /* 半透明時に全てが透明なドットをハーフカラーで埋める */
 	{                                                /* （AQUALES） */
 
-#define _DL_SUB(SUFFIX)                                    \
+#define _DL_SUB()                                          \
 	{                                                      \
 		w = Grp_LineBufSP[i];                              \
-		if (w != 0 && (ScrBuf##SUFFIX[adr] & 0xffff) == 0) \
-			ScrBuf##SUFFIX[adr] = (w & Pal_HalfMask) >> 1; \
+		if (w != 0 && (ScrBuf[adr] & 0xffff) == 0)         \
+			ScrBuf[adr] = (w & Pal_HalfMask) >> 1;         \
 	}
 
 		uint32_t adr = VLINE * FULLSCREEN_WIDTH;

@@ -35,7 +35,7 @@ enum
 	DIM_2HS,
 	DIM_2HC,
 	DIM_2HDE,
-	DIM_2HQ = 9,
+	DIM_2HQ = 9
 };
 
 static const int SctLength[10] = {
