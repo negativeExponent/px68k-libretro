@@ -64,7 +64,6 @@ SOURCES_C 		+= \
 				$(CORE_DIR)/x11/keyboard.c \
 				$(CORE_DIR)/x11/mouse.c \
 				$(CORE_DIR)/x11/prop.c \
-				$(CORE_DIR)/x11/status.c \
 				$(CORE_DIR)/x11/timer.c \
 				$(CORE_DIR)/x11/dswin.c \
 				$(CORE_DIR)/x11/windraw.c \

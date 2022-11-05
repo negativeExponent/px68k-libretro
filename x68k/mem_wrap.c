@@ -301,7 +301,7 @@ uint32_t cpu_readmem24(uint32_t addr)
 	v = rm_main(addr);
 	if (BusErrFlag & 1)
 	{
-		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
+		p6logd("func = %s addr = %x flag = %d\n", "cpu_readmem24", addr, BusErrFlag);
 		BusError(addr, 0);
 	}
 	return v;
@@ -323,7 +323,7 @@ uint32_t cpu_readmem24_word(uint32_t addr)
 	v |= rm_main(addr + 1);
 	if (BusErrFlag & 1)
 	{
-		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
+		p6logd("func = %s addr = %x flag = %d\n", "cpu_readmem24_word", addr, BusErrFlag);
 		BusError(addr, 0);
 	}
 	return v;
@@ -336,7 +336,7 @@ uint32_t cpu_readmem24_dword(uint32_t addr)
 	if (addr & 1)
 	{
 		BusErrFlag = 3;
-		p6logd("func = %s addr = %x\n", __func__, addr);
+		p6logd("func = %s addr = %x\n", "cpu_readmem24_dword", addr);
 		return 0;
 	}
 
@@ -388,7 +388,7 @@ static uint8_t rm_nop(uint32_t addr)
 
 static uint8_t rm_buserr(uint32_t addr)
 {
-	p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
+	p6logd("func = %s addr = %x flag = %d\n", "rm_buserr", addr, BusErrFlag);
 
 	BusErrFlag = 1;
 	BusErrAdr  = addr;

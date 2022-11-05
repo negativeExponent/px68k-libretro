@@ -249,7 +249,7 @@ uint8_t FASTCALL Mcry_Read(uint32_t adr)
 	{
 		/* Bus Error? */
 		BusErrFlag = 1;
-		p6logd("func = %s addr = %x flag = %d\n", __func__, adr, BusErrFlag);
+		p6logd("func = %s addr = %x flag = %d\n", "Mcry_Read", adr, BusErrFlag);
 	}
 	return ret;
 }
