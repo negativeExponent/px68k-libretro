@@ -10,6 +10,7 @@ static char XDFFile[4][MAX_PATH];
 static int XDFCur[4]      = { 0, 0, 0, 0 };
 static int XDFTrk[4]      = { 0, 0, 0, 0 };
 static uint8_t *XDFImg[4] = { 0, 0, 0, 0 };
+static int XDFUpd[4]      = { 0, 0, 0, 0 };
 
 void XDF_Init(void)
 {
@@ -19,6 +20,7 @@ void XDF_Init(void)
 	{
 		XDFCur[drv] = 0;
 		XDFImg[drv] = 0;
+		XDFUpd[drv] = 0;
 		memset(XDFFile[drv], 0, MAX_PATH);
 	}
 }
@@ -52,38 +54,45 @@ int XDF_SetFD(int drv, char *filename)
 	file_seek(fp, 0, FSEEK_SET);
 	file_read(fp, XDFImg[drv], 1261568);
 	file_close(fp);
+	XDFUpd[drv] = 0;
+	return TRUE;
+}
+
+static int XDF_Save(int drv)
+{
+	FILEH *fp;
+
+	if (!FDD_IsReadOnly(drv))
+	{
+		fp = file_open(XDFFile[drv]);
+		if (!fp)
+			return FALSE;
+		file_seek(fp, 0, FSEEK_SET);
+		if (file_write(fp, XDFImg[drv], 1261568) != 1261568)
+			return FALSE;
+		file_close(fp);
+	}
 	return TRUE;
 }
 
 int XDF_Eject(int drv)
 {
-	FILEH *fp;
+	int ret = TRUE;
 
 	if (!XDFImg[drv])
 	{
 		memset(XDFFile[drv], 0, MAX_PATH);
 		return FALSE;
 	}
-	if (!FDD_IsReadOnly(drv))
-	{
-		fp = file_open(XDFFile[drv]);
-		if (!fp)
-			goto xdf_eject_error;
-		file_seek(fp, 0, FSEEK_SET);
-		if (file_write(fp, XDFImg[drv], 1261568) != 1261568)
-			goto xdf_eject_error;
-		file_close(fp);
-	}
-	free(XDFImg[drv]);
-	XDFImg[drv] = 0;
-	memset(XDFFile[drv], 0, MAX_PATH);
-	return TRUE;
 
-xdf_eject_error:
+	if (XDFUpd[drv])
+		ret = XDF_Save(drv);
+	
 	free(XDFImg[drv]);
 	XDFImg[drv] = 0;
+	XDFUpd[drv] = 0;
 	memset(XDFFile[drv], 0, MAX_PATH);
-	return FALSE;
+	return ret;
 }
 
 int XDF_Seek(int drv, int trk, FDCID *id)
@@ -223,5 +232,7 @@ int XDF_Write(int drv, FDCID *id, uint8_t *buf, int del)
 	pos = ((((id->c << 1) + (id->h)) * 8) + (id->r - 1)) << 10;
 	memcpy(XDFImg[drv] + pos, buf, 1024);
 	XDFCur[drv] = (id->r) & 7;
+	if (!XDFUpd[drv])
+		XDFUpd[drv] = 1;
 	return TRUE;
 }

@@ -46,6 +46,7 @@ static char DIMFile[4][MAX_PATH];
 static int DIMCur[4]      = { 0, 0, 0, 0 };
 static int DIMTrk[4]      = { 0, 0, 0, 0 };
 static uint8_t *DIMImg[4] = { 0, 0, 0, 0 };
+static int DIMUpd[4]      = { 0, 0, 0, 0 };
 
 void DIM_Init(void)
 {
@@ -56,6 +57,7 @@ void DIM_Init(void)
 		DIMCur[drv] = 0;
 		DIMTrk[drv] = 0;
 		DIMImg[drv] = 0;
+		DIMUpd[drv] = 0;
 		memset(DIMFile[drv], 0, MAX_PATH);
 	}
 }
@@ -113,60 +115,69 @@ int DIM_SetFD(int drv, char *filename)
 		p += len;
 	}
 	file_close(fp);
+	DIMUpd[drv] = 0;
 	return TRUE;
 
 dim_set_error:
 	free(DIMImg[drv]);
 	DIMImg[drv] = 0;
+	DIMUpd[drv] = 0;
 	file_close(fp);
 	FDD_SetReadOnly(drv);
 	return FALSE;
 }
 
+static int DIMSave(int drv)
+{
+	DIM_HEADER *dh;
+	FILEH *fp;
+	uint8_t *p;
+	uint32_t len;
+	int i;
+
+	if (!FDD_IsReadOnly(drv))
+	{
+		dh  = (DIM_HEADER *)DIMImg[drv];
+		p   = DIMImg[drv] + sizeof(DIM_HEADER);
+		len = SctLength[dh->type];
+		fp  = file_open(DIMFile[drv]);
+		if (!fp)
+			return FALSE;
+		file_seek(fp, 0, FSEEK_SET);
+		if (file_write(fp, DIMImg[drv], sizeof(DIM_HEADER)) != sizeof(DIM_HEADER))
+			return FALSE;
+		for (i = 0; i < 170; i++)
+		{
+			if (dh->trkflag[i])
+			{
+				if (file_write(fp, p, len) != len)
+					return FALSE;
+			}
+			p += len;
+		}
+		file_close(fp);
+	}
+	return TRUE;
+}
+
 int DIM_Eject(int drv)
 {
-	FILEH *fp;
-	DIM_HEADER *dh;
-	uint32_t i, len;
-	uint8_t *p;
+	int ret = TRUE;
 
 	if (!DIMImg[drv])
 	{
 		memset(DIMFile[drv], 0, MAX_PATH);
 		return FALSE;
 	}
-	dh  = (DIM_HEADER *)DIMImg[drv];
-	len = SctLength[dh->type];
-	p   = DIMImg[drv] + sizeof(DIM_HEADER);
-	if (!FDD_IsReadOnly(drv))
-	{
-		fp = file_open(DIMFile[drv]);
-		if (!fp)
-			goto dim_eject_error;
-		file_seek(fp, 0, FSEEK_SET);
-		if (file_write(fp, DIMImg[drv], sizeof(DIM_HEADER)) != sizeof(DIM_HEADER))
-			goto dim_eject_error;
-		for (i = 0; i < 170; i++)
-		{
-			if (dh->trkflag[i])
-			{
-				if (file_write(fp, p, len) != len)
-					goto dim_eject_error;
-			}
-			p += len;
-		}
-		file_close(fp);
-	}
-	free(DIMImg[drv]);
-	DIMImg[drv] = 0;
-	memset(DIMFile[drv], 0, MAX_PATH);
-	return TRUE;
 
-dim_eject_error:
+	if (DIMUpd[drv])
+		ret = DIMSave(drv);
+	
 	free(DIMImg[drv]);
 	DIMImg[drv] = 0;
+	DIMUpd[drv] = 0;
 	memset(DIMFile[drv], 0, MAX_PATH);
-	return FALSE;
+	return ret;
 }
 
 static void SetID(int drv, FDCID *id, int c, int h, int r)
@@ -429,5 +440,7 @@ int DIM_Write(int drv, FDCID *id, uint8_t *buf, int del)
 		return FALSE;
 	memcpy(DIMImg[drv] + pos, buf, (id->n == 2) ? 512 : 1024);
 	DIMCur[drv] = IncTrk(drv, id->r - 1);
+	if (!DIMUpd[drv])
+		DIMUpd[drv] = 1;
 	return TRUE;
 }
