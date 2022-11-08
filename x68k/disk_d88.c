@@ -30,6 +30,7 @@ static D88_SECTINFO *D88Trks[4][164];
 static char D88File[4][MAX_PATH];
 static D88_SECTINFO *D88Cur[4] = { 0, 0, 0, 0 };
 static D88_SECTINFO *D88Top[4] = { 0, 0, 0, 0 };
+static int D88Upd[4]           = { 0, 0, 0, 0 };
 
 void D88_Init(void)
 {
@@ -41,6 +42,7 @@ void D88_Init(void)
 			D88Trks[drv][trk] = 0;
 		memset(&D88Head[drv], 0, sizeof(D88_HEADER));
 		memset(D88File[drv], 0, MAX_PATH);
+		D88Upd[drv] = 0;
 	}
 }
 
@@ -109,22 +111,21 @@ int D88_SetFD(int drv, char *filename)
 		}
 	}
 	file_close(fp);
+	D88Upd[drv] = 0;
 	return TRUE;
 
 d88_set_error:
+	D88Upd[drv] = 0;
 	memset(D88File[drv], 0, MAX_PATH);
 	file_close(fp);
 	FDD_SetReadOnly(drv);
 	return FALSE;
 }
 
-int D88_Eject(int drv)
+static int D88_Save(int drv)
 {
-	int trk, pos;
 	FILEH *fp;
-
-	if (!D88File[drv][0])
-		return FALSE;
+	int trk, pos;
 
 	if (!FDD_IsReadOnly(drv))
 	{
@@ -161,6 +162,19 @@ int D88_Eject(int drv)
 		}
 	}
 
+	return TRUE;
+}
+
+int D88_Eject(int drv)
+{
+	int trk;
+
+	if (!D88File[drv][0])
+		return FALSE;
+
+	if (D88Upd[drv])
+		D88_Save(drv);
+
 	for (trk = 0; trk < 164; trk++)
 	{
 		D88_SECTINFO *si = D88Trks[drv][trk];
@@ -174,6 +188,7 @@ int D88_Eject(int drv)
 	}
 	memset(&D88Head[drv], 0, sizeof(D88_HEADER));
 	memset(D88File[drv], 0, MAX_PATH);
+	D88Upd[drv] = 0;
 
 	return TRUE;
 }
@@ -376,6 +391,8 @@ int D88_Write(int drv, FDCID *id, uint8_t *buf, int del)
 				D88Cur[drv] = si->next;
 			else
 				D88Cur[drv] = D88Top[drv];
+			if (!D88Upd[drv])
+				D88Upd[drv] = 1;
 			return TRUE;
 		}
 		si = si->next;
