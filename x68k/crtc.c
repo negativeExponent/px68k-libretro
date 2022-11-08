@@ -153,7 +153,14 @@ void CRTC_Init(void)
 	memset(CRTC_Regs, 0, 48);
 	memset(GrphScrollX, 0, sizeof(GrphScrollX));
 	memset(GrphScrollY, 0, sizeof(GrphScrollY));
-	TextScrollX = 0, TextScrollY = 0;
+
+	CRTC_HSTART = 28;
+	CRTC_HEND   = 124;
+	CRTC_VSTART = 40;
+	CRTC_HEND   = 552;
+
+	TextScrollX = 0;
+	TextScrollY = 0;
 }
 
 uint8_t FASTCALL CRTC_Read(uint32_t adr)
@@ -202,14 +209,14 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 		{
 		case 0x04:
 		case 0x05:
-			CRTC_HSTART = (((uint16_t)CRTC_Regs[0x4] << 8) + CRTC_Regs[0x5]);
+			CRTC_HSTART = (((uint16_t)CRTC_Regs[0x4] << 8) + CRTC_Regs[0x5]) & 1023;
 			TextDotX    = (CRTC_HEND - CRTC_HSTART) * 8;
 			BG_HAdjust = ((long)BG_Regs[0x0d] - (CRTC_HSTART + 4)) * 8; /* 水平方向は解像度による1/2はいらない？（Tetris） */
 			WinDraw_ChangeSize();
 			break;
 		case 0x06:
 		case 0x07:
-			CRTC_HEND = (((uint16_t)CRTC_Regs[0x6] << 8) + CRTC_Regs[0x7]);
+			CRTC_HEND = (((uint16_t)CRTC_Regs[0x6] << 8) + CRTC_Regs[0x7]) & 1023;
 			TextDotX  = (CRTC_HEND - CRTC_HSTART) * 8;
 			WinDraw_ChangeSize();
 			break;
@@ -220,7 +227,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			break;
 		case 0x0c:
 		case 0x0d:
-			CRTC_VSTART = (((uint16_t)CRTC_Regs[0xc] << 8) + CRTC_Regs[0xd]);
+			CRTC_VSTART = (((uint16_t)CRTC_Regs[0xc] << 8) + CRTC_Regs[0xd]) & 1023;
 			BG_VLINE = ((long)BG_Regs[0x0f] - CRTC_VSTART) / ((BG_Regs[0x11] & 4) ? 1 : 2); /* BGとその他がずれてる時の差分 */
 			TextDotY = CRTC_VEND - CRTC_VSTART;
 
@@ -241,7 +248,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			break;
 		case 0x0e:
 		case 0x0f:
-			CRTC_VEND = (((uint16_t)CRTC_Regs[0xe] << 8) + CRTC_Regs[0xf]);
+			CRTC_VEND = (((uint16_t)CRTC_Regs[0xe] << 8) + CRTC_Regs[0xf]) & 1023;
 			TextDotY  = CRTC_VEND - CRTC_VSTART;
 
 			if ((CRTC_Regs[0x29] & 0x14) == 0x10)
