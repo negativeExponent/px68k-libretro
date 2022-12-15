@@ -61,11 +61,10 @@ static bool joypad1, joypad2;
 
 static bool opt_analog;
 
-int retrow          = FULLSCREEN_WIDTH;
-int retroh          = FULLSCREEN_HEIGHT;
-int CHANGEAV        = 0;
-int CHANGEAV_TIMING = 0;         /* Separate change of geometry from change of refresh rate */
-int VID_MODE        = MODE_HIGH; /* what framerate we start in */
+int retrow   = FULLSCREEN_WIDTH;
+int retroh   = FULLSCREEN_HEIGHT;
+int CHANGEAV = 0; /* 1: update geometry only, 2: reinit */
+int VID_MODE = MODE_HIGH; /* what framerate we start in */
 static float FRAMERATE;
 
 uint32_t libretro_supports_input_bitmasks      = 0;
@@ -1183,8 +1182,10 @@ static void update_variables(int running)
       else if (!strcmp(var.value, "enabled"))
          Config.AdjustFrameRates = 1;
 
-      if (running)
-         CHANGEAV_TIMING = CHANGEAV_TIMING || Config.AdjustFrameRates != temp;
+      if (running && Config.AdjustFrameRates != temp)
+      {
+         CHANGEAV = 2;
+      }
    }
 
    var.key   = "px68k_audio_desync_hack";
@@ -1458,16 +1459,17 @@ void retro_run(void)
    exec_app_retro();
    rumbleFrames();
 
-   if (CHANGEAV || CHANGEAV_TIMING)
+   if (CHANGEAV)
    {
-      struct retro_system_av_info system_av_info;
+      struct retro_system_av_info system_av_info = {0};
+      unsigned cmd = RETRO_ENVIRONMENT_SET_GEOMETRY;
       retro_get_system_av_info(&system_av_info);
-      if (CHANGEAV_TIMING)
-         environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &system_av_info);
-      else
-         environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &system_av_info);
+      if (CHANGEAV == 2)
+      {
+         cmd = RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO;
+      }
+      environ_cb(cmd, &system_av_info);
       CHANGEAV = 0;
-      CHANGEAV_TIMING = 0;
    }
 
    soundbuf_size = (int)(SAMPLERATE / FRAMERATE);
