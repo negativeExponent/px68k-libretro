@@ -14,8 +14,9 @@ uint8_t MFP[24];
 uint8_t LastKey                     = 0;
 uint8_t Timer_TBO                   = 0;
 static uint8_t Timer_Reload[4]      = { 0, 0, 0, 0 };
-static int Timer_Tick[4]            = { 0, 0, 0, 0 };
+static int32_t Timer_Tick[4]        = { 0, 0, 0, 0 };
 static const int Timer_Prescaler[8] = { 1, 10, 25, 40, 125, 160, 250, 500 };
+static const int TimerInt[4]        = { 2, 7, 10, 11 };
 
 /* 優先割り込みのチェックをし、該当ベクタを返す */
 static int32_t FASTCALL MFP_IntCallback(int32_t irq)
@@ -139,6 +140,52 @@ void MFP_Init(void)
 		Timer_Tick[i] = 0;
 }
 
+static uint8_t GetGPIP(void)
+{
+	uint8_t ret = 0x20; /* bit 5 is always 1 */
+	int hpos    = (int)(ICount % HSYNC_CLK);
+
+	if ((vline >= CRTC_VSTART) && (vline < CRTC_VEND))
+	{
+		ret |= 0x13;
+	}
+	else
+	{
+		ret |= 0x03;
+	}
+
+	if ((hpos >= ((int)CRTC_Regs[0x05] * HSYNC_CLK / CRTC_Regs[0x01])) &&
+	    (hpos < ((int)CRTC_Regs[0x07] * HSYNC_CLK / CRTC_Regs[0x01])))
+	{
+		ret &= 0x7f;
+	}
+	else
+	{
+		ret |= 0x80;
+	}
+
+	if (vline != CRTC_IntLine)
+	{
+		ret |= 0x40;
+	}
+
+	return ret;
+}
+
+static uint8_t GetRSR(void)
+{
+	if (KeyBufRP != KeyBufWP)
+		return MFP[MFP_RSR] & 0x7f;
+	return MFP[MFP_RSR] | 0x80;
+}
+
+static uint8_t GetUDR(void)
+{
+	uint8_t ret = LastKey;
+	KeyIntFlag = 0;
+	return ret;
+}
+
 /* I/O Read */
 uint8_t FASTCALL MFP_Read(uint32_t adr)
 {
@@ -149,42 +196,24 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 
 	if ((adr & 1) != 0)
 	{
-		int hpos;
-		uint8_t ret;
 		uint8_t reg = (adr & 0x3f) >> 1;
 
 		switch (reg)
 		{
 		case MFP_GPIP:
-			if ((vline >= CRTC_VSTART) && (vline < CRTC_VEND))
-				ret = 0x13;
-			else
-				ret = 0x03;
-			hpos = (int)(ICount % HSYNC_CLK);
-			if ((hpos >= ((int)CRTC_Regs[0x05] * HSYNC_CLK / CRTC_Regs[0x01])) &&
-			    (hpos < ((int)CRTC_Regs[0x07] * HSYNC_CLK / CRTC_Regs[0x01])))
-				ret &= 0x7f;
-			else
-				ret |= 0x80;
-			if (vline != CRTC_IntLine)
-				ret |= 0x40;
-			break;
-		case MFP_UDR:
-			ret        = LastKey;
-			KeyIntFlag = 0;
-			break;
+			return GetGPIP();
+
 		case MFP_RSR:
-			if (KeyBufRP != KeyBufWP)
-				ret = MFP[reg] & 0x7f;
-			else
-				ret = MFP[reg] | 0x80;
-			break;
+			return GetRSR();
+
+		case MFP_UDR:
+			return GetUDR();
+
 		default:
-			ret = MFP[reg];
-			break;
+			return MFP[reg];
 		}
-		return ret;
 	}
+
 	return 0xff;
 }
 
@@ -208,6 +237,7 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 			MFP[reg + 2] &= data; /* 禁止されたものはIPRA/Bを落とす */
 			MFP_RecheckInt();
 			break;
+
 		case MFP_IPRA:
 		case MFP_IPRB:
 		case MFP_ISRA:
@@ -215,23 +245,17 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 			MFP[reg] &= data;
 			MFP_RecheckInt();
 			break;
+
 		case MFP_IMRA:
 		case MFP_IMRB:
 			MFP[reg] = data;
 			MFP_RecheckInt();
 			break;
-		case MFP_TSR:
-			MFP[reg] = data | 0x80; /* Txは常にEnableに */
-			break;
-		case MFP_TADR:
-			Timer_Reload[0] = MFP[reg] = data;
-			break;
+
 		case MFP_TACR:
 			MFP[reg] = data;
 			break;
-		case MFP_TBDR:
-			Timer_Reload[1] = MFP[reg] = data;
-			break;
+
 		case MFP_TBCR:
 			MFP[reg] = data;
 #if 0
@@ -239,17 +263,34 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 				Timer_TBO = 0; /* then what? */
 #endif
 			break;
-		case MFP_TCDR:
-			Timer_Reload[2] = MFP[reg] = data;
-			break;
-		case MFP_TDDR:
-			Timer_Reload[3] = MFP[reg] = data;
-			break;
+
 		case MFP_TCDCR:
 			MFP[reg] = data;
 			break;
+
+		case MFP_TADR:
+			Timer_Reload[0] = MFP[reg] = data;
+			break;
+
+		case MFP_TBDR:
+			Timer_Reload[1] = MFP[reg] = data;
+			break;
+
+		case MFP_TCDR:
+			Timer_Reload[2] = MFP[reg] = data;
+			break;
+
+		case MFP_TDDR:
+			Timer_Reload[3] = MFP[reg] = data;
+			break;
+
+		case MFP_TSR:
+			MFP[reg] = data | 0x80; /* Txは常にEnableに */
+			break;
+
 		case MFP_UDR:
 			break;
+
 		default:
 			MFP[reg] = data;
 			break;
@@ -260,66 +301,40 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 /* たいまの時間を進める（も少し奇麗に書き直そう……） */
 void FASTCALL MFP_Timer(long clock)
 {
-	if ((!(MFP[MFP_TACR] & 8)) && (MFP[MFP_TACR] & 7))
-	{
-		int t = Timer_Prescaler[MFP[MFP_TACR] & 7];
-		Timer_Tick[0] += clock;
-		while (Timer_Tick[0] >= t)
-		{
-			Timer_Tick[0] -= t;
-			MFP[MFP_TADR]--;
-			if (!MFP[MFP_TADR])
-			{
-				MFP[MFP_TADR] = Timer_Reload[0];
-				MFP_Int(2);
-			}
-		}
-	}
+	int chan;
 
-	if (MFP[MFP_TBCR] & 7)
+	for (chan = 0; chan < 4; chan++)
 	{
-		int t = Timer_Prescaler[MFP[MFP_TBCR] & 7];
-		Timer_Tick[1] += clock;
-		while (Timer_Tick[1] >= t)
-		{
-			Timer_Tick[1] -= t;
-			MFP[MFP_TBDR]--;
-			if (!MFP[MFP_TBDR])
-			{
-				MFP[MFP_TBDR] = Timer_Reload[1];
-				MFP_Int(7);
-			}
-		}
-	}
+		int mode;
 
-	if (MFP[MFP_TCDCR] & 0x70)
-	{
-		int t = Timer_Prescaler[(MFP[MFP_TCDCR] & 0x70) >> 4];
-		Timer_Tick[2] += clock;
-		while (Timer_Tick[2] >= t)
+		switch (chan)
 		{
-			Timer_Tick[2] -= t;
-			MFP[MFP_TCDR]--;
-			if (!MFP[MFP_TCDR])
-			{
-				MFP[MFP_TCDR] = Timer_Reload[2];
-				MFP_Int(10);
-			}
-		}
-	}
+		case 2:
+			mode = MFP[MFP_TCDCR] >> 4;
+			break;
 
-	if (MFP[MFP_TCDCR] & 7)
-	{
-		int t = Timer_Prescaler[MFP[MFP_TCDCR] & 7];
-		Timer_Tick[3] += clock;
-		while (Timer_Tick[3] >= t)
+		case 3:
+			mode = MFP[MFP_TCDCR];
+			break;
+		
+		default:
+			mode = MFP[MFP_TACR + chan];
+			break;
+		}
+
+		if (!((chan == 0) && (mode & 8)) && (mode & 7))
 		{
-			Timer_Tick[3] -= t;
-			MFP[MFP_TDDR]--;
-			if (!MFP[MFP_TDDR])
+			int t = Timer_Prescaler[mode & 7];
+			Timer_Tick[chan] += clock;
+			while (Timer_Tick[chan] >= t)
 			{
-				MFP[MFP_TDDR] = Timer_Reload[3];
-				MFP_Int(11);
+				Timer_Tick[chan] -= t;
+				MFP[MFP_TADR + chan]--;
+				if (MFP[MFP_TADR + chan] == 0)
+				{
+					MFP[MFP_TADR + chan] = Timer_Reload[chan];
+					MFP_Int(TimerInt[chan]);
+				}
 			}
 		}
 	}
