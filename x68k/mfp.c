@@ -142,16 +142,17 @@ void MFP_Init(void)
 /* I/O Read */
 uint8_t FASTCALL MFP_Read(uint32_t adr)
 {
-	uint8_t reg;
-	uint8_t ret = 0;
-	int hpos;
-
 	if (adr > 0xe8802f)
-		return ret; /* ばすえらー？ */
-
-	if (adr & 1)
 	{
-		reg = (uint8_t)((adr & 0x3f) >> 1);
+		return 0xff;
+	}
+
+	if ((adr & 1) != 0)
+	{
+		int hpos;
+		uint8_t ret;
+		uint8_t reg = (adr & 0x3f) >> 1;
+
 		switch (reg)
 		{
 		case MFP_GPIP:
@@ -160,8 +161,8 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 			else
 				ret = 0x03;
 			hpos = (int)(ICount % HSYNC_CLK);
-			if ((hpos >= ((int)CRTC_Regs[5] * HSYNC_CLK / CRTC_Regs[1])) &&
-			    (hpos < ((int)CRTC_Regs[7] * HSYNC_CLK / CRTC_Regs[1])))
+			if ((hpos >= ((int)CRTC_Regs[0x05] * HSYNC_CLK / CRTC_Regs[0x01])) &&
+			    (hpos < ((int)CRTC_Regs[0x07] * HSYNC_CLK / CRTC_Regs[0x01])))
 				ret &= 0x7f;
 			else
 				ret |= 0x80;
@@ -180,6 +181,7 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 			break;
 		default:
 			ret = MFP[reg];
+			break;
 		}
 		return ret;
 	}
@@ -189,13 +191,14 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 /* I/O Write */
 void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 {
-	uint8_t reg;
-
 	if (adr > 0xe8802f)
-		return;
-	if (adr & 1)
 	{
-		reg = (uint8_t)((adr & 0x3f) >> 1);
+		return;
+	}
+
+	if ((adr & 1) != 0)
+	{
+		uint8_t reg = (adr & 0x3f) >> 1;
 
 		switch (reg)
 		{
@@ -231,8 +234,10 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 			break;
 		case MFP_TBCR:
 			MFP[reg] = data;
+#if 0
 			if (MFP[reg] & 0x10)
 				Timer_TBO = 0; /* then what? */
+#endif
 			break;
 		case MFP_TCDR:
 			Timer_Reload[2] = MFP[reg] = data;
@@ -247,6 +252,7 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 			break;
 		default:
 			MFP[reg] = data;
+			break;
 		}
 	}
 }

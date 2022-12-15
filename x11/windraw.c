@@ -44,7 +44,7 @@
 extern uint8_t Debug_Text, Debug_Grp, Debug_Sp;
 extern uint16_t *videoBuffer;
 extern int retrow, retroh;
-extern int CHANGEAV, CHANGEAV_TIMING, VID_MODE;
+extern int CHANGEAV, VID_MODE;
 
 static uint16_t *ScrBuf = 0;
 static uint16_t menu_buffer[800 * 600];
@@ -80,33 +80,22 @@ void WinDraw_Cleanup(void)
 
 void FASTCALL WinDraw_Draw(void)
 {
-	static uint32_t oldtextx = 0, oldtexty = 0;
-	/* set initial value based on initial value for VID_MODE.
-	 * This avoids extra screen reinit on startup */
 	static int oldvidmode = 1;
 
-	if (oldtextx != TextDotX)
+	if (retrow != TextDotX || retroh != TextDotY)
 	{
-		oldtextx = TextDotX;
-		CHANGEAV = 1;
-	}
-
-	if (oldtexty != TextDotY)
-	{
-		oldtexty = TextDotY;
-		CHANGEAV = 1;
+		if (TextDotX <= FULLSCREEN_WIDTH && TextDotY <= FULLSCREEN_HEIGHT)
+		{
+			retrow = TextDotX;
+			retroh = TextDotY;
+			CHANGEAV = 1;
+		}
 	}
 
 	if (oldvidmode != VID_MODE)
 	{
-		oldvidmode      = VID_MODE;
-		CHANGEAV_TIMING = 1;
-	}
-
-	if (CHANGEAV | CHANGEAV_TIMING)
-	{
-		retrow = TextDotX;
-		retroh = TextDotY;
+		oldvidmode = VID_MODE;
+		CHANGEAV   = 2;
 	}
 
 	videoBuffer = (uint16_t *)ScrBuf;

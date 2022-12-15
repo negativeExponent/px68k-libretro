@@ -157,7 +157,7 @@ void CRTC_Init(void)
 	CRTC_HSTART = 28;
 	CRTC_HEND   = 124;
 	CRTC_VSTART = 40;
-	CRTC_HEND   = 552;
+	CRTC_VEND   = 552;
 
 	TextScrollX = 0;
 	TextScrollY = 0;
@@ -165,13 +165,24 @@ void CRTC_Init(void)
 
 uint8_t FASTCALL CRTC_Read(uint32_t adr)
 {
-	if (adr < 0xe803ff)
+	if (adr < 0xe80400)
 	{
 		int reg = adr & 0x3f;
 
-		if ((reg >= 0x28) && (reg <= 0x2b))
-			return CRTC_Regs[reg];
+		if (reg >= 0x30)
+		{
+			return 0xff;
+		}
 
+		if ((reg >= 0x28) && (reg <= 0x2b))
+		{
+			return CRTC_Regs[reg];
+		}
+
+		return 0;
+	}
+	else if (adr == 0xe80480)
+	{
 		return 0;
 	}
 	else if (adr == 0xe80481)
@@ -187,49 +198,65 @@ uint8_t FASTCALL CRTC_Read(uint32_t adr)
 		return CRTC_Mode & 0xfd;
 	}
 
-	return 0x00;
+	return 0xff;
 }
 
 void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 {
-	uint8_t reg     = (uint8_t)(adr & 0x3f);
-
 	if (adr < 0xe80400)
 	{
+		int reg = adr & 0x3f;
+
 		if (reg >= 0x30)
+		{
 			return;
+		}
 
 		if (CRTC_Regs[reg] == data)
+		{
 			return;
+		}
 
 		CRTC_Regs[reg] = data;
 		TVRAM_SetAllDirty();
 
 		switch (reg)
 		{
+		case 0x00:
+		case 0x01:
+			/* HTOTAL */
+			break;
+		case 0x02:
+		case 0x03:
+			/* HSYNC End */
+			break;
 		case 0x04:
 		case 0x05:
-			CRTC_HSTART = (((uint16_t)CRTC_Regs[0x4] << 8) + CRTC_Regs[0x5]) & 1023;
+			CRTC_HSTART = (((uint16_t)CRTC_Regs[0x04] << 8) + CRTC_Regs[0x05]) & 255;
 			TextDotX    = (CRTC_HEND - CRTC_HSTART) * 8;
-			BG_HAdjust = ((long)BG_Regs[0x0d] - (CRTC_HSTART + 4)) * 8; /* 水平方向は解像度による1/2はいらない？（Tetris） */
+			BG_HAdjust  = ((long)BG_Regs[0x0d] - (CRTC_HSTART + 4)) * 8; /* 水平方向は解像度による1/2はいらない？（Tetris） */
 			WinDraw_ChangeSize();
 			break;
 		case 0x06:
 		case 0x07:
-			CRTC_HEND = (((uint16_t)CRTC_Regs[0x6] << 8) + CRTC_Regs[0x7]) & 1023;
+			CRTC_HEND = (((uint16_t)CRTC_Regs[0x06] << 8) + CRTC_Regs[0x07]) & 255;
 			TextDotX  = (CRTC_HEND - CRTC_HSTART) * 8;
 			WinDraw_ChangeSize();
 			break;
 		case 0x08:
 		case 0x09:
-			VLINE_TOTAL = (((uint16_t)CRTC_Regs[8] << 8) + CRTC_Regs[9]);
+			VLINE_TOTAL = (((uint16_t)CRTC_Regs[0x08] << 8) + CRTC_Regs[0x09]);
 			HSYNC_CLK   = ((CRTC_Regs[0x29] & 0x10) ? VSYNC_HIGH : VSYNC_NORM) / VLINE_TOTAL;
+			break;
+		case 0x0a:
+		case 0x0b:
+			/* VSYNC end */
 			break;
 		case 0x0c:
 		case 0x0d:
-			CRTC_VSTART = (((uint16_t)CRTC_Regs[0xc] << 8) + CRTC_Regs[0xd]) & 1023;
-			BG_VLINE = ((long)BG_Regs[0x0f] - CRTC_VSTART) / ((BG_Regs[0x11] & 4) ? 1 : 2); /* BGとその他がずれてる時の差分 */
-			TextDotY = CRTC_VEND - CRTC_VSTART;
+			CRTC_VSTART = (((uint16_t)CRTC_Regs[0x0c] << 8) + CRTC_Regs[0x0d]) & 1023;
+			BG_VLINE    = ((long)BG_Regs[0x0f] - CRTC_VSTART) / ((BG_Regs[0x11] & 4) ? 1 : 2); /* BGとその他がずれてる時の差分 */
+			TextDotY    = CRTC_VEND - CRTC_VSTART;
 
 			if ((CRTC_Regs[0x29] & 0x14) == 0x10)
 			{
@@ -248,7 +275,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			break;
 		case 0x0e:
 		case 0x0f:
-			CRTC_VEND = (((uint16_t)CRTC_Regs[0xe] << 8) + CRTC_Regs[0xf]) & 1023;
+			CRTC_VEND = (((uint16_t)CRTC_Regs[0x0e] << 8) + CRTC_Regs[0x0f]) & 1023;
 			TextDotY  = CRTC_VEND - CRTC_VSTART;
 
 			if ((CRTC_Regs[0x29] & 0x14) == 0x10)
@@ -288,6 +315,10 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 				CRTC_VStep = 2;
 
 			WinDraw_ChangeSize();
+			break;
+		case 0x10:
+		case 0x11:
+			/* EXT sync horizontal adjust */
 			break;
 		case 0x12:
 		case 0x13:
