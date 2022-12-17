@@ -54,8 +54,8 @@ static char RPATH[MAX_PATH * 2]; /* stores the full pathname of content file */
 char retro_system_conf[1024]; /* dir location for 'keropi' config file */
 char base_dir[1024]; /* dir where rom was loaded */
 
-char Core_Key_State[512];
-char Core_old_Key_State[512];
+uint8_t Core_Key_State[512];
+uint8_t Core_old_Key_State[512];
 
 static bool joypad1, joypad2;
 

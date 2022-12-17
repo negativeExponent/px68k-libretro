@@ -57,8 +57,8 @@ static int FrameSkipCount   = 0;
 static int FrameSkipQueue   = 0;
 
 extern retro_input_state_t input_state_cb;
-extern char Core_Key_State[512];
-extern char Core_old_Key_State[512];
+extern uint8_t Core_Key_State[512];
+extern uint8_t Core_old_Key_State[512];
 
 extern int retrow, retroh, CHANGEAV;
 static int oldrw = 0, oldrh = 0;

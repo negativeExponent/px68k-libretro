@@ -418,7 +418,7 @@ endif
 LDFLAGS +=  $(fpic) $(SHARED) $(EXTRA_LDF)
 FLAGS   += $(INCFLAGS)
 
-WARNINGS := -Wall -Wno-strict-aliasing
+WARNINGS := -Wall -Wextra -Wno-strict-aliasing
 
 FLAGS    += -D__LIBRETRO__ $(ENDIANNESS_DEFINES) $(WARNINGS) $(fpic)
 
@@ -427,6 +427,7 @@ CFLAGS   += $(FLAGS) $(CPU_FLAGS)
 CFLAGS   += -Werror-implicit-function-declaration
 CFLAGS   += -std=c89
 CFLAGS   += -D_GNU_SOURCE
+CFLAGS   += -ansi -pedantic -Werror=pedantic -Wno-long-long -Werror=declaration-after-statement
 
 $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
