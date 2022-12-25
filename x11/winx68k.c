@@ -490,7 +490,7 @@ int pmain(int argc, char *argv[])
 	connect(rfd_sock, (struct sockaddr *)&dest, sizeof(dest));
 #endif
 
-	if (set_modulepath(winx68k_dir, sizeof(winx68k_dir)))
+	if (set_modulepath(winx68k_dir))
 		return 0;
 
 	dosio_init();
@@ -566,7 +566,7 @@ int pmain(int argc, char *argv[])
 	MIDI_SetMimpiMap(Config.ToneMapFile);
 	MIDI_EnableMimpiDef(Config.ToneMap);
 
-	DSound_Init(Config.SampleRate, Config.BufferSize);
+	DSound_Init(Config.SampleRate);
 
 	ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
 	OPM_SetVolume((uint8_t)Config.OPM_VOL);
