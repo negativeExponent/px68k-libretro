@@ -123,35 +123,12 @@ int WinUI_get_drv_num(int key)
 	}
 }
 
-static void menu_hwjoy_print(int v)
-{
-#if 0
-	if (v <= 1) {
-	    sprintf(menu_items[M_HJS][v], "Axis%d(%s): %d",
-	        v,
-	        (v == 0)? "Left/Right" : "Up/Down",
-	        Config.HwJoyAxis[v]);
-	} else if (v == 2) {
-	    sprintf(menu_items[M_HJS][v], "Hat: %d", Config.HwJoyHat);
-	} else {
-	    sprintf(menu_items[M_HJS][v], "Button%d: %d",
-	        v - 3,
-	        Config.HwJoyBtn[v - 3]);
-	}
-#endif
-}
-
 /******************************************************************************
  * init
  ******************************************************************************/
 void WinUI_Init(void)
 {
 	int i;
-
-	for (i = 0; i < 11; i++)
-	{
-		menu_hwjoy_print(i);
-	}
 
 #ifdef _WIN32
 #define CUR_DIR_STR "c:\\"
