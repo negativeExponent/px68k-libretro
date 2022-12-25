@@ -424,10 +424,13 @@ FLAGS    += -D__LIBRETRO__ $(ENDIANNESS_DEFINES) $(WARNINGS) $(fpic)
 
 CXXFLAGS += $(FLAGS) $(CPU_FLAGS)
 CFLAGS   += $(FLAGS) $(CPU_FLAGS)
-CFLAGS   += -Werror-implicit-function-declaration
+CFLAGS   += -ansi -Wno-long-long -Werror=declaration-after-statement -Werror-implicit-function-declaration
 CFLAGS   += -std=c89
 CFLAGS   += -D_GNU_SOURCE
-CFLAGS   += -ansi -pedantic -Werror=pedantic -Wno-long-long -Werror=declaration-after-statement
+
+ifeq ($(MUSASHI),1)
+CFLAGS   += -pedantic -Werror=pedantic
+endif
 
 $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
