@@ -61,8 +61,8 @@ static bool joypad1, joypad2;
 
 static bool opt_analog;
 
-int retrow   = FULLSCREEN_WIDTH;
-int retroh   = FULLSCREEN_HEIGHT;
+uint32_t retrow   = FULLSCREEN_WIDTH;
+uint32_t retroh   = FULLSCREEN_HEIGHT;
 int CHANGEAV = 0; /* 1: update geometry only, 2: reinit */
 int VID_MODE = MODE_HIGH; /* what framerate we start in */
 static float FRAMERATE;

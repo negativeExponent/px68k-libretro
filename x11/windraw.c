@@ -43,7 +43,7 @@
 
 extern uint8_t Debug_Text, Debug_Grp, Debug_Sp;
 extern uint16_t *videoBuffer;
-extern int retrow, retroh;
+extern uint32_t retrow, retroh;
 extern int CHANGEAV, VID_MODE;
 
 static uint16_t *ScrBuf = 0;
