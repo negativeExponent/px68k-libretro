@@ -52,7 +52,7 @@ static uint32_t ratebase = 22050;
 static long DSound_PreCounter = 0;
 static int audio_fd           = 1;
 
-void DSound_Init(uint32_t rate, uint32_t buflen)
+void DSound_Init(uint32_t rate)
 {
 	if (rate == 0)
 	{

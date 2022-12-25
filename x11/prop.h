@@ -54,6 +54,6 @@ void SetConfigDefaults(void);
 void LoadConfig(void);
 void SaveConfig(void);
 
-int set_modulepath(char *path, size_t len);
+int set_modulepath(char *path);
 
 #endif /*_WINX68K_CONFIG_H */

@@ -1,7 +1,7 @@
 #ifndef _WINX68K_DSWIN_H
 #define _WINX68K_DSWIN_H
 
-void DSound_Init(uint32_t rate, uint32_t length);
+void DSound_Init(uint32_t rate);
 void DSound_Cleanup(void);
 
 void DSound_Play(void);

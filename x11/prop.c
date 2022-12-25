@@ -89,7 +89,7 @@ static uint8_t solveBOOL(char *str)
 }
 #endif
 
-int set_modulepath(char *path, size_t len)
+int set_modulepath(char *path)
 {
 	strcpy(path, retro_system_conf);
 	sprintf(winx68k_ini, "%s%cconfig", retro_system_conf, slash);
