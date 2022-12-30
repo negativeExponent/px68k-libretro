@@ -1,6 +1,6 @@
-
 DEBUG = 0
 NO_MERCURY = 1
+USE_CLANG = 0
 
 GIT_VERSION := " $(shell git rev-parse --short HEAD)"
 
@@ -407,6 +407,7 @@ else ifneq (,$(findstring msvc,$(platform)))
    FLAGS +=
 else
    FLAGS += -O2
+   FLAGS += -ffast-math
 endif
 
 ifneq ($(SANITIZER),)
@@ -422,15 +423,28 @@ WARNINGS := -Wall -Wextra -Wno-strict-aliasing
 
 FLAGS    += -D__LIBRETRO__ $(ENDIANNESS_DEFINES) $(WARNINGS) $(fpic)
 
-CXXFLAGS += $(FLAGS) $(CPU_FLAGS)
-CFLAGS   += $(FLAGS) $(CPU_FLAGS)
-CFLAGS   += -ansi -Wno-long-long -Werror=declaration-after-statement -Werror-implicit-function-declaration
+ifeq ($(shell $(CC) -v 2>&1 | grep -c "clang"),1)
+    FLAGS += -Wno-invalid-source-encoding -Wno-incompatible-ms-struct
+    USE_CLANG = 1
+endif
+
+ifneq ($(USE_CLANG),1)
+CFLAGS   += -ansi
+CFLAGS   += -Wno-long-long
 CFLAGS   += -std=c89
-CFLAGS   += -D_GNU_SOURCE
+endif
+
+CFLAGS   += -Werror=declaration-after-statement
+CFLAGS   += -Werror-implicit-function-declaration
 
 ifeq ($(MUSASHI),1)
 CFLAGS   += -pedantic -Werror=pedantic
 endif
+
+CFLAGS   += -D_GNU_SOURCE
+
+CXXFLAGS += $(FLAGS) $(CPU_FLAGS)
+CFLAGS   += $(FLAGS) $(CPU_FLAGS)
 
 $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
@@ -440,6 +454,7 @@ else
 endif
 
 %.o: %.cpp
+
 	$(CXX) -c $(OBJOUT)$@ $< $(CXXFLAGS)
 
 %.o: %.c
