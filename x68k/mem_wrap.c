@@ -33,8 +33,6 @@ static void wm_buserr(uint32_t addr, uint8_t val);
 static void wm_nop(uint32_t addr, uint8_t val);
 
 static uint8_t rm_main(uint32_t addr);
-static uint8_t rm_font(uint32_t addr);
-static uint8_t rm_ipl(uint32_t addr);
 static uint8_t rm_nop(uint32_t addr);
 static uint8_t rm_buserr(uint32_t addr);
 
@@ -63,23 +61,6 @@ static uint8_t (*MemReadTable[])(uint32_t) = {
 	SRAM_Read,	SRAM_Read,	SRAM_Read,	SRAM_Read,	SRAM_Read,	SRAM_Read,	SRAM_Read,	SRAM_Read,	/* $ed0000 */
 	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	/* $ee0000 */
 	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	rm_buserr,	/* $ef0000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f00000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f10000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f20000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f30000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f40000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f50000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f60000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f70000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f80000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $f90000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $fa0000 */
-	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	rm_font,	/* $fb0000 */
-	/* for SCSO will it be rm_buserr¡© */
-	rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		/* $fc0000 */
-	rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		/* $fd0000 */
-	rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		/* $fe0000 */
-	rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		rm_ipl,		/* $ff0000 */
 };
 
 static void (*MemWriteTable[])(uint32_t, uint8_t) = {
@@ -104,24 +85,9 @@ static void (*MemWriteTable[])(uint32_t, uint8_t) = {
 	SRAM_Write,		SRAM_Write,		SRAM_Write,		SRAM_Write,		SRAM_Write,		SRAM_Write,		SRAM_Write,		SRAM_Write,		/* $ed0000 */
 	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $ee0000 */
 	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $ef0000 */
-	/* Any write to the ROM area is a bus error */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f00000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f10000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f20000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f30000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f40000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f50000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f60000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f70000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f80000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $f90000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $fa0000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $fb0000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $fc0000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $fd0000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $fe0000 */
-	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $ff0000 */
 };
+
+static int RAMSize;
 
 uint8_t *IPL;
 uint8_t *MEM;
@@ -225,19 +191,32 @@ static void wm_main(uint32_t addr, uint8_t val)
 
 static void wm_cnt(uint32_t addr, uint8_t val)
 {
-	addr &= 0x00ffffff;
-	if (addr < 0x00c00000)
+	addr &= 0xffffff;
+	/* RAM */
+	if (addr < RAMSize)
 	{
 		MEM[addr ^ 1] = val;
+		return;
 	}
-	else if (addr < 0x00e00000)
+	/* IPL, SCSI, FONT */
+	if (addr >= 0xf00000)
+	{
+		return;
+	}
+	if (addr >= 0xe00000)
+	{
+		int index = addr >> 13;
+		index &= 0xff;
+		MemWriteTable[index](addr, val);
+		return;
+	}
+	if (addr >= 0xc00000)
 	{
 		GVRAM_Write(addr, val);
+		return;
 	}
-	else
-	{
-		MemWriteTable[(addr >> 13) & 0xff](addr, val);
-	}
+
+	wm_buserr(addr, val);
 }
 
 static void wm_buserr(uint32_t addr, uint8_t val)
@@ -301,7 +280,7 @@ uint32_t cpu_readmem24(uint32_t addr)
 	v = rm_main(addr);
 	if (BusErrFlag & 1)
 	{
-		p6logd("func = %s addr = %x flag = %d\n", "cpu_readmem24", addr, BusErrFlag);
+		p6logd("cpu_readmem24: addr = %x flag = %d\n", addr, BusErrFlag);
 		BusError(addr, 0);
 	}
 	return v;
@@ -323,7 +302,7 @@ uint32_t cpu_readmem24_word(uint32_t addr)
 	v |= rm_main(addr + 1);
 	if (BusErrFlag & 1)
 	{
-		p6logd("func = %s addr = %x flag = %d\n", "cpu_readmem24_word", addr, BusErrFlag);
+		p6logd("cpu_readmem24_word: addr = %x flag = %d\n", addr, BusErrFlag);
 		BusError(addr, 0);
 	}
 	return v;
@@ -336,7 +315,7 @@ uint32_t cpu_readmem24_dword(uint32_t addr)
 	if (addr & 1)
 	{
 		BusErrFlag = 3;
-		p6logd("func = %s addr = %x\n", "cpu_readmem24_dword", addr);
+		p6logd("cpu_readmem24_dword: addr = %x\n", addr);
 		return 0;
 	}
 
@@ -351,44 +330,50 @@ uint32_t cpu_readmem24_dword(uint32_t addr)
 
 static uint8_t rm_main(uint32_t addr)
 {
-	uint8_t v;
-
-	addr &= 0x00ffffff;
-	if (addr < 0x00c00000)
+	addr &= 0xffffff;
+	/* MEM */
+	if (addr < RAMSize)
 	{
-		v = MEM[addr ^ 1];
+		return MEM[addr ^ 1];
 	}
-	else if (addr < 0x00e00000)
+	/* IPL/SCSI*/
+	if (addr >= 0xfc0000)
 	{
-		v = GVRAM_Read(addr);
+		addr &= 0x3ffff;
+		addr ^= 1;
+		return IPL[addr];
 	}
-	else
+	/* FONT */
+	if (addr >= 0xf00000)
 	{
-		v = MemReadTable[(addr >> 13) & 0xff](addr);
+		addr &= 0xfffff;
+		addr ^= 1;
+		return FONT[addr];
+	}
+	if (addr >= 0xe00000)
+	{
+		int index = addr >> 13;
+		index &= 0xff;
+		return MemReadTable[index](addr);
+	}
+	/* GVRAM */
+	if (addr >= 0xc00000)
+	{
+		return GVRAM_Read(addr);
 	}
 
-	return v;
-}
-
-static uint8_t rm_font(uint32_t addr)
-{
-	return FONT[addr & 0xfffff];
-}
-
-static uint8_t rm_ipl(uint32_t addr)
-{
-	return IPL[(addr & 0x3ffff) ^ 1];
+	return rm_buserr(addr);
 }
 
 static uint8_t rm_nop(uint32_t addr)
 {
-	(void)addr;
+	p6logd("rm_nop: addr = %x\n", addr);
 	return 0;
 }
 
 static uint8_t rm_buserr(uint32_t addr)
 {
-	p6logd("func = %s addr = %x flag = %d\n", "rm_buserr", addr, BusErrFlag);
+	p6logd("rm_buserr: addr = %x flag = %d\n", addr, BusErrFlag);
 
 	BusErrFlag = 1;
 	BusErrAdr  = addr;
@@ -454,6 +439,7 @@ void Memory_Init(void)
 #endif
 
 	SRAM_SetRAMSize(Config.ramSize);
+	RAMSize = Config.ramSize * 0x100000;
 }
 
 void Memory_SetSCSIMode(void)

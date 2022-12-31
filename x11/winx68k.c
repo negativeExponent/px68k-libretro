@@ -170,6 +170,13 @@ static int WinX68k_LoadROMs(void)
 	file_read(fp, FONT, 0xc0000);
 	file_close(fp);
 
+	for (i = 0; i < 0xc0000; i += 2)
+	{
+		tmp         = FONT[i];
+		FONT[i]     = FONT[i + 1];
+		FONT[i + 1] = tmp;
+	}
+
 	return TRUE;
 }
 

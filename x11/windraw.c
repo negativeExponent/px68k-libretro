@@ -956,7 +956,8 @@ static void draw_char(uint16_t sjis)
 		wc = w;
 		for (j = 0; j < ((w % 8 == 0) ? w / 8 : w / 8 + 1); j++)
 		{
-			c = FONT[f++];
+			c = FONT[f ^ 1];
+			f++;
 			for (k = 0; k < 8; k++)
 			{
 				bc = p6m.mbcolor ? p6m.mbcolor : *p;
