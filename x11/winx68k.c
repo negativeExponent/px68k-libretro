@@ -182,12 +182,14 @@ static int WinX68k_LoadROMs(void)
 
 void WinX68k_Reset(int softReset)
 {
+	if (ram_size_override)
+		Config.ramSize = ram_size_override;
+	
+	RAMSize = Config.ramSize * 0x100000;
+
 	m68000_reset();
 	m68000_set_reg(M68K_A7, (IPL[0x30001] << 24) | (IPL[0x30000] << 16) | (IPL[0x30003] << 8) | IPL[0x30002]);
 	m68000_set_reg(M68K_PC, (IPL[0x30005] << 24) | (IPL[0x30004] << 16) | (IPL[0x30007] << 8) | IPL[0x30006]);
-
-	if (ram_size_override)
-		Config.ramSize = ram_size_override;
 
 	OPM_Reset();
 	Memory_Init();

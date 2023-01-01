@@ -87,8 +87,6 @@ static void (*MemWriteTable[])(uint32_t, uint8_t) = {
 	wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		wm_buserr,		/* $ef0000 */
 };
 
-static int RAMSize;
-
 uint8_t *IPL;
 uint8_t *MEM;
 uint8_t *OP_ROM;
@@ -97,6 +95,8 @@ uint8_t *FONT;
 uint32_t BusErrFlag     = 0;
 uint32_t BusErrHandling = 0;
 uint32_t BusErrAdr      = 0;
+
+uint32_t RAMSize;
 
 /*
  * write function
@@ -439,7 +439,6 @@ void Memory_Init(void)
 #endif
 
 	SRAM_SetRAMSize(Config.ramSize);
-	RAMSize = Config.ramSize * 0x100000;
 }
 
 void Memory_SetSCSIMode(void)

@@ -19,6 +19,7 @@ extern int rfd_sock;
 extern uint16_t VLINE_TOTAL;
 extern uint32_t VLINE;
 extern uint32_t vline;
+extern uint32_t RAMSize;
 
 extern char winx68k_dir[2048];
 extern char winx68k_ini[2048];
