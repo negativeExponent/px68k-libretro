@@ -40,7 +40,7 @@
 #include <unistd.h>
 #endif
 
-#include "windows.h"
+#include "x68k_windows.h"
 
 /*-----
  *
@@ -190,25 +190,25 @@ void* create_file(const char *filename, uint32_t rdwr,
 #ifdef _WIN32
  	fmode |=O_BINARY;
 #endif
-	switch (rdwr & (GENERIC_READ|GENERIC_WRITE))
+	switch (rdwr & (X68K_GENERIC_READ|X68K_GENERIC_WRITE))
 	{
-		case GENERIC_READ:
+		case X68K_GENERIC_READ:
 			fmode |= O_RDONLY;
 			break;
-		case GENERIC_WRITE:
+		case X68K_GENERIC_WRITE:
 			fmode |= O_WRONLY;
 			break;
-		case GENERIC_READ|GENERIC_WRITE:
+		case X68K_GENERIC_READ|X68K_GENERIC_WRITE:
 			fmode |= O_RDWR;
 		default:
 			break;
 	}
 	switch (crmode)
 	{
-		case CREATE_ALWAYS:
+		case X68K_CREATE_ALWAYS:
 			fmode |= O_CREAT;
 			break;	
-		case OPEN_EXISTING:
+		case X68K_OPEN_EXISTING:
 			break;
 	}
 	if ((fd = open(filename, fmode, 0644)) < 0)
@@ -241,7 +241,7 @@ void file_close(void * h)
         }
 }
 
-size_t GetPrivateProfileString(const char *sect, const char *key,
+size_t x68k_GetPrivateProfileString(const char *sect, const char *key,
 		const char *defvalue,
 		char *buf, size_t len, const char *inifile)
 {
@@ -297,7 +297,7 @@ nofile:
 	return strlen(buf);
 }
 
-unsigned int GetPrivateProfileInt(const char *sect, const char *key, signed int defvalue, const char *inifile)
+unsigned int x68k_GetPrivateProfileInt(const char *sect, const char *key, signed int defvalue, const char *inifile)
 {
 	char lbuf[256];
 	FILE *fp;

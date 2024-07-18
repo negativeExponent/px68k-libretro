@@ -33,13 +33,15 @@ enum {						/* 各機種リセット用に一応。 */
 	MIDI_XG
 };
 
-static void *hOut = NULL;
+HMIDIOUT	hOut = 0;
+MIDIHDR		hHdr;
 static int		MIDI_CTRL;
 static int		MIDI_POS;
 static int		MIDI_SYSCOUNT;
 static uint8_t		MIDI_LAST;
 static uint8_t		MIDI_BUF[MIDIBUFFERS];
 static uint8_t		MIDI_EXCVBUF[MIDIBUFFERS];
+BYTE MIDI_EXCVWAIT;
 
 static uint8_t		MIDI_RegHigh = 0;				/* X68K用 */
 static uint8_t		MIDI_Vector = 0;
@@ -186,10 +188,26 @@ static void MIDI_Sendexclusive(uint8_t *excv, size_t length)
 {
 	memcpy(MIDI_EXCVBUF, excv, length);
 	midi_out_long_msg(MIDI_EXCVBUF, length);
+	memcpy(MIDI_EXCVBUF, excv, length);
+	hHdr.lpData = MIDI_EXCVBUF;
+	hHdr.dwFlags = 0;
+	hHdr.dwBufferLength = length;
+	midiOutPrepareHeader(hOut, &hHdr, sizeof(MIDIHDR));
+	midiOutLongMsg(hOut, &hHdr, sizeof(MIDIHDR));
+	MIDI_EXCVWAIT = 1;
+}
+
+void MIDI_Waitlastexclusiveout(void) {
+	// エクスクルーシヴ送信完了まで待ちましょう~
+	if (MIDI_EXCVWAIT) {
+		while(midiOutUnprepareHeader(hOut, &hHdr, sizeof(MIDIHDR))
+						== MIDIERR_STILLPLAYING);
+		MIDI_EXCVWAIT = 0;
+	}
 }
 
 /*
- *   りせっと〜
+ *   りせっと~
  */
 void MIDI_Reset(void)
 {
@@ -209,22 +227,27 @@ void MIDI_Reset(void)
 			case MIDI_LA:
 				/* ちょっと乱暴かなぁ…
 				 * 一応 SC系でも通る筈ですけど… */
+				MIDI_Waitlastexclusiveout();
 				MIDI_Sendexclusive(EXCV_MTRESET, sizeof(EXCV_MTRESET));
 				break;
 			case MIDI_SC55:
 			case MIDI_SC88:
 			case MIDI_GS:
+				MIDI_Waitlastexclusiveout();
 				MIDI_Sendexclusive(EXCV_GSRESET, sizeof(EXCV_GSRESET));
 				break;
 			case MIDI_XG:
+				MIDI_Waitlastexclusiveout();
 				MIDI_Sendexclusive(EXCV_XGRESET, sizeof(EXCV_XGRESET));
 				break;
 			default:
+				MIDI_Waitlastexclusiveout();
 				MIDI_Sendexclusive(EXCV_GMRESET, sizeof(EXCV_GMRESET));
 				break;
 		}
+		MIDI_Waitlastexclusiveout();
 		for (msg=0x7bb0; msg<0x7bc0; msg++)
-			midi_out_short_msg(msg);
+			midiOutShortMsg(hOut, msg);
 	}
 }
 
@@ -246,16 +269,24 @@ void MIDI_Init(void)
 
 	if (!hOut)
 	{
-		if (midi_out_open(&hOut) != 0)
-			hOut = NULL;
+		int MIDI_MAPPER_ID = Config.MIDIOutDevID > 0 ? Config.MIDIOutDevID : MIDI_MAPPER;
+		if (midiOutOpen(&hOut, MIDI_MAPPER_ID, 0, 0, CALLBACK_NULL)
+							== MMSYSERR_NOERROR) {
+			midiOutReset(hOut);
+		}
+		else
+			hOut = 0;
 	}
-}
+
 
 void MIDI_Cleanup(void)
 {
 	if (hOut)
 	{
 		MIDI_Reset();
+		MIDI_Waitlastexclusiveout();
+		midiOutReset(hOut);
+		midiOutClose(hOut);
 		hOut = NULL;
 	}
 }
@@ -273,7 +304,7 @@ void MIDI_Message(uint8_t mes)
 		case MIDI_CONTINUE:
 		case MIDI_STOP:
 		case MIDI_ACTIVESENSE:
-		case MIDI_SYSTEMRESET: /* 一応イリーガル〜 */
+		case MIDI_SYSTEMRESET: /* 一応イリーガル~ */
 			return;
 	}
 
@@ -388,22 +419,24 @@ void MIDI_Message(uint8_t mes)
 						(TONE_CH[MIDI_BUF[0] & 0x0f] < MIMPI_RHYTHM))
 						MIDI_BUF[1] = TONEMAP[ TONE_CH[MIDI_BUF[0] & 0x0f] ][ MIDI_BUF[1] & 0x7f ];
 				}
-				midi_out_short_msg(MIDIOUTS(MIDI_BUF[0], MIDI_BUF[1], 0));
+				MIDI_Waitlastexclusiveout();
+				midiOutShortMsg(hOut, MIDIOUTS(MIDI_BUF[0], MIDI_BUF[1], 0));
 				MIDI_CTRL = MIDICTRL_READY;
 			}
 			break;
 		case MIDICTRL_3uint8_tS:
 			if (MIDI_POS >= 3)
 			{
-				midi_out_short_msg( 
-				MIDIOUTS(MIDI_BUF[0],
-					MIDI_BUF[1], MIDI_BUF[2]));
+				MIDI_Waitlastexclusiveout();
+				midiOutShortMsg(hOut, 
+							MIDIOUTS(MIDI_BUF[0], MIDI_BUF[1], MIDI_BUF[2]));
 				MIDI_CTRL = MIDICTRL_READY;
 			}
 			break;
 		case MIDICTRL_EXCLUSIVE:
 			if (mes == MIDI_EOX)
 			{
+				MIDI_Waitlastexclusiveout();
 				MIDI_Sendexclusive(MIDI_BUF, MIDI_POS);
 				MIDI_CTRL = MIDICTRL_READY;
 			}

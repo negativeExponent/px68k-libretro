@@ -333,6 +333,14 @@ static void update_variable_midi_interface(void)
          Config.MIDI_SW = 1;
    }
 
+   var.key = "px68k_midi_output_device_id";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      Config.MIDIOutDevID = atoi(var.value);
+   }
+
    var.key = "px68k_midi_output_type";
    var.value = NULL;
 

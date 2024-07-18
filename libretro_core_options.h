@@ -167,6 +167,18 @@ struct retro_core_option_definition option_defs_us[] = {
       "enabled"
    },
    {
+      "px68k_midi_output_device_id",
+      "MIDI Output Device (Restart)",
+      "Choose the MIDI synth to use. Because there are no names, and actual devices are not being checked, this menu is just for convenience..\nSelecting 0 always assumes Windows GS Synth while 1, 2 will selected either of the other synths (MT-32, CM-55 if they are loaded) in order of which was run first.",
+      {
+         { "0",  "0 - Most likely MS GS Synth"},
+         { "1",  "1 - Others1"},
+         { "2",  "1 - Others2"},
+         { NULL,       NULL },
+      },
+      "0"
+   },
+   {
       "px68k_midi_output_type",
       "MIDI Output Type (Restart)",
       "Sets MIDI output type.",

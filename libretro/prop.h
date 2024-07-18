@@ -42,6 +42,7 @@ typedef struct
 	 * 1 = CPSF-MD (8 Buttons
 	 * 2 = CPSF-SFC (8 Buttons) */
 	int JOY_TYPE[2];
+	int MIDIOutDevID;
 } Win68Conf;
 
 extern Win68Conf Config;

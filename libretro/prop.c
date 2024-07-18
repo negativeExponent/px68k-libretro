@@ -91,7 +91,7 @@ void LoadConfig(void)
 	if (!initialized)
 		LoadDefaults();
 
-	GetPrivateProfileString("WinX68k", "StartDir", "", buf, MAX_PATH, winx68k_ini);
+	x68k_GetPrivateProfileString("WinX68k", "StartDir", "", buf, MAX_PATH, winx68k_ini);
 	if (buf[0] != 0)
 		strncpy(filepath, buf, sizeof(filepath));
 	else
@@ -101,14 +101,14 @@ void LoadConfig(void)
 		for (i = 0; i < 2; i++)
 		{
 			sprintf(buf, "FDD%d", i);
-			GetPrivateProfileString("WinX68k", buf, "", Config.FDDImage[i], MAX_PATH, winx68k_ini);
+			x68k_GetPrivateProfileString("WinX68k", buf, "", Config.FDDImage[i], MAX_PATH, winx68k_ini);
 		}
 
 	if (Config.save_hdd_path)
 		for (i=0; i<16; i++)
 		{
 			sprintf(buf, "HDD%d", i);
-			GetPrivateProfileString("WinX68k", buf, "", Config.HDImage[i], MAX_PATH, winx68k_ini);
+			x68k_GetPrivateProfileString("WinX68k", buf, "", Config.HDImage[i], MAX_PATH, winx68k_ini);
 		}
 }
 
@@ -118,19 +118,19 @@ void SaveConfig(void)
 	int	i;
 	char	buf[MAX_PATH];
 
-	WritePrivateProfileString("WinX68k", "StartDir", filepath, winx68k_ini);
+	x68k_WritePrivateProfileString("WinX68k", "StartDir", filepath, winx68k_ini);
 
 	if (Config.save_fdd_path)
 		for (i = 0; i < 2; i++)
 		{
 			sprintf(buf, "FDD%d", i);
-			WritePrivateProfileString("WinX68k", buf, Config.FDDImage[i], winx68k_ini);
+			x68k_WritePrivateProfileString("WinX68k", buf, Config.FDDImage[i], winx68k_ini);
 		}
 
 	if (Config.save_hdd_path)
 		for (i=0; i<16; i++)
 		{
 			sprintf(buf, "HDD%d", i);
-			WritePrivateProfileString("WinX68k", buf, Config.HDImage[i], winx68k_ini);
+			x68k_WritePrivateProfileString("WinX68k", buf, Config.HDImage[i], winx68k_ini);
 		}
 }

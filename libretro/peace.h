@@ -15,9 +15,9 @@ int	read_file(void*, void *, size_t, size_t*);
 int	write_file(void*, const void *, size_t, size_t*);
 void *  create_file(const char*, uint32_t, uint32_t);
 
-size_t	GetPrivateProfileString(const char *, const char*, const char*, char*,
+size_t	x68k_GetPrivateProfileString(const char *, const char*, const char*, char*,
 		size_t, const char*);
-unsigned int	GetPrivateProfileInt(const char*, const char*, signed int, const char*);
+unsigned int	x68k_GetPrivateProfileInt(const char*, const char*, signed int, const char*);
 
 #ifdef __cplusplus
 };

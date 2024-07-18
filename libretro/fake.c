@@ -77,7 +77,7 @@ out:
 	return 1;
 }
 
-int WritePrivateProfileString(const char *sect, const char *key,
+int x68k_WritePrivateProfileString(const char *sect, const char *key,
 		const char *str, const char *inifile)
 {
 	char lbuf[256];

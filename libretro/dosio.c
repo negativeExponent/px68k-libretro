@@ -61,12 +61,12 @@ static void plusyen(char *s, size_t len)
 
 void *file_open(const char *filename)
 {
-	void *ret = create_file(filename, GENERIC_READ | GENERIC_WRITE,
-	    OPEN_EXISTING);
+	void *ret = create_file(filename, X68K_GENERIC_READ | X68K_GENERIC_WRITE,
+	    X68K_OPEN_EXISTING);
 	if (!ret)
 	{
-		if (!(ret = create_file(filename, GENERIC_READ,
-		    OPEN_EXISTING)))
+		if (!(ret = create_file(filename, X68K_GENERIC_READ,
+		    X68K_OPEN_EXISTING)))
 			return NULL;
 	}
 	return ret;
@@ -105,6 +105,6 @@ void *file_open_c(const char *filename)
 void *file_create_c(const char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
-	return create_file(curpath, GENERIC_READ | GENERIC_WRITE,
-	    CREATE_ALWAYS);
+	return create_file(curpath, X68K_GENERIC_READ | X68K_GENERIC_WRITE,
+	    X68K_CREATE_ALWAYS);
 }
