@@ -1,12 +1,14 @@
 /*
  *  MIDI.C - MIDI Board (CZ-6BM1) emulator
  */
+#include <windows.h>
+#include <mmsystem.h>
 
 #include "common.h"
 #include "prop.h"
 #include "winx68k.h"
 #include "../libretro/dosio.h"
-#include "../libretro/mmsystem.h"
+#include "../libretro/x68k_mmsystem.h"
 #include "x68kmemory.h"
 #include "irqh.h"
 #include "midi.h"
@@ -253,6 +255,27 @@ void MIDI_Reset(void)
 
 void MIDI_Init(void)
 {
+	{
+		/* this just shows the devices available */
+		DWORD num, devID;
+		MIDIOUTCAPS OutCaps;
+		MMRESULT res;
+
+		num = midiOutGetNumDevs();
+		if (!num) printf("No MIDI devices were found.");
+		else
+		{
+			for (devID = 0; devID < num; devID++)
+			{
+				res = midiOutGetDevCapsA(devID, &OutCaps, sizeof(OutCaps));
+				if (res == MMSYSERR_NOERROR)
+				{
+					printf("%d: '%s'\n", devID, OutCaps.szPname);
+				}
+			}
+		}
+		
+	}
 	memset(DelayBuf, 0, sizeof(DelayBuf));
 	DBufPtrW = DBufPtrR = 0;
 
@@ -277,6 +300,7 @@ void MIDI_Init(void)
 		else
 			hOut = 0;
 	}
+}
 
 
 void MIDI_Cleanup(void)
