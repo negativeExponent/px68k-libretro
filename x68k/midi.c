@@ -189,8 +189,6 @@ static void MIDI_SetModule(void)
 static void MIDI_Sendexclusive(uint8_t *excv, size_t length)
 {
 	memcpy(MIDI_EXCVBUF, excv, length);
-	midi_out_long_msg(MIDI_EXCVBUF, length);
-	memcpy(MIDI_EXCVBUF, excv, length);
 	hHdr.lpData = MIDI_EXCVBUF;
 	hHdr.dwFlags = 0;
 	hHdr.dwBufferLength = length;
