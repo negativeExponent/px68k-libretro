@@ -1887,7 +1887,7 @@ static void WinX68k_Exec(void)
 
    vline     = 0;
    clk_count = -ICount;
-   clk_total = (CRTC_Regs[0x29] & 0x10) ? VSYNC_HIGH : VSYNC_NORM;
+   clk_total = (CRTC_Regs[CRTC_R20_L] & 0x10) ? VSYNC_HIGH : VSYNC_NORM;
 
    clk_total = (clk_total*Config.clockmhz)/10;
    clkdiv    = Config.clockmhz;
@@ -2041,7 +2041,7 @@ static void WinX68k_Exec(void)
       else
       {
          /* FastClr start */
-         if (CRTC_Regs[0x29] & 0x10)
+         if (CRTC_Regs[CRTC_R20_L] & 0x10)
             CRTC_FastClr = 1;
          else
             CRTC_FastClr = 2;
@@ -2055,9 +2055,9 @@ static void WinX68k_Exec(void)
       WinDraw_Draw();
 
    t_end = timeGetTime();
-   if ((int)(t_end - t_start) > ((CRTC_Regs[0x29] & 0x10) ? 14 : 16))
+   if ((int)(t_end - t_start) > ((CRTC_Regs[CRTC_R20_L] & 0x10) ? 14 : 16))
    {
-      FrameSkipQueue += ((t_end - t_start) / ((CRTC_Regs[0x29] & 0x10) ? 14 : 16)) + 1;
+      FrameSkipQueue += ((t_end - t_start) / ((CRTC_Regs[CRTC_R20_L] & 0x10) ? 14 : 16)) + 1;
       if (FrameSkipQueue > 100)
          FrameSkipQueue = 100;
    }

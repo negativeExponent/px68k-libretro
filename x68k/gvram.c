@@ -46,8 +46,8 @@ void GVRAM_Init(void)
 
 void FASTCALL GVRAM_FastClear(void)
 {
-	uint32_t v = ((CRTC_Regs[0x29]&4)?512:256);
-	uint32_t h = ((CRTC_Regs[0x29]&3)?512:256);
+	uint32_t v = ((CRTC_Regs[CRTC_R20_L]&4)?512:256);
+	uint32_t h = ((CRTC_Regs[CRTC_R20_L]&3)?512:256);
 
 	uint16_t *p;
 	uint32_t x, y, offset;
@@ -89,21 +89,21 @@ uint8_t FASTCALL GVRAM_Read(uint32_t adr)
 #endif
 	adr     -= 0xc00000;
 
-	if (CRTC_Regs[0x28] & 8)
+	if (CRTC_Regs[CRTC_R20_H] & 8)
 	{
 		if (adr < 0x80000)
 			return GVRAM[adr];
 	}
    else
    {
-      switch(CRTC_Regs[0x28] & 3)
+      switch(CRTC_Regs[CRTC_R20_H] & 3)
       {
          case 0: /* 16 colors */
             if (!(adr&1))
             {
                uint16_t *ram;
                uint8_t page;
-               if (CRTC_Regs[0x28] & 4)		/* 1024dot */
+               if (CRTC_Regs[CRTC_R20_H] & 4)		/* 1024dot */
                {
                   ram   = (uint16_t*)(&GVRAM[((adr & 0xff800) >> 1)+(adr & 0x3fe)]);
                   page  = (uint8_t)((adr >> 17) & 0x08);
@@ -151,7 +151,7 @@ void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 #endif
 	adr -= 0xc00000;
 
-	if (CRTC_Regs[0x28]&8) /* 65536¿¿¿¿¿VRAM¿¿¿¿¿¿¿Nemesis¿¿ */
+	if (CRTC_Regs[CRTC_R20_H]&8) /* 65536¿¿¿¿¿VRAM¿¿¿¿¿¿¿Nemesis¿¿ */
    {
       if ( adr<0x80000 )
       {
@@ -161,12 +161,12 @@ void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
    }
 	else
    {
-      switch(CRTC_Regs[0x28] & 3)
+      switch(CRTC_Regs[CRTC_R20_H] & 3)
       {
          case 0: /* 16 colors */
             if (adr & 1)
                break;
-            if (CRTC_Regs[0x28] & 4)		/* 1024dot */
+            if (CRTC_Regs[CRTC_R20_H] & 4)		/* 1024dot */
             {
                uint16_t temp;
                uint16_t *ram    = (uint16_t*)(&GVRAM[((adr & 0xff800) >> 1)+(adr & 0x3fe)]);
@@ -234,7 +234,7 @@ void Grp_DrawLine16(void)
 	uint32_t i;
 	uint16_t v, v0;
 	uint32_t y = GrphScrollY[0] + VLINE;
-	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+	if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
 		y += VLINE;
 	y = (y & 0x1ff) << 10;
 
@@ -289,7 +289,7 @@ void FASTCALL Grp_DrawLine8(int page, int opaq)
 
 	y = GrphScrollY[page * 2] + VLINE;
 	y0 = GrphScrollY[page * 2 + 1] + VLINE;
-	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c) {
+	if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c) {
 		y += VLINE;
 		y0 += VLINE;
 	}
@@ -377,7 +377,7 @@ void FASTCALL Grp_DrawLine4(uint32_t page, int opaq)
 	page &= 3;
 
 	y = GrphScrollY[page] + VLINE;
-	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+	if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
 		y += VLINE;
 	y = (y & 0x1ff) << 10;
 
@@ -481,7 +481,7 @@ void FASTCALL Grp_DrawLine4h(void)
 	int bits;
 
 	y = GrphScrollY[0] + VLINE;
-	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+	if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
 		y += VLINE;
 	y &= 0x3ff;
 
@@ -523,7 +523,7 @@ void FASTCALL Grp_DrawLine16SP(void)
 	uint16_t v;
 
 	y = GrphScrollY[0] + VLINE;
-	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+	if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
 		y += VLINE;
 	y = (y & 0x1ff) << 10;
 
@@ -560,7 +560,7 @@ void FASTCALL Grp_DrawLine8SP(int page)
 
 	y = GrphScrollY[page * 2] + VLINE;
 	y0 = GrphScrollY[page * 2 + 1] + VLINE;
-	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c) {
+	if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c) {
 		y += VLINE;
 		y0 += VLINE;
 	}
@@ -637,7 +637,7 @@ void FASTCALL Grp_DrawLine4SP(uint32_t page/*, int opaq*/)
 	if (page & 1)
    {
       y = scry + VLINE;
-      if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+      if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
          y += VLINE;
       y = (y & 0x1ff) << 10;
 
@@ -667,7 +667,7 @@ void FASTCALL Grp_DrawLine4SP(uint32_t page/*, int opaq*/)
    else
    {
       y = scry + VLINE;
-      if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+      if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
          y += VLINE;
       y = (y & 0x1ff) << 10;
 
@@ -705,7 +705,7 @@ void FASTCALL Grp_DrawLine4hSP(void)
 	int bits;
 	uint16_t v;
 	uint32_t y = GrphScrollY[0] + VLINE;
-	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+	if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
 		y += VLINE;
 	y &= 0x3ff;
 
@@ -754,7 +754,7 @@ void FASTCALL Grp_DrawLine8TR(int page, int opaq)
       page &= 1;
 
       y = GrphScrollY[page * 2] + VLINE;
-      if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+      if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
          y += VLINE;
       y = ((y & 0x1ff) << 10) + page;
       x = GrphScrollX[page * 2] & 0x1ff;
@@ -792,7 +792,7 @@ void FASTCALL Grp_DrawLine8TR_GT(int page, int opaq)
       page &= 1;
 
       y = GrphScrollY[page * 2] + VLINE;
-      if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+      if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
          y += VLINE;
       y = ((y & 0x1ff) << 10) + page;
       x = GrphScrollX[page * 2] & 0x1ff;
@@ -814,7 +814,7 @@ void FASTCALL Grp_DrawLine4TR(uint32_t page, int opaq)
    page &= 3;
 
    y = GrphScrollY[page] + VLINE;
-   if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+   if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
       y += VLINE;
    y = (y & 0x1ff) << 10;
    x = GrphScrollX[page] & 0x1ff;

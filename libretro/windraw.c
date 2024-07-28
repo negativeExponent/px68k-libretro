@@ -469,11 +469,11 @@ void WinDraw_DrawLine(void)
 		{
 			int s1, s2;
 			s1 = (((BG_Regs[0x11]  &4)?2:1)-((BG_Regs[0x11]  &16)?1:0));
-			s2 = (((CRTC_Regs[0x29]&4)?2:1)-((CRTC_Regs[0x29]&16)?1:0));
+			s2 = (((CRTC_Regs[CRTC_R20_L]&4)?2:1)-((CRTC_Regs[CRTC_R20_L]&16)?1:0));
 			VLINEBG = VLINE;
 			VLINEBG <<= s1;
 			VLINEBG >>= s2;
-			if ( !(BG_Regs[0x11]&16) ) VLINEBG -= ((BG_Regs[0x0f]>>s1)-(CRTC_Regs[0x0d]>>s2));
+			if ( !(BG_Regs[0x11]&16) ) VLINEBG -= ((BG_Regs[0x0f]>>s1)-(CRTC_Regs[CRTC_R06_L]>>s2));
 			BG_DrawLine(!ton, 0);
 			bgon = 1;
 		}
@@ -484,11 +484,11 @@ void WinDraw_DrawLine(void)
 		{
 			int s1, s2;
 			s1 = (((BG_Regs[0x11]  &4)?2:1)-((BG_Regs[0x11]  &16)?1:0));
-			s2 = (((CRTC_Regs[0x29]&4)?2:1)-((CRTC_Regs[0x29]&16)?1:0));
+			s2 = (((CRTC_Regs[CRTC_R20_L]&4)?2:1)-((CRTC_Regs[CRTC_R20_L]&16)?1:0));
 			VLINEBG = VLINE;
 			VLINEBG <<= s1;
 			VLINEBG >>= s2;
-			if ( !(BG_Regs[0x11]&16) ) VLINEBG -= ((BG_Regs[0x0f]>>s1)-(CRTC_Regs[0x0d]>>s2));
+			if ( !(BG_Regs[0x11]&16) ) VLINEBG -= ((BG_Regs[0x0f]>>s1)-(CRTC_Regs[CRTC_R06_L]>>s2));
 			memset(Text_TrFlag, 0, TextDotX+16);
 			BG_DrawLine(1, 1);
 			bgon = 1;

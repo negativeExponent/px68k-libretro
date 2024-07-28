@@ -66,7 +66,7 @@ static INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 
 static INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data)
 {
-	data = (TVRAM[adr] & CRTC_Regs[0x2e + ((adr^1) & 1)]) | (data & (~CRTC_Regs[0x2e + ((adr ^ 1) & 1)]));
+	data = (TVRAM[adr] & CRTC_Regs[CRTC_R23_L + (adr & 1)]) | (data & (~CRTC_Regs[CRTC_R23_L + (adr & 1)]));
 	if (TVRAM[adr] != data)
 	{
 		TextDirtyLine[(((adr&0x1ffff)/128)-TextScrollY)&1023] = 1;
@@ -80,27 +80,27 @@ void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 #ifndef MSB_FIRST
 	adr ^= 1;
 #endif
-	if (CRTC_Regs[0x2a]&1)
+	if (CRTC_Regs[CRTC_R21_H]&1)
 	{
 		adr &= 0x1ffff;
-		if (CRTC_Regs[0x2a]&2)		/* Text Mask */
+		if (CRTC_Regs[CRTC_R21_H]&2)		/* Text Mask */
 		{
-			if (CRTC_Regs[0x2b]&0x10) TVRAM_WriteByteMask(adr        , data);
-			if (CRTC_Regs[0x2b]&0x20) TVRAM_WriteByteMask(adr+0x20000, data);
-			if (CRTC_Regs[0x2b]&0x40) TVRAM_WriteByteMask(adr+0x40000, data);
-			if (CRTC_Regs[0x2b]&0x80) TVRAM_WriteByteMask(adr+0x60000, data);
+			if (CRTC_Regs[CRTC_R21_L]&0x10) TVRAM_WriteByteMask(adr        , data);
+			if (CRTC_Regs[CRTC_R21_L]&0x20) TVRAM_WriteByteMask(adr+0x20000, data);
+			if (CRTC_Regs[CRTC_R21_L]&0x40) TVRAM_WriteByteMask(adr+0x40000, data);
+			if (CRTC_Regs[CRTC_R21_L]&0x80) TVRAM_WriteByteMask(adr+0x60000, data);
 		}
 		else
 		{
-			if (CRTC_Regs[0x2b]&0x10) TVRAM_WriteByte(adr        , data);
-			if (CRTC_Regs[0x2b]&0x20) TVRAM_WriteByte(adr+0x20000, data);
-			if (CRTC_Regs[0x2b]&0x40) TVRAM_WriteByte(adr+0x40000, data);
-			if (CRTC_Regs[0x2b]&0x80) TVRAM_WriteByte(adr+0x60000, data);
+			if (CRTC_Regs[CRTC_R21_L]&0x10) TVRAM_WriteByte(adr        , data);
+			if (CRTC_Regs[CRTC_R21_L]&0x20) TVRAM_WriteByte(adr+0x20000, data);
+			if (CRTC_Regs[CRTC_R21_L]&0x40) TVRAM_WriteByte(adr+0x40000, data);
+			if (CRTC_Regs[CRTC_R21_L]&0x80) TVRAM_WriteByte(adr+0x60000, data);
 		}
 	}
 	else
 	{
-		if (CRTC_Regs[0x2a]&2)		/* Text Mask */
+		if (CRTC_Regs[CRTC_R21_H]&2)		/* Text Mask */
 			TVRAM_WriteByteMask(adr, data);
 		else
 			TVRAM_WriteByte(adr, data);
@@ -132,7 +132,7 @@ void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 
 void FASTCALL TVRAM_RCUpdate(void)
 {
-	uint32_t adr = ((uint32_t)CRTC_Regs[0x2d]<<9);
+	uint32_t adr = ((uint32_t)CRTC_Regs[CRTC_R22_L]<<9);
 
 	/* XXX: BUG */
 	uint32_t *ptr = (uint32_t *)TextDrawPattern;
@@ -175,7 +175,7 @@ void FASTCALL Text_DrawLine(int opaq)
 	uint32_t i;
 	uint8_t t;
 	uint32_t y = TextScrollY + VLINE;
-	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
+	if ((CRTC_Regs[CRTC_R20_L] & 0x1c) == 0x1c)
 		y += VLINE;
 	y = (y & 0x3ff) << 10;
 

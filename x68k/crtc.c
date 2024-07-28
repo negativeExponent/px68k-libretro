@@ -39,17 +39,16 @@ extern int VID_MODE, CHANGEAV_TIMING;
 
 void CRTC_RasterCopy(void)
 {
-	uint32_t line = (((uint32_t)CRTC_Regs[0x2d])<<2);
-	uint32_t src  = (((uint32_t)CRTC_Regs[0x2c])<<9);
-	uint32_t dst  = (((uint32_t)CRTC_Regs[0x2d])<<9);
+	uint32_t line = (((uint32_t)CRTC_Regs[CRTC_R22_L])<<2);
+	uint32_t src  = (((uint32_t)CRTC_Regs[CRTC_R22_H])<<9);
+	uint32_t dst  = (((uint32_t)CRTC_Regs[CRTC_R22_L])<<9);
 
-{
 	static const uint32_t off[4] = { 0, 0x20000, 0x40000, 0x60000 };
 	int i, bit;
 
 	for (bit = 0; bit < 4; bit++)
    {
-		if (CRTC_Regs[0x2b] & (1 << bit))
+		if (CRTC_Regs[CRTC_R21_L] & (1 << bit))
 			memmove(&TVRAM[dst + off[bit]], &TVRAM[src + off[bit]],
 			    sizeof(uint32_t) * 128);
 	}
@@ -59,7 +58,6 @@ void CRTC_RasterCopy(void)
 		TextDirtyLine[line] = 1;
 		line = (line + 1) & 0x3ff;
 	}
-}
 
 	TVRAM_RCUpdate();
 }
@@ -132,12 +130,18 @@ void CRTC_Init(void)
 
 uint8_t FASTCALL CRTC_Read(uint32_t adr)
 {
-   uint8_t ret;
    if (adr<0xe803ff)
    {
-      int reg = adr & 0x3f;
+      int reg;
+#ifndef MSB_FIRST
+	   adr ^= 1;
+#endif
+      reg = adr & 0x3f;
       if ( (reg >= 0x28) && (reg <= 0x2b) )
+      {
          return CRTC_Regs[reg];
+      }
+
    }
    else if ( adr==0xe80481 )
    {
@@ -155,10 +159,14 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
       0x0fff, 0x0ff0, 0x0f0f, 0x0f00, 0x00ff, 0x00f0, 0x000f, 0x0000
    };
 
-   uint8_t reg     = (uint8_t)(adr&0x3f);
    int old_vidmode = VID_MODE;
    if (adr<0xe80400)
    {
+      int reg;
+#ifndef MSB_FIRST
+	   adr ^= 1;
+#endif
+      reg = adr & 0x3f;
       if ( reg>=0x30 ) return;
       if (CRTC_Regs[reg]==data) return;
       CRTC_Regs[reg] = data;
@@ -167,33 +175,33 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
       {
          case 0x04:
          case 0x05:
-            CRTC_HSTART = (((uint16_t)CRTC_Regs[0x4] << 8) + CRTC_Regs[0x5]) & 1023;
+            CRTC_HSTART = (((uint16_t)CRTC_Regs[CRTC_R02_H] << 8) + CRTC_Regs[CRTC_R02_L]) & 1023;
             if (CRTC_HEND > CRTC_HSTART)
                TextDotX = (CRTC_HEND-CRTC_HSTART)*8;
-            BG_HAdjust = ((long)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;				/* ¿åÊ¿Êý¸þ¤Ï²òÁüÅÙ¤Ë¤è¤ë1/2¤Ï¤¤¤é¤Ê¤¤¡©¡ÊTetris¡Ë */
+            BG_HAdjust = ((long)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;				/* ï¿½ï¿½Ê¿ï¿½ï¿½ï¿½ï¿½ï¿½Ï²ï¿½ï¿½ï¿½ï¿½Ù¤Ë¤ï¿½ï¿½1/2ï¿½Ï¤ï¿½ï¿½ï¿½Ê¤ï¿½ï¿½ï¿½ï¿½ï¿½Tetrisï¿½ï¿½ */
             break;
          case 0x06:
          case 0x07:
-            CRTC_HEND = (((uint16_t)CRTC_Regs[0x6] << 8) + CRTC_Regs[0x7]) & 1023;
+            CRTC_HEND = (((uint16_t)CRTC_Regs[CRTC_R03_H] << 8) + CRTC_Regs[CRTC_R03_L]) & 1023;
             if (CRTC_HEND > CRTC_HSTART)
                TextDotX = (CRTC_HEND-CRTC_HSTART)*8;
             break;
          case 0x08:
          case 0x09:
-            VLINE_TOTAL = (((uint16_t)CRTC_Regs[8]<<8)+CRTC_Regs[9]);
-            HSYNC_CLK = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM)/VLINE_TOTAL;
+            VLINE_TOTAL = (((uint16_t)CRTC_Regs[CRTC_R04_H]<<8)+CRTC_Regs[CRTC_R04_L]) & 1023;
+            HSYNC_CLK = ((CRTC_Regs[CRTC_R20_L]&0x10)?VSYNC_HIGH:VSYNC_NORM)/VLINE_TOTAL;
             break;
          case 0x0c:
          case 0x0d:
-            CRTC_VSTART = (((uint16_t)CRTC_Regs[0xc] << 8) + CRTC_Regs[0xd]) & 1023;
-            BG_VLINE = ((long)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	/* BG¤È¤½¤ÎÂ¾¤¬¤º¤ì¤Æ¤ë»þ¤Îº¹Ê¬ */
+            CRTC_VSTART = (((uint16_t)CRTC_Regs[CRTC_R06_H] << 8) + CRTC_Regs[CRTC_R06_L]) & 1023;
+            BG_VLINE = ((long)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	/* BGï¿½È¤ï¿½ï¿½ï¿½Â¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¤ï¿½ï¿½ï¿½Îºï¿½Ê¬ */
             TextDotY = CRTC_VEND-CRTC_VSTART;
-            if ((CRTC_Regs[0x29]&0x14)==0x10)
+            if ((CRTC_Regs[CRTC_R20_L]&0x14)==0x10)
             {
                TextDotY/=2;
                CRTC_VStep = 1;
             }
-            else if ((CRTC_Regs[0x29]&0x14)==0x04)
+            else if ((CRTC_Regs[CRTC_R20_L]&0x14)==0x04)
             {
                TextDotY*=2;
                CRTC_VStep = 4;
@@ -203,14 +211,14 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
             break;
          case 0x0e:
          case 0x0f:
-            CRTC_VEND = (((uint16_t)CRTC_Regs[0xe] << 8) + CRTC_Regs[0xf]) & 1023;
+            CRTC_VEND = (((uint16_t)CRTC_Regs[CRTC_R07_H] << 8) + CRTC_Regs[CRTC_R07_L]) & 1023;
             TextDotY = CRTC_VEND-CRTC_VSTART;
-            if ((CRTC_Regs[0x29]&0x14)==0x10)
+            if ((CRTC_Regs[CRTC_R20_L]&0x14)==0x10)
             {
                TextDotY/=2;
                CRTC_VStep = 1;
             }
-            else if ((CRTC_Regs[0x29]&0x14)==0x04)
+            else if ((CRTC_Regs[CRTC_R20_L]&0x14)==0x04)
             {
                TextDotY*=2;
                CRTC_VStep = 4;
@@ -219,18 +227,15 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
                CRTC_VStep = 2;
             break;
          case 0x28:
-            TVRAM_SetAllDirty();
-            break;
-         case 0x29:
-            HSYNC_CLK = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM)/VLINE_TOTAL;
-            VID_MODE = !!(CRTC_Regs[0x29]&0x10);
+            HSYNC_CLK = ((CRTC_Regs[CRTC_R20_L]&0x10)?VSYNC_HIGH:VSYNC_NORM)/VLINE_TOTAL;
+            VID_MODE = !!(CRTC_Regs[CRTC_R20_L]&0x10);
             TextDotY = CRTC_VEND-CRTC_VSTART;
-            if ((CRTC_Regs[0x29]&0x14)==0x10)
+            if ((CRTC_Regs[CRTC_R20_L]&0x14)==0x10)
             {
                TextDotY/=2;
                CRTC_VStep = 1;
             }
-            else if ((CRTC_Regs[0x29]&0x14)==0x04)
+            else if ((CRTC_Regs[CRTC_R20_L]&0x14)==0x04)
             {
                TextDotY*=2;
                CRTC_VStep = 4;
@@ -243,57 +248,60 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
                CHANGEAV_TIMING=1;
             }
             break;
+         case 0x29:
+            TVRAM_Cleanup();
+            break;
          case 0x12:
          case 0x13:
-            CRTC_IntLine = (((uint16_t)CRTC_Regs[0x12]<<8)+CRTC_Regs[0x13])&1023;
+            CRTC_IntLine = (((uint16_t)CRTC_Regs[CRTC_R09_H]<<8)+CRTC_Regs[CRTC_R09_L])&1023;
             break;
          case 0x14:
          case 0x15:
-            TextScrollX = (((uint32_t)CRTC_Regs[0x14]<<8)+CRTC_Regs[0x15])&1023;
+            TextScrollX = (((uint32_t)CRTC_Regs[CRTC_R10_H]<<8)+CRTC_Regs[CRTC_R10_L])&1023;
             break;
          case 0x16:
          case 0x17:
-            TextScrollY = (((uint32_t)CRTC_Regs[0x16]<<8)+CRTC_Regs[0x17])&1023;
+            TextScrollY = (((uint32_t)CRTC_Regs[CRTC_R11_H]<<8)+CRTC_Regs[CRTC_R11_L])&1023;
             break;
          case 0x18:
          case 0x19:
-            GrphScrollX[0] = (((uint32_t)CRTC_Regs[0x18]<<8)+CRTC_Regs[0x19])&1023;
+            GrphScrollX[0] = (((uint32_t)CRTC_Regs[CRTC_R12_H]<<8)+CRTC_Regs[CRTC_R12_L])&1023;
             break;
          case 0x1a:
          case 0x1b:
-            GrphScrollY[0] = (((uint32_t)CRTC_Regs[0x1a]<<8)+CRTC_Regs[0x1b])&1023;
+            GrphScrollY[0] = (((uint32_t)CRTC_Regs[CRTC_R13_H]<<8)+CRTC_Regs[CRTC_R13_L])&1023;
             break;
          case 0x1c:
          case 0x1d:
-            GrphScrollX[1] = (((uint32_t)CRTC_Regs[0x1c]<<8)+CRTC_Regs[0x1d])&511;
+            GrphScrollX[1] = (((uint32_t)CRTC_Regs[CRTC_R14_H]<<8)+CRTC_Regs[CRTC_R14_L])&511;
             break;
          case 0x1e:
          case 0x1f:
-            GrphScrollY[1] = (((uint32_t)CRTC_Regs[0x1e]<<8)+CRTC_Regs[0x1f])&511;
+            GrphScrollY[1] = (((uint32_t)CRTC_Regs[CRTC_R15_H]<<8)+CRTC_Regs[CRTC_R15_L])&511;
             break;
          case 0x20:
          case 0x21:
-            GrphScrollX[2] = (((uint32_t)CRTC_Regs[0x20]<<8)+CRTC_Regs[0x21])&511;
+            GrphScrollX[2] = (((uint32_t)CRTC_Regs[CRTC_R16_H]<<8)+CRTC_Regs[CRTC_R16_L])&511;
             break;
          case 0x22:
          case 0x23:
-            GrphScrollY[2] = (((uint32_t)CRTC_Regs[0x22]<<8)+CRTC_Regs[0x23])&511;
+            GrphScrollY[2] = (((uint32_t)CRTC_Regs[CRTC_R17_H]<<8)+CRTC_Regs[CRTC_R17_L])&511;
             break;
          case 0x24:
          case 0x25:
-            GrphScrollX[3] = (((uint32_t)CRTC_Regs[0x24]<<8)+CRTC_Regs[0x25])&511;
+            GrphScrollX[3] = (((uint32_t)CRTC_Regs[CRTC_R18_H]<<8)+CRTC_Regs[CRTC_R18_L])&511;
             break;
          case 0x26:
          case 0x27:
-            GrphScrollY[3] = (((uint32_t)CRTC_Regs[0x26]<<8)+CRTC_Regs[0x27])&511;
+            GrphScrollY[3] = (((uint32_t)CRTC_Regs[CRTC_R19_H]<<8)+CRTC_Regs[CRTC_R19_L])&511;
             break;
          case 0x2a:
          case 0x2b:
             break;
-         case 0x2c:				/* CRTCÆ°ºî¥Ý¡¼¥È¤Î¥é¥¹¥¿¥³¥Ô¡¼¤òON¤Ë¤·¤Æ¤ª¤¤¤Æ¡Ê¤·¤Æ¤ª¤¤¤¿¤Þ¤Þ¡Ë¡¢ */
-         case 0x2d:				/* Src/Dst¤À¤±¼¡¡¹ÊÑ¤¨¤Æ¤¤¤¯¤Î¤âµö¤µ¤ì¤ë¤é¤·¤¤¡Ê¥É¥é¥­¥å¥é¤È¤«¡Ë */
-            CRTC_RCFlag[reg-0x2c] = 1;	/* DstÊÑ¹¹¸å¤Ë¼Â¹Ô¤µ¤ì¤ë¡© */
-            if ((CRTC_Mode&8)&&/*(CRTC_RCFlag[0])&&*/(CRTC_RCFlag[1]))
+         case 0x2c:				/* CRTCÆ°ï¿½ï¿½Ý¡ï¿½ï¿½È¤Î¥é¥¹ï¿½ï¿½ï¿½ï¿½ï¿½Ô¡ï¿½ï¿½ï¿½ONï¿½Ë¤ï¿½ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½Æ¡Ê¤ï¿½ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¤Þ¡Ë¡ï¿½ */
+         case 0x2d:				/* Src/Dstï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¤ï¿½ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½Î¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤·ï¿½ï¿½ï¿½Ê¥É¥é¥­ï¿½ï¿½ï¿½È¤ï¿½ï¿½ï¿½ */
+            CRTC_RCFlag[reg-0x2c] = 1;	/* Dstï¿½Ñ¹ï¿½ï¿½ï¿½Ë¼Â¹Ô¤ï¿½ï¿½ï¿½ë¡© */
+            if ((CRTC_Mode&8)&&(CRTC_RCFlag[0])/*&&(CRTC_RCFlag[1])*/)
             {
                CRTC_RasterCopy();
                CRTC_RCFlag[0] = 0;
@@ -303,7 +311,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
       }
    }
    else if (adr==0xe80481)
-   {					/* CRTCÆ°ºî¥Ý¡¼¥È */
+   {					/* CRTCÆ°ï¿½ï¿½Ý¡ï¿½ï¿½ï¿½ */
       CRTC_Mode = (data|(CRTC_Mode&2));
       if (CRTC_Mode&8)
       {				/* Raster Copy */
@@ -314,8 +322,8 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
       if (CRTC_Mode&2)
       {
          CRTC_FastClrLine = vline;
-         /* ¤³¤Î»þÅÀ¤Î¥Þ¥¹¥¯¤¬Í­¸ú¤é¤·¤¤¡Ê¥¯¥©¡¼¥¹¡Ë */
-         CRTC_FastClrMask = FastClearMask[CRTC_Regs[0x2b]&15];
+         /* ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½Î¥Þ¥ï¿½ï¿½ï¿½ï¿½ï¿½Í­ï¿½ï¿½ï¿½é¤·ï¿½ï¿½ï¿½Ê¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
+         CRTC_FastClrMask = FastClearMask[CRTC_Regs[CRTC_R21_L]&15];
       }
    }
 }

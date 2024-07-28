@@ -136,8 +136,8 @@ static uint8_t GetGPIP(void)
 	else
 		ret     |= 0x03;
 
-	if ((hpos >= ((int)CRTC_Regs[0x05] * HSYNC_CLK / CRTC_Regs[0x01])) &&
-	    (hpos < ((int)CRTC_Regs[0x07] * HSYNC_CLK / CRTC_Regs[0x01])))
+	if ((hpos >= ((int)CRTC_Regs[CRTC_R02_L] * HSYNC_CLK / CRTC_Regs[CRTC_R00_L])) &&
+	    (hpos < ((int)CRTC_Regs[CRTC_R03_L] * HSYNC_CLK / CRTC_Regs[CRTC_R00_L])))
 		ret     &= 0x7f;
 	else
 		ret     |= 0x80;

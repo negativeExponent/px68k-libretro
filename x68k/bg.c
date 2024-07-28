@@ -69,8 +69,8 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 	uint32_t bg16chr;
 	int v  = 0;
 	int s1 = (((BG_Regs[0x11]  &4)?2:1)-((BG_Regs[0x11]  &16)?1:0));
-	int s2 = (((CRTC_Regs[0x29]&4)?2:1)-((CRTC_Regs[0x29]&16)?1:0));
-	if ( !(BG_Regs[0x11]&16) ) v = ((BG_Regs[0x0f]>>s1)-(CRTC_Regs[0x0d]>>s2));
+	int s2 = (((CRTC_Regs[CRTC_R20_L]&4)?2:1)-((CRTC_Regs[CRTC_R20_L]&16)?1:0));
+	if ( !(BG_Regs[0x11]&16) ) v = ((BG_Regs[0x0f]>>s1)-(CRTC_Regs[CRTC_R06_L]>>s2));
 	if ((adr>=0xeb0000)&&(adr<0xeb0400))
 	{
 		adr &= 0x3ff;
