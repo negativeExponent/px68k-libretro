@@ -851,11 +851,13 @@ static int WinX68k_LoadROMs(void)
    /* if SCSI IPL, SCSI BIOS is established around $fc0000 */
 	WinX68k_SCSICheck();	
 
+#ifndef MSB_FIRST
 	for (i = 0; i < 0x40000; i += 2) {
 		tmp = IPL[i];
 		IPL[i] = IPL[i + 1];
 		IPL[i + 1] = tmp;
 	}
+#endif
 
 	fp = file_open_c((char *)FONTFILE);
 	if (fp == 0)
@@ -868,6 +870,14 @@ static int WinX68k_LoadROMs(void)
 	}
 	file_lread(fp, FONT, 0xc0000);
 	file_close(fp);
+
+#ifndef MSB_FIRST
+	for (i = 0; i < 0xc0000; i += 2) {
+		tmp = FONT[i];
+		FONT[i] = FONT[i + 1];
+		FONT[i + 1] = tmp;
+	}
+#endif
 
 	return 1;
 }

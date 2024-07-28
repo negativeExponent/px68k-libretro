@@ -177,7 +177,7 @@ static uint8_t rm_main(uint32_t addr)
 
 static uint8_t rm_font(uint32_t addr)
 {
-	return FONT[addr & 0xfffff];
+	return FONT[(addr & 0xfffff) ^ 1];
 }
 
 static uint8_t rm_ipl(uint32_t addr)
