@@ -720,6 +720,8 @@ static int retro_load_game_internal(const char *argv)
       int res = 0;
       if (handle_extension((char*)argv, "cmd") || handle_extension((char*)argv, "CMD"))
       {
+         int i;
+
          if (!(res = loadcmdfile((char*)argv)))
          {
             if (log_cb)
@@ -728,6 +730,18 @@ static int retro_load_game_internal(const char *argv)
          }
 
          parse_cmdline(CMDFILE);
+
+         /* handle relative paths, append content dir if needed */
+         for (i = 1; i < ARGUC; i++)
+         {
+            if (!is_path_absolute(ARGUV[i]))
+            {
+               char tmp[2048] = { 0 };
+               strcpy(tmp, ARGUV[i]);
+               ARGUV[i][0] = '\0';
+               sprintf(ARGUV[i], "%s%c%s", base_dir, SLASH, tmp);
+            }
+         }
       }
       else if (handle_extension((char*)argv, "m3u") || handle_extension((char*)argv, "M3U"))
       {
