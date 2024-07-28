@@ -101,7 +101,7 @@ void FASTCALL OPM_Write(uint32_t adr, uint8_t data)
 }
 
 
-void OPM_Update(int16_t *buffer, int length, uint8_t *pbsp, uint8_t *pbep)
+void OPM_Update(int16_t *buffer, int length, int16_t *pbsp, int16_t *pbep)
 {
 	if ( opm ) opm->Mix((int16_t*)buffer, length, pbsp, pbep);
 }
@@ -121,7 +121,7 @@ void OPM_SetVolume(uint8_t vol)
 
 
 // ----------------------------------------------------------
-// ---------------------------- YMF288 (満開版ま〜きゅり〜)
+// ---------------------------- YMF288 (満開版ま~きゅり~)
 // ----------------------------------------------------------
 // TODO : ROMEOの288を叩くの
 

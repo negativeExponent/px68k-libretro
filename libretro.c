@@ -2233,7 +2233,7 @@ void retro_run(void)
       if (nsamples > soundbuf_size)
          audio_samples_discard(nsamples - soundbuf_size);
    }
-   raudio_callback(soundbuf, NULL, soundbuf_size << 2);
+   raudio_callback(soundbuf, soundbuf_size * sizeof(int16_t));
 
    if (libretro_supports_midi_output && midi_cb.output_enabled())
       midi_cb.flush();

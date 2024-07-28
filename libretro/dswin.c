@@ -32,15 +32,15 @@
 #include	"mercury.h"
 #include	"fmg_wrap.h"
 
-#define PCMBUF_SIZE 2*2*48000
+#define PCMBUF_SIZE 2*48000
 
-static uint8_t pcmbuffer[PCMBUF_SIZE];
-static uint8_t rsndbuf  [PCMBUF_SIZE];
+static int16_t pcmbuffer[PCMBUF_SIZE];
+static int16_t rsndbuf  [PCMBUF_SIZE];
 static int32_t snd_precounter = 0;
 
-uint8_t *pbsp = pcmbuffer;
-uint8_t *pbrp = pcmbuffer, *pbwp = pcmbuffer;
-uint8_t *pbep = &pcmbuffer[PCMBUF_SIZE];
+int16_t *pbsp = pcmbuffer;
+int16_t *pbrp = pcmbuffer, *pbwp = pcmbuffer;
+int16_t *pbep = &pcmbuffer[PCMBUF_SIZE];
 
 void DSound_Play(void)
 {
@@ -56,10 +56,10 @@ void DSound_Stop(void)
 
 static void sound_send(int length)
 {
-   ADPCM_Update((int16_t *)pbwp, length, pbsp, pbep);
-   OPM_Update((int16_t *)pbwp, length, pbsp, pbep);
+   ADPCM_Update(pbwp, length, pbsp, pbep);
+   OPM_Update(pbwp, length, pbsp, pbep);
 
-   pbwp += length * sizeof(uint16_t) * 2;
+   pbwp += length * 2;
    if (pbwp >= pbep)
       pbwp = pbsp + (pbwp - pbep);
 }
@@ -83,8 +83,8 @@ void DSound_Send0(int32_t clock)
 int audio_samples_avail(void)
 {
    if (pbrp <= pbwp)
-      return (pbwp - pbrp) / 4;
-   return (pbep - pbrp) / 4 + (pbwp - pbsp) / 4;
+      return (pbwp - pbrp) / 2;
+   return (pbep - pbrp) / 2 + (pbwp - pbsp) / 2;
 }
 
 void audio_samples_discard(int discard)
@@ -98,7 +98,7 @@ void audio_samples_discard(int discard)
 
    if (pbrp > pbwp)
    {
-      int availa = (pbep - pbrp) / 4;
+      int availa = (pbep - pbrp) / 2;
       if (discard >= availa)
       {
          pbrp = pbsp;
@@ -106,13 +106,13 @@ void audio_samples_discard(int discard)
       }
    }
    
-   pbrp += 4 * discard;
+   pbrp += 2 * discard;
 }
 
-void raudio_callback(void *userdata, unsigned char *stream, int len)
+void raudio_callback(void *userdata, int len)
 {
    int lena, lenb, datalen;
-   uint8_t *buf;
+   int16_t *buf;
 
 cb_start:
    if (pbrp <= pbwp)
@@ -131,7 +131,7 @@ cb_start:
       /* needs more data */
       if (datalen < len)
       {
-	      int length = (len - datalen) / 4;
+	      int length = (len - datalen) / 2;
 	      sound_send(length);
       }
 
@@ -165,16 +165,16 @@ cb_start:
          lenb = len - lena;
 
          if (pbwp - pbsp < lenb)
-	 {
-		 int length = (lenb - (pbwp - pbsp)) / 4;
-		 sound_send(length);
-	 }
+         {
+            int length = (lenb - (pbwp - pbsp)) / 2;
+            sound_send(length);
+	      }
 
-         memcpy(rsndbuf, pbrp, lena);
-         memcpy(&rsndbuf[lena], pbsp, lenb);
+         memcpy(rsndbuf, pbrp, lena * 2);
+         memcpy(&rsndbuf[lena], pbsp, lenb * 2);
          buf  = rsndbuf;
          pbrp = pbsp + lenb;
       }
    }
-   memcpy(userdata, buf, len);
+   memcpy(userdata, buf, len * 2);
 }

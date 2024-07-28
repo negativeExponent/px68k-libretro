@@ -451,7 +451,7 @@ inline void OPM::MixSubL(int activech, ISample** idest)
 // ---------------------------------------------------------------------------
 //	πÁ¿Æ (stereo)
 //
-void OPM::Mix(int16_t* buffer, int nsamples, uint8_t* pbsp, uint8_t* pbep)
+void OPM::Mix(int16_t* buffer, int nsamples, int16_t* pbsp, int16_t* pbep)
 {
 	int i;
 	int16_t* dest;
@@ -481,8 +481,8 @@ void OPM::Mix(int16_t* buffer, int nsamples, uint8_t* pbsp, uint8_t* pbep)
 		
 		for (i = 0, dest = buffer; i < nsamples; i++)
 		{
-			if ((uint8_t*)dest >= pbep)
-				dest = (int16_t *)pbsp;
+			if (dest >= pbep)
+				dest = pbsp;
 			ibuf[1] = ibuf[2] = ibuf[3] = 0;
 			if (activech & 0xaaaa)
 				LFO(), MixSubL(activech, idest);
@@ -498,4 +498,3 @@ void OPM::Mix(int16_t* buffer, int nsamples, uint8_t* pbsp, uint8_t* pbep)
 }
 
 }	// namespace FM
-
