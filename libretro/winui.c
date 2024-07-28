@@ -331,6 +331,7 @@ int WinUI_get_drv_num(int key)
 /******************************************************************************
  * init
  ******************************************************************************/
+void plusyen(char *s, size_t len);
 void WinUI_Init(void)
 {
 	int i;
@@ -340,6 +341,7 @@ void WinUI_Init(void)
    else
       strcpy(cur_dir_str, CUR_DIR_STR);
 
+   plusyen(cur_dir_str, sizeof(cur_dir_str));
    cur_dir_slen = strlen(cur_dir_str);
 
    for (i = 0; i < 4; i++)

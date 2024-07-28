@@ -44,7 +44,7 @@
 static char  curpath[MAX_PATH] = "";
 static char *curfilep = curpath;
 
-static void plusyen(char *s, size_t len)
+void plusyen(char *s, size_t len)
 {
 	size_t pos = strlen(s);
 
