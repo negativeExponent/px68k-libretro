@@ -1695,7 +1695,7 @@ void m68040_fpu_op1()
 					{
 						m68ki_cpu.fpu_just_reset = 0;
 
-						/8 how about an IDLE frame? */
+						/* how about an IDLE frame? */
 						if ((temp & 0x00ff0000) == 0x00180000)
 							REG_A[reg] += 6*4;
 						/* check UNIMP */
@@ -1723,6 +1723,3 @@ void m68040_fpu_op1()
 		default:	fatalerror("m68040_fpu_op1: unimplemented op %d at %08X\n", (REG_IR >> 6) & 0x3, REG_PC-2);
 	}
 }
-
-
-
