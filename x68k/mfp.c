@@ -231,6 +231,56 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
    }
 }
 
+#if 1
+static void MFP_TImerSub(int chan, int mode, int irq, int32_t clock)
+{
+   int t = Timer_Prescaler[mode & 7];
+   int val = MFP[MFP_TADR + chan];
+   int w = (val ? val : 256) * t;
+
+	Timer_Tick[chan] += clock;
+	if (Timer_Tick[chan] >= w) {
+		Timer_Tick[chan] -= w;
+      MFP[MFP_TADR + chan] = Timer_Reload[chan];
+		MFP_Int(irq);
+	}
+	else
+   {
+		int n = Timer_Tick[chan] / t;
+		Timer_Tick[chan] -= n * t;
+      MFP[MFP_TADR + chan] -= n;
+	}
+
+}
+
+void FASTCALL MFP_Timer(int32_t clock)
+{
+   int mode;
+
+   mode = MFP[MFP_TACR];
+   if (!(mode & 8) && (mode & 7))
+   {
+      MFP_TImerSub(0, mode & 7, 2, clock);
+   }
+
+   mode = MFP[MFP_TBCR] & 7;
+   if (mode)
+   {
+      MFP_TImerSub(1, mode, 7, clock);
+   }
+
+   mode = MFP[MFP_TCDCR];
+   if ((mode >> 4) & 7)
+   {
+      MFP_TImerSub(2, (mode >> 4) & 7, 10, clock);
+   }
+
+   if (mode & 7)
+   {
+      MFP_TImerSub(3, mode & 7, 11, clock);
+   }
+}
+#else
 void FASTCALL MFP_Timer(int32_t clock)
 {
    static const int TimerInt[4] = { 2, 7, 10, 11 };
@@ -273,6 +323,7 @@ void FASTCALL MFP_Timer(int32_t clock)
       }
    }
 }
+#endif
 
 void FASTCALL MFP_TimerA(void)
 {
