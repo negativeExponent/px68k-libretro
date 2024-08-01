@@ -31,7 +31,9 @@
  */
 
 #include <stdint.h>
+#ifndef USE_LIBRETRO_VFS
 #include <sys/param.h>
+#endif
 
 #include "dosio.h"
 
@@ -61,7 +63,25 @@ void plusyen(char *s, size_t len)
 
 void *file_open(const char *filename)
 {
-	void *ret = create_file(filename, GENERIC_READ | GENERIC_WRITE,
+	void *ret;
+
+#ifdef USE_LIBRETRO_VFS
+	ret = filestream_open(filename,
+		RETRO_VFS_FILE_ACCESS_READ_WRITE |
+		RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING,
+		RETRO_VFS_FILE_ACCESS_HINT_NONE);
+	if (!ret)
+	{
+		ret = filestream_open(filename,
+			RETRO_VFS_FILE_ACCESS_READ,
+			RETRO_VFS_FILE_ACCESS_HINT_NONE);
+		if (!ret)
+			return NULL;
+	}
+
+	return ret;
+#else
+	ret = create_file(filename, GENERIC_READ | GENERIC_WRITE,
 	    OPEN_EXISTING);
 	if (!ret)
 	{
@@ -70,22 +90,37 @@ void *file_open(const char *filename)
 			return NULL;
 	}
 	return ret;
+#endif
 }
 
 size_t file_lread(void* handle, void *data, size_t length)
 {
-	size_t readsize;
+	int64_t readsize;
+
+#ifdef USE_LIBRETRO_VFS
+	readsize = filestream_read((RFILE *)handle, data, (int64_t)length);
+	if (readsize <= 0)
+		return 0;
+#else
 	if (read_file(handle, data, length, &readsize) == 0)
 		return 0;
-	return readsize;
+#endif
+	return (size_t)readsize;
 }
 
 size_t file_lwrite(void *handle, void *data, size_t length)
 {
-	size_t writesize;
+	int64_t writesize;
+
+#ifdef USE_LIBRETRO_VFS
+	writesize = filestream_write((RFILE *)handle, data, (int64_t)length);
+	if (writesize <= 0)
+		return 0;
+#else
 	if (write_file(handle, data, length, &writesize) == 0)
 		return 0;
-	return writesize;
+#endif
+	return (size_t)writesize;
 }
 
 void file_setcd(const char *exename)
@@ -105,6 +140,16 @@ void *file_open_c(const char *filename)
 void *file_create_c(const char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
+
+#ifdef USE_LIBRETRO_VFS
+	if (string_is_empty(filename)) return NULL;
+	if (path_is_directory(filename)) return NULL;
+
+	return filestream_open(filename,
+		RETRO_VFS_FILE_ACCESS_READ_WRITE,
+		RETRO_VFS_FILE_ACCESS_HINT_NONE);
+#else
 	return create_file(curpath, GENERIC_READ | GENERIC_WRITE,
 	    CREATE_ALWAYS);
+#endif
 }

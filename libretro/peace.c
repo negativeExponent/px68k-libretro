@@ -40,7 +40,8 @@
 #include <unistd.h>
 #endif
 
-#include "windows.h"
+#include "common.h"
+#include "dosio.h"
 
 /*-----
  *
@@ -224,14 +225,42 @@ void* create_file(const char *filename, uint32_t rdwr,
 
 size_t file_seek(void* h, long pos, int16_t whence)
 {
+#ifdef USE_LIBRETRO_VFS
+	int seek_position = -1;
+	int64_t result = 0;
+
+	switch (whence)
+	{
+	case FSEEK_SET:
+		seek_position = RETRO_VFS_SEEK_POSITION_START;
+		break;
+	case FSEEK_CUR:
+		seek_position = RETRO_VFS_SEEK_POSITION_CURRENT;
+		break;
+	case FSEEK_END:
+		seek_position = RETRO_VFS_SEEK_POSITION_END;
+		break;
+	}
+
+	result = filestream_seek((RFILE *)h, (int64_t)pos, seek_position);
+	if (result != -1)
+	{
+		result = filestream_tell((RFILE *)h);
+	}
+	return (size_t)result;
+#else
 	struct internal_file *fp = local_lock(h);
 	int fd                   = fp->fd;
 	local_unlock(h);
 	return lseek(fd, pos, whence);
+#endif
 }
 
 void file_close(void * h)
 {
+#ifdef USE_LIBRETRO_VFS
+	filestream_close((RFILE *)h);
+#else
         if (handletype(h) == HTYPE_FILE)
         {
 		struct internal_file *fp = local_lock(h);
@@ -239,6 +268,7 @@ void file_close(void * h)
 		local_unlock(h);
 		local_free(h);
         }
+#endif
 }
 
 size_t GetPrivateProfileString(const char *sect, const char *key,
