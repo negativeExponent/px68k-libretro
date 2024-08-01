@@ -128,6 +128,9 @@ cb_start:
 
       datalen = pbwp - pbrp;
 
+      if (datalen <= 0)
+         return;
+
       /* needs more data */
       if (datalen < len)
       {
@@ -170,8 +173,8 @@ cb_start:
             sound_send(length);
 	      }
 
-         memcpy(rsndbuf, pbrp, lena * 2);
-         memcpy(&rsndbuf[lena], pbsp, lenb * 2);
+         if (lena > 0) memcpy(rsndbuf, pbrp, lena * 2);
+         if (lenb > 0) memcpy(&rsndbuf[lena], pbsp, lenb * 2);
          buf  = rsndbuf;
          pbrp = pbsp + lenb;
       }
