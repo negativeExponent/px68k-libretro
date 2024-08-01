@@ -64,9 +64,6 @@
 #include "tvram.h"
 #include "winui.h"
 
-#include <dirent.h>
-#include <sys/stat.h>
-
 #include "fmg_wrap.h"
 
 #ifdef _WIN32
@@ -174,7 +171,146 @@ static void switch_mfl(int a, int b)
    mfl.type[b] = type_tmp;
 }
 
+#ifdef USE_LIBRETRO_VFS
+static void menu_create_flist(int v)
+{
+	int drv;
+	int i, a;
+	DIRH *dp;
 
+	/* file extension of FD image */
+	char support[] = "D8888DHDMDUP2HDDIMXDFIMG";
+
+	drv = WinUI_get_drv_num(mkey_y);
+
+	if (drv < 0)
+	{
+		return;
+	}
+
+	/* set current directory when FDD is ejected */
+	if (v == 1)
+	{
+		if (drv < 2)
+		{
+			FDD_EjectFD(drv);
+			Config.FDDImage[drv][0] = '\0';
+		}
+		else
+		{
+			Config.HDImage[drv - 2][0] = '\0';
+		}
+		strcpy(mfl.dir[drv], cur_dir_str);
+		return;
+	}
+
+	if (drv >= 2)
+	{
+		strcpy(support, "HDF");
+	}
+
+	/* This routine gets file lists. */
+	dp = wrap_vfs_opendir(mfl.dir[drv]);
+
+	/* xxx check if dp is null... */
+	if (!dp)
+	{
+		char tmp[PATH_MAX];
+		/* failed to open StartDir, use rom folder as default */
+		/* TODO: check for path more early */
+		sprintf(tmp, "%s%c", base_dir, SLASH);
+		strcpy(mfl.dir[drv], tmp);
+		/* re-open folder */
+		dp = wrap_vfs_opendir(mfl.dir[drv]);
+	}
+
+	/* xxx You can get only MFL_MAX files. */
+	for (i = 0; i < MFL_MAX; i++)
+	{
+		char ent_name[MAX_PATH];
+		const char *n;
+		int st_mode = 0;
+		int st_size = 0;
+
+		if (!(wrap_vfs_readdir(dp)))
+			break;
+
+		n = dp->d_name;
+		strcpy(ent_name, mfl.dir[drv]);
+		strcat(ent_name, n);
+		st_mode = wrap_vfs_stat(ent_name, &st_size);
+
+		if (!(st_mode & STAT_IS_DIRECTORY))
+		{
+			char *p;
+			char ext[4];
+			int len = strlen(n);
+
+			/* Check extension if this is file. */
+			if (len < 4 || *(n + len - 4) != '.')
+			{
+				i--;
+				continue;
+			}
+			strcpy(ext, n + len - 3);
+			upper(ext);
+			p = strstr(support, ext);
+			if (p == NULL || (p - support) % 3 != 0)
+			{
+				i--;
+				continue;
+			}
+		}
+		else
+		{
+			if (!strcmp(n, "."))
+			{
+				i--;
+				continue;
+			}
+
+			/* You can't go up over current directory. */
+			if (!strcmp(n, "..") && !strcmp(mfl.dir[drv], cur_dir_str))
+			{
+				i--;
+				continue;
+			}
+		}
+
+		strcpy(mfl.name[i], n);
+		/* set 1 if this is directory */
+		mfl.type[i] = (st_mode & STAT_IS_DIRECTORY) ? 1 : 0;
+#ifdef DEBUG
+		p6logd("%s 0x%x\n", n, buf.st_mode);
+#endif
+	}
+
+	wrap_vfs_closedir(dp);
+
+	strcpy(mfl.name[i], "");
+	mfl.num = i;
+	mfl.ptr = 0;
+
+	/* Sorting mfl!
+	 * Folder first, than files
+	 * buble sort glory */
+	for (a = 0; a < i - 1; a++)
+	{
+		int b;
+		for (b = a + 1; b < i; b++)
+		{
+			if (mfl.type[a] < mfl.type[b])
+				switch_mfl(a, b);
+			if ((mfl.type[a] == mfl.type[b]) && (strcasecmp(mfl.name[a], mfl.name[b]) > 0))
+				switch_mfl(a, b);
+		}
+	}
+}
+
+#else /* !USE_LIBRETRO_VFS */
+
+#include <dirent.h>
+#include <sys/stat.h>
 static void menu_create_flist(int v)
 {
    DIR *dp;
@@ -296,6 +432,7 @@ static void menu_create_flist(int v)
    }
 }
 
+#endif
 
 struct _menu_func {
 	void (*func)(int v);

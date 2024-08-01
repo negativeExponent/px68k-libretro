@@ -2,6 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 CORE_DIR := $(LOCAL_PATH)/../..
 C68K := 1
+USE_LIBRETRO_VFS := 1
 
 include $(CORE_DIR)/Makefile.common
 
