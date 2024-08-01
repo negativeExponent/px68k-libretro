@@ -49,6 +49,10 @@ extern "C" {
 #include <string/stdstring.h>
 
 extern struct retro_vfs_interface_info vfs_iface_info;
+
+#define STAT_IS_VALID     (1 << 0)
+#define STAT_IS_DIRECTORY (1 << 1)
+
 struct DIRH {
     struct RDIR *dir;
     const char *d_name;
