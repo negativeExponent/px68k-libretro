@@ -46,26 +46,15 @@
 static char  curpath[MAX_PATH] = "";
 static char *curfilep = curpath;
 
-void plusyen(char *s, size_t len)
-{
-	size_t pos = strlen(s);
-
-	if (pos)
-	{
-		if (s[pos-1] == SLASH)
-			return;
-	}
-	if ((pos + 2) >= len)
-		return;
-	s[pos++] = SLASH;
-	s[pos]   = '\0';
-}
+#ifdef USE_LIBRETRO_VFS
 
 void *file_open(const char *filename)
 {
 	void *ret;
 
-#ifdef USE_LIBRETRO_VFS
+	if (string_is_empty(filename)) return NULL;
+	if (path_is_directory(filename)) return NULL;
+
 	ret = filestream_open(filename,
 		RETRO_VFS_FILE_ACCESS_READ_WRITE |
 		RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING,
@@ -80,8 +69,69 @@ void *file_open(const char *filename)
 	}
 
 	return ret;
-#else
-	ret = create_file(filename, GENERIC_READ | GENERIC_WRITE,
+}
+
+void *file_create(const char *filename)
+{
+	if (string_is_empty(filename)) return NULL;
+	if (path_is_directory(filename)) return NULL;
+
+	return filestream_open(filename,
+		RETRO_VFS_FILE_ACCESS_READ_WRITE,
+		RETRO_VFS_FILE_ACCESS_HINT_NONE);
+}
+
+size_t file_lread(void* handle, void *data, size_t length)
+{
+	int64_t readsize = filestream_read((RFILE *)handle, data, (int64_t)length);
+	if (readsize <= 0)
+		return 0;
+	return (size_t)readsize;
+}
+
+size_t file_lwrite(void *handle, void *data, size_t length)
+{
+	int64_t writesize = filestream_write((RFILE *)handle, data, (int64_t)length);
+	if (writesize <= 0)
+		return 0;
+	return (size_t)writesize;
+}
+
+int64_t file_read(void *handle, void *buffer, int64_t length)
+{
+	return filestream_read((RFILE *)handle, buffer, length);
+}
+
+int64_t file_write(void *handle, void *buffer, int64_t length)
+{
+	return filestream_write((RFILE *)handle, buffer, length);
+}
+
+char *file_gets(void *handle, char *buffer, size_t length)
+{
+	return filestream_gets((RFILE *)handle, buffer, length);
+}
+
+int64_t file_tell(void *handle)
+{
+	return filestream_tell((RFILE *)handle);
+}
+
+void file_rewind(void *handle)
+{
+	filestream_rewind((RFILE *)handle);
+}
+
+int file_eof(void *handle)
+{
+	return filestream_eof((RFILE *)handle);
+}
+
+#else /* !USE_LIBRETRO_VFS */
+
+void *file_open(const char *filename)
+{
+	void *ret = create_file(filename, GENERIC_READ | GENERIC_WRITE,
 	    OPEN_EXISTING);
 	if (!ret)
 	{
@@ -90,37 +140,45 @@ void *file_open(const char *filename)
 			return NULL;
 	}
 	return ret;
-#endif
+}
+
+void *file_create(const char *filename)
+{
+	return create_file(curpath, GENERIC_READ | GENERIC_WRITE,
+	    CREATE_ALWAYS);
 }
 
 size_t file_lread(void* handle, void *data, size_t length)
 {
 	int64_t readsize;
-
-#ifdef USE_LIBRETRO_VFS
-	readsize = filestream_read((RFILE *)handle, data, (int64_t)length);
-	if (readsize <= 0)
-		return 0;
-#else
 	if (read_file(handle, data, length, &readsize) == 0)
 		return 0;
-#endif
 	return (size_t)readsize;
 }
 
 size_t file_lwrite(void *handle, void *data, size_t length)
 {
 	int64_t writesize;
-
-#ifdef USE_LIBRETRO_VFS
-	writesize = filestream_write((RFILE *)handle, data, (int64_t)length);
-	if (writesize <= 0)
-		return 0;
-#else
 	if (write_file(handle, data, length, &writesize) == 0)
 		return 0;
-#endif
 	return (size_t)writesize;
+}
+
+#endif /* !USE_LIBRETRO_VFS */
+
+void plusyen(char *s, size_t len)
+{
+	size_t pos = strlen(s);
+
+	if (pos)
+	{
+		if (s[pos-1] == SLASH)
+			return;
+	}
+	if ((pos + 2) >= len)
+		return;
+	s[pos++] = SLASH;
+	s[pos]   = '\0';
 }
 
 void file_setcd(const char *exename)
@@ -140,16 +198,5 @@ void *file_open_c(const char *filename)
 void *file_create_c(const char *filename)
 {
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
-
-#ifdef USE_LIBRETRO_VFS
-	if (string_is_empty(filename)) return NULL;
-	if (path_is_directory(filename)) return NULL;
-
-	return filestream_open(filename,
-		RETRO_VFS_FILE_ACCESS_READ_WRITE,
-		RETRO_VFS_FILE_ACCESS_HINT_NONE);
-#else
-	return create_file(curpath, GENERIC_READ | GENERIC_WRITE,
-	    CREATE_ALWAYS);
-#endif
+	return file_create(curpath);
 }

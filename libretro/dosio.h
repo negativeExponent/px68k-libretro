@@ -42,10 +42,38 @@
 extern "C" {
 #endif
 
+#ifdef USE_LIBRETRO_VFS
+#include <file/file_path.h>
+#include <retro_dirent.h>
+#include <streams/file_stream.h>
+#include <string/stdstring.h>
+
+extern struct retro_vfs_interface_info vfs_iface_info;
+struct DIRH {
+    struct RDIR *dir;
+    const char *d_name;
+};
+
+typedef struct DIRH DIRH;
+typedef struct RFILE FILEH;
+
+int wrap_vfs_stat(const char *path, int32_t *size);
+DIRH *wrap_vfs_opendir(const char *filename);
+void wrap_vfs_closedir(DIRH *rdir);
+int wrap_vfs_readdir(DIRH *rdir);
+#endif
+
 void *file_open(const char *filename);
+void *file_create(const char *filename);
 size_t file_seek(void *handle, long pointer, int16_t mode);
 size_t file_lread(void *handle, void *data, size_t length);
 size_t file_lwrite(void *handle, void *data, size_t length);
+char *file_gets(void *handle, char *buffer, size_t length);
+int64_t file_read(void *handle, void *buffer, int64_t length);
+int64_t file_write(void *handle, void *buffer, int64_t length);
+int64_t file_tell(void *handle);
+void file_rewind(void *handle);
+int file_eof(void *handle);
 void file_close(void *handle);
 void file_setcd(const char *exename);
 void *file_open_c(const char *filename);

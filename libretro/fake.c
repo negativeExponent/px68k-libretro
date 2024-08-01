@@ -42,6 +42,164 @@
 #include <unistd.h>
 #endif
 
+#ifdef USE_LIBRETRO_VFS
+#include "dosio.h"
+
+static int _WritePrivateProfileString_subr(
+        FILEH **fp, int64_t pos, int64_t nowpos,
+        const char *buf, const char *file)
+{
+	char *p         = NULL;
+	int32_t st_size = 0;
+
+	if (wrap_vfs_stat(file, &st_size) == 0)
+		return 1;
+
+	if (!(p = (char *)malloc(st_size)))
+		return 1;
+
+	file_rewind(*fp);
+	if (file_read(*fp, p, st_size) < 1)
+		goto out;
+	file_close(*fp);
+
+	*fp = file_create(file);
+	if (*fp == NULL)
+		goto out;
+	if (file_write(*fp, p, pos) < 1)
+		goto out;
+	if (file_write(*fp, (char *)buf, strlen(buf)) < 1)
+		goto out;
+	if (((int64_t)st_size - nowpos) > 0)
+	{
+		if (file_write(*fp, p + nowpos, st_size - nowpos) < 1)
+			goto out;
+	}
+	free(p);
+	return 0;
+
+out:
+	free(p);
+	return 1;
+}
+
+int WritePrivateProfileString(
+        const char *sect, const char *key,
+        const char *str, const char *inifile)
+{
+	char lbuf[256];
+	char newbuf[256];
+
+	FILEH *fp     = NULL;
+	int64_t pos   = 0;
+	int found    = 0;
+	int notfound = 0;
+	int delta    = 0;
+
+	if (wrap_vfs_stat(inifile, 0) == 1)
+		fp = file_open(inifile);
+	else
+		fp = file_create(inifile);
+
+	if (!fp)
+		return 0;
+
+	while (!file_eof(fp))
+	{
+		file_gets(fp, lbuf, sizeof(lbuf));
+		/* XXX should be case insensitive */
+		if (lbuf[0] == '['
+			&& !strncasecmp(sect, &lbuf[1], strlen(sect))
+			&& lbuf[strlen(sect) + 1] == ']')
+		{
+			found = 1;
+			break;
+		}
+	}
+	if (file_eof(fp) && !found)
+	{
+		/*
+		 * Now create new section and key.
+		 */
+		file_rewind(fp);
+		sprintf(newbuf, "[%s]\n", sect);
+		if (file_write(fp, newbuf, strlen(newbuf)) < 1)
+			goto writefail;
+		sprintf(newbuf, "%s=%s\n", key, str);
+		if (file_write(fp, newbuf, strlen(newbuf)) < 1)
+			goto writefail;
+		file_close(fp);
+		return 1;
+	}
+
+	pos   = 0; /* gcc happy */
+	found = 0;
+	while (!file_eof(fp))
+	{
+		pos = file_tell(fp);
+		file_gets(fp, lbuf, sizeof(lbuf));
+		if (lbuf[0] == '[' && strchr(lbuf, ']'))
+		{
+			notfound = 1;
+			break;
+		}
+		/* XXX should be case insensitive */
+		if (!strncasecmp(key, lbuf, strlen(key))
+			&& lbuf[strlen(key)] == '=')
+		{
+			found = 1;
+			sprintf(newbuf, "%s=%s\n", key, str);
+			delta = strlen(newbuf) - strlen(lbuf);
+			if (delta == 0)
+			{
+				if (!strncasecmp(newbuf, lbuf, strlen(newbuf)))
+					break;
+				/* overwrite */
+				file_seek(fp, pos, FSEEK_SET);
+				if (file_write(fp, newbuf, strlen(newbuf)) < 1)
+					goto writefail;
+			}
+			else if (delta > 0)
+			{
+				if (!_WritePrivateProfileString_subr(&fp, pos,
+					file_tell(fp), newbuf, inifile))
+					goto writefail;
+			}
+			else
+			{
+				if (!_WritePrivateProfileString_subr(&fp, pos,
+					file_tell(fp), newbuf, inifile))
+					goto writefail;
+			}
+			break;
+		}
+	}
+	if (file_eof(fp) && !found)
+	{
+		/* Now create new key. */
+		file_seek(fp, 0L, FSEEK_END);
+		sprintf(newbuf, "%s=%s\n", key, str);
+		if (file_write(fp, newbuf, strlen(newbuf)) < 1)
+			goto writefail;
+	}
+	else if (notfound)
+	{
+		sprintf(newbuf, "%s=%s\n", key, str);
+		if (!_WritePrivateProfileString_subr(&fp, pos,
+			file_tell(fp), newbuf, inifile))
+			goto writefail;
+	}
+
+	file_close(fp);
+	return 1;
+
+writefail:
+	file_close(fp);
+	return 0;
+}
+
+#else /* !USE_LIBRETRO_VFS */
+
 static int
 _WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
 		const char *buf, const char *file)
@@ -187,3 +345,4 @@ writefail:
 	fclose(fp);
 	return 0;
 }
+#endif

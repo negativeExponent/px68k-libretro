@@ -223,9 +223,10 @@ void* create_file(const char *filename, uint32_t rdwr,
 	return h;
 }
 
+#ifdef USE_LIBRETRO_VFS
+
 size_t file_seek(void* h, long pos, int16_t whence)
 {
-#ifdef USE_LIBRETRO_VFS
 	int seek_position = -1;
 	int64_t result = 0;
 
@@ -248,19 +249,25 @@ size_t file_seek(void* h, long pos, int16_t whence)
 		result = filestream_tell((RFILE *)h);
 	}
 	return (size_t)result;
-#else
-	struct internal_file *fp = local_lock(h);
-	int fd                   = fp->fd;
-	local_unlock(h);
-	return lseek(fd, pos, whence);
-#endif
 }
 
 void file_close(void * h)
 {
-#ifdef USE_LIBRETRO_VFS
 	filestream_close((RFILE *)h);
-#else
+}
+
+#else /* !USE_LIBRETRO_VFS */
+
+size_t file_seek(void* h, long pos, int16_t whence)
+{
+	struct internal_file *fp = local_lock(h);
+	int fd                   = fp->fd;
+	local_unlock(h);
+	return lseek(fd, pos, whence);
+}
+
+void file_close(void * h)
+{
         if (handletype(h) == HTYPE_FILE)
         {
 		struct internal_file *fp = local_lock(h);
@@ -268,8 +275,174 @@ void file_close(void * h)
 		local_unlock(h);
 		local_free(h);
         }
-#endif
 }
+#endif /* !USE_LIBRETRO_VFS */
+
+#ifdef USE_LIBRETRO_VFS
+/**
+ * 1 : file, 2 : dir, 0 error;
+*/
+
+int wrap_vfs_stat(const char *path, int32_t *size)
+{
+	if (vfs_iface_info.iface)
+		return vfs_iface_info.iface->stat(path, size);
+	return retro_vfs_stat_impl(path, size);
+}
+
+DIRH *wrap_vfs_opendir(const char *filename)
+{
+	struct RDIR *dir;
+	DIRH *output;
+
+	dir = retro_opendir(filename);
+
+	if (dir == NULL)
+		return NULL;
+
+	output         = (DIRH *)malloc(sizeof(DIRH));
+	output->d_name = NULL;
+	output->dir    = dir;
+
+	return output;
+}
+
+int wrap_vfs_readdir(DIRH *rdir)
+{
+	if (retro_readdir(rdir->dir))
+	{
+		rdir->d_name = retro_dirent_get_name(rdir->dir);
+		return rdir->d_name != NULL;
+	}
+	return 0;
+}
+
+void wrap_vfs_closedir(DIRH *rdir)
+{
+	if (rdir)
+	{
+		retro_closedir(rdir->dir);
+		rdir->d_name = 0;
+		free(rdir);
+		rdir = NULL;
+	}
+}
+
+size_t GetPrivateProfileString(
+        const char *sect, const char *key,
+        const char *defvalue, char *buf, size_t len,
+        const char *inifile)
+{
+	char lbuf[256];
+	FILEH *fp = NULL;
+
+	if (sect == NULL
+	 || key == NULL
+	 || defvalue == NULL
+	 || buf == NULL
+	 || len == 0
+	 || inifile == NULL)
+		return 0;
+
+	memset(buf, 0, len);
+
+	if (!(fp = filestream_open(inifile,
+		RETRO_VFS_FILE_ACCESS_READ,
+		RETRO_VFS_FILE_ACCESS_HINT_NONE)))
+	{
+		goto nofile;
+	}
+	while (!file_eof(fp))
+	{
+		file_gets(fp, lbuf, sizeof(lbuf));
+		/* XXX should be case insensitive */
+		if (lbuf[0] == '['
+			&& !strncasecmp(sect, &lbuf[1], strlen(sect))
+			&& lbuf[strlen(sect) + 1] == ']')
+			break;
+	}
+	if (file_eof(fp))
+		goto notfound;
+	while (!file_eof(fp))
+	{
+		file_gets(fp, lbuf, sizeof(lbuf));
+		if (lbuf[0] == '[' && strchr(lbuf, ']'))
+			goto notfound;
+		/* XXX should be case insensitive */
+		if (!strncasecmp(key, lbuf, strlen(key))
+			&& lbuf[strlen(key)] == '=')
+		{
+			char *dst, *src;
+			src = &lbuf[strlen(key) + 1];
+			dst = buf;
+			while (*src != '\r' && *src != '\n' && *src != '\0')
+				*dst++ = *src++;
+			*dst = '\0';
+			file_close(fp);
+			return strlen(buf);
+		}
+	}
+notfound:
+#ifdef DEBUG
+	p6logd(("[%s]:%s not found\n", sect, key));
+#endif
+	file_close(fp);
+nofile:
+	strncpy(buf, defvalue, len);
+	/* not include nul */
+	return strlen(buf);
+}
+
+uint32_t GetPrivateProfileInt(
+	const char *sect, const char *key, int defvalue,
+    const char *inifile)
+{
+	char lbuf[256];
+	FILEH *fp = NULL;
+
+	if (sect == NULL
+		|| key == NULL
+		|| inifile == NULL)
+		return 0;
+
+	fp = filestream_open(inifile,
+		RETRO_VFS_FILE_ACCESS_READ,
+		RETRO_VFS_FILE_ACCESS_HINT_NONE);
+	if (fp == NULL)
+		goto nofile;
+	while (!file_eof(fp))
+	{
+		file_gets(fp, lbuf, sizeof(lbuf));
+		/* XXX should be case insensitive */
+		if (lbuf[0] == '['
+			&& !strncasecmp(sect, &lbuf[1], strlen(sect))
+			&& lbuf[strlen(sect) + 1] == ']')
+			break;
+	}
+	if (file_eof(fp))
+		goto notfound;
+	while (!file_eof(fp))
+	{
+		file_gets(fp, lbuf, sizeof(lbuf));
+		if (lbuf[0] == '[' && strchr(lbuf, ']'))
+			goto notfound;
+		/* XXX should be case insensitive */
+		if (!strncasecmp(key, lbuf, strlen(key))
+			&& lbuf[strlen(key)] == '=')
+		{
+			int value;
+			sscanf(&lbuf[strlen(key) + 1], "%d", &value);
+			file_close(fp);
+			return value;
+		}
+	}
+notfound:
+	file_close(fp);
+nofile:
+	return defvalue;
+}
+
+#else /* !USE_LIBRETRO_VFS */
 
 size_t GetPrivateProfileString(const char *sect, const char *key,
 		const char *defvalue,
@@ -371,3 +544,5 @@ notfound:
 nofile:
 	return defvalue;
 }
+
+#endif /* !USE_LIBRETRO_VFS */
