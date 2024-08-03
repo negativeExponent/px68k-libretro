@@ -63,11 +63,11 @@ void MyOPM::Count2(uint32_t clock)
 
 static MyOPM* opm = NULL;
 
-int OPM_Init(int clock)
+int OPM_Init(int clock, int rate)
 {
 	opm = new MyOPM();
 	if ( !opm ) return 0;
-	if ( !opm->Init(clock, 44100) ) {
+	if ( !opm->Init(clock, rate) ) {
 		delete opm;
 		opm = NULL;
 		return 0;
@@ -101,9 +101,9 @@ void FASTCALL OPM_Write(uint32_t adr, uint8_t data)
 }
 
 
-void OPM_Update(int16_t *buffer, int length, int16_t *pbsp, int16_t *pbep)
+void OPM_Update(int16_t *buffer, int length, int rate, int16_t *pbsp, int16_t *pbep)
 {
-	if ( opm ) opm->Mix((int16_t*)buffer, length, pbsp, pbep);
+	if ( opm ) opm->Mix((int16_t*)buffer, length, rate, pbsp, pbep);
 }
 
 

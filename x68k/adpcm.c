@@ -99,7 +99,7 @@ void FASTCALL ADPCM_PreUpdate(uint32_t clock)
 	}
 }
 
-void ADPCM_Update(int16_t *buffer, size_t length, int16_t *pbsp, int16_t *pbep)
+void ADPCM_Update(int16_t *buffer, size_t length, int rate, int16_t *pbsp, int16_t *pbep)
 {
 	int outs;
 	int32_t outl, outr;
@@ -166,6 +166,30 @@ void ADPCM_Update(int16_t *buffer, size_t length, int16_t *pbsp, int16_t *pbep)
          else if ( tmpl<(-32768) )
             tmpl = -32768;
          *(buffer++) = (int16_t)tmpl;
+
+         if (rate == 22050) {
+           if (buffer >= pbep) {
+             buffer = pbsp;
+           }
+           *(buffer++) = (int16_t)tmpr;
+           *(buffer++) = (int16_t)tmpl;
+         } else if (rate == 11025) {
+           if (buffer >= pbep) {
+             buffer = pbsp;
+           }
+           *(buffer++) = (int16_t)tmpr;
+           *(buffer++) = (int16_t)tmpl;
+           if (buffer >= pbep) {
+             buffer = pbsp;
+           }
+           *(buffer++) = (int16_t)tmpr;
+           *(buffer++) = (int16_t)tmpl;
+           if (buffer >= pbep) {
+             buffer = pbsp;
+           }
+           *(buffer++) = (int16_t)tmpr;
+           *(buffer++) = (int16_t)tmpl;
+         }
          length--;
       }
    }
@@ -219,6 +243,31 @@ void ADPCM_Update(int16_t *buffer, size_t length, int16_t *pbsp, int16_t *pbep)
          else if ( tmpl<(-32768) )
             tmpl = -32768;
          *(buffer++) = (int16_t)tmpl;
+
+         if (rate == 22050) {
+           if (buffer >= pbep) {
+             buffer = pbsp;
+           }
+           *(buffer++) = (int16_t)tmpr;
+           *(buffer++) = (int16_t)tmpl;
+         } else if (rate == 11025) {
+           if (buffer >= pbep) {
+             buffer = pbsp;
+           }
+           *(buffer++) = (int16_t)tmpr;
+           *(buffer++) = (int16_t)tmpl;
+           if (buffer >= pbep) {
+             buffer = pbsp;
+           }
+           *(buffer++) = (int16_t)tmpr;
+           *(buffer++) = (int16_t)tmpl;
+           if (buffer >= pbep) {
+             buffer = pbsp;
+           }
+           *(buffer++) = (int16_t)tmpr;
+           *(buffer++) = (int16_t)tmpl;
+         }
+
          length--;
       }
    }
@@ -350,14 +399,14 @@ void ADPCM_SetClock(int n)
 	}
 }
 
-void ADPCM_Init(void)
+void ADPCM_Init(int rate)
 {
 	ADPCM_WrPtr      = 0;
 	ADPCM_RdPtr      = 0;
 	ADPCM_Out        = 0;
 	ADPCM_Step       = 0;
 	ADPCM_Playing    = 0;
-	ADPCM_SampleRate = (44100 * 12);
+	ADPCM_SampleRate = (rate * 12);
 	ADPCM_PreCounter = 0;
 	memset(Outs, 0, sizeof(Outs));
 	OutsIp[0]  = OutsIp[1]  = OutsIp[2]  = OutsIp[3]  = -1;

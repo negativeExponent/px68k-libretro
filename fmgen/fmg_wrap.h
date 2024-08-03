@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 
-int OPM_Init(int clock);
+int OPM_Init(int clock, int rate);
 void OPM_Cleanup(void);
 void OPM_Reset(void);
-void OPM_Update(int16_t *buffer, int length, int16_t *pbsp, int16_t *pbep);
+void OPM_Update(int16_t *buffer, int length, int rate, int16_t *pbsp, int16_t *pbep);
 void FASTCALL OPM_Write(uint32_t r, uint8_t v);
 uint8_t FASTCALL OPM_Read(void);
 void FASTCALL OPM_Timer(uint32_t step);

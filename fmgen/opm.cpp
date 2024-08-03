@@ -451,7 +451,7 @@ inline void OPM::MixSubL(int activech, ISample** idest)
 // ---------------------------------------------------------------------------
 //	πÁ¿Æ (stereo)
 //
-void OPM::Mix(int16_t* buffer, int nsamples, int16_t* pbsp, int16_t* pbep)
+void OPM::Mix(int16_t* buffer, int nsamples, int rate, int16_t* pbsp, int16_t* pbep)
 {
 	int i;
 	int16_t* dest;
@@ -481,8 +481,10 @@ void OPM::Mix(int16_t* buffer, int nsamples, int16_t* pbsp, int16_t* pbep)
 		
 		for (i = 0, dest = buffer; i < nsamples; i++)
 		{
-			if (dest >= pbep)
-				dest = pbsp;
+			int16_t tmpr, tmpl;
+
+			if (dest >= pbep) dest = pbsp;
+
 			ibuf[1] = ibuf[2] = ibuf[3] = 0;
 			if (activech & 0xaaaa)
 				LFO(), MixSubL(activech, idest);
@@ -492,7 +494,38 @@ void OPM::Mix(int16_t* buffer, int nsamples, int16_t* pbsp, int16_t* pbep)
 			StoreSample(dest[0], IStoSample(ibuf[1] + ibuf[3]));
 			StoreSample(dest[1], IStoSample(ibuf[2] + ibuf[3]));
 
+			tmpr = dest[0];
+			tmpl = dest[1];
 			dest += 2;
+
+			if (rate == 22050)
+			{
+				if (dest >= pbep) dest = pbsp;
+
+				dest[0] = (int16_t)tmpr;
+				dest[1] = (int16_t)tmpl;
+				dest += 2;
+			}
+			else if (rate == 11025)
+			{
+				if (dest >= pbep) dest = pbsp;
+
+				dest[0] = (int16_t)tmpr;
+				dest[1] = (int16_t)tmpl;
+				dest += 2;
+
+				if (dest >= pbep) dest = pbsp;
+
+				dest[0] = (int16_t)tmpr;
+				dest[1] = (int16_t)tmpl;
+				dest += 2;
+
+				if (dest >= pbep) dest = pbsp;
+
+				dest[0] = (int16_t)tmpr;
+				dest[1] = (int16_t)tmpl;
+				dest += 2;
+			}
 		}
 	}
 }

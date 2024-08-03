@@ -85,8 +85,8 @@ uint16_t	VLINE_TOTAL = 567;
 uint32_t	VLINE = 0;
 uint32_t	vline = 0;
 
-#define SOUNDRATE 44100.0
-#define SNDSZ round(SOUNDRATE / FRAMERATE)
+#define SOUNDRATE Config.SampleRate
+#define SNDSZ round(((double)SOUNDRATE / FRAMERATE) + 0.5)
 
 static int firstcall          = 1;
 
@@ -970,6 +970,8 @@ void WinX68k_Reset(void)
 
 static int pmain(int argc, char *argv[])
 {
+   int SoundSampleRate = Config.SampleRate;
+
 	strcpy(winx68k_dir, retro_system_conf);
 	sprintf(winx68k_ini, "%s%cconfig", retro_system_conf, SLASH);
 
@@ -1005,8 +1007,8 @@ static int pmain(int argc, char *argv[])
    Keyboard_Init(); 
    WinDraw_Init();
 
-   ADPCM_Init();
-   OPM_Init(4000000/*3579545*/);
+   ADPCM_Init(SoundSampleRate);
+   OPM_Init(4000000/*3579545*/, SoundSampleRate);
 #ifndef	NO_MERCURY
    Mcry_Init(winx68k_dir);
 #endif
@@ -1023,6 +1025,8 @@ static int pmain(int argc, char *argv[])
    MIDI_Init();
    MIDI_SetMimpiMap(Config.ToneMapFile);	/* ToneMap file usage */
    MIDI_EnableMimpiDef(Config.ToneMap);
+
+   DSound_Init(SoundSampleRate);
 
    ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
    OPM_SetVolume((uint8_t)Config.OPM_VOL);
@@ -1218,6 +1222,14 @@ static void update_variables(int running)
    struct retro_variable var = {0};
 
    update_variable_midi_interface(running);
+
+   var.key = "px68k_samplerate";
+   var.value = NULL;
+
+   if (!running && environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      Config.SampleRate = atoi(var.value);
+   }
 
    strcpy(key, "px68k_joytype");
    var.key = key;
@@ -2119,7 +2131,7 @@ void retro_run(void)
       firstcall     = 0;
       /* Initialization done */
       update_variables(0);
-      soundbuf_size = SNDSZ;
+      soundbuf_size = (int)SNDSZ;
       return;
    }
 

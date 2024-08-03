@@ -6,6 +6,7 @@
 
 typedef struct
 {
+	uint32_t SampleRate;
 	uint32_t BufferSize;
 	int OPM_VOL;
 	int PCM_VOL;

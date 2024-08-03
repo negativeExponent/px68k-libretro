@@ -170,6 +170,22 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "Default"
    },
    {
+      "px68k_samplerate",
+      "SampleRate (Restart)",
+      NULL,
+      "Sound samplerate.",
+      NULL,
+      "audio",
+      {
+         { "11025", "11Khz" },
+         { "22050", "22Khz" },
+         { "44100", "44Khz" },
+         { "48000", "48Khz" },
+         { NULL,       NULL },
+      },
+      "22050"
+   },
+   {
       "px68k_midi_output",
       "MIDI Output (Restart)",
       NULL,

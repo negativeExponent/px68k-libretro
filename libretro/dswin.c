@@ -41,6 +41,13 @@ int16_t *pbsp = pcmbuffer;
 int16_t *pbrp = pcmbuffer, *pbwp = pcmbuffer;
 int16_t *pbep = &pcmbuffer[PCMBUF_SIZE];
 
+static int ratebase;
+
+void DSound_Init(int rate)
+{
+   ratebase = rate;
+}
+
 void DSound_Play(void)
 {
 	ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
@@ -55,8 +62,10 @@ void DSound_Stop(void)
 
 static void sound_send(int length)
 {
-   ADPCM_Update(pbwp, length, pbsp, pbep);
-   OPM_Update(pbwp, length, pbsp, pbep);
+   int rate = ratebase;
+
+   ADPCM_Update(pbwp, length, rate, pbsp, pbep);
+   OPM_Update(pbwp, length, rate, pbsp, pbep);
 
    pbwp += length * 2;
    if (pbwp >= pbep)
@@ -67,7 +76,7 @@ void DSound_Send0(int32_t clock)
 {
 	int length = 0;
 
-	snd_precounter += (44100 * clock);
+	snd_precounter += (ratebase * clock);
 
 	while (snd_precounter >= 10000000L)
 	{
