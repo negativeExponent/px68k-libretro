@@ -7,6 +7,7 @@
 #include <math.h>
 #include <string.h>
 #include <assert.h>
+#include <stdint.h>
 
 #include "dosio.h"
 

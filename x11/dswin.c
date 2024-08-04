@@ -43,13 +43,15 @@
 static int16_t rsndbuf[PCMBUF_SIZE];
 static int16_t pcmbuffer[PCMBUF_SIZE];
 
-#ifdef HAVE_MERCURY
-static uint8_t UNUSED *pcmbufp  = pcmbuffer;
-#endif
 static int16_t *pbsp     = pcmbuffer;
 static int16_t *pbrp     = pcmbuffer;
 static int16_t *pbwp     = pcmbuffer;
 static int16_t *pbep     = &pcmbuffer[PCMBUF_SIZE];
+
+#ifdef HAVE_MERCURY
+static int16_t UNUSED *pcmbufp  = pcmbuffer;
+#endif
+
 static uint32_t ratebase = 22050;
 
 static int32_t DSound_PreCounter = 0;
