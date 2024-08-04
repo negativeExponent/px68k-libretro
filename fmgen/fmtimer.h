@@ -19,7 +19,7 @@ namespace FM
 		int32_t		timera, timera_count;
 		int32_t		timerb, timerb_count;
 		int32_t		timer_step;
-	} Timer_t;
+	} Timer_state_t;
 
 	class Timer
 	{
@@ -28,8 +28,8 @@ namespace FM
 		bool		Count(int32_t us);
 		int32_t		GetNextEvent();
 
-		void		Save(Timer_t *state);
-		void		Load(Timer_t *state);
+		void		Save(Timer_state_t *state);
+		void		Load(Timer_state_t *state);
 
 	protected:
 		virtual void SetStatus(uint32_t bit) = 0;
@@ -53,9 +53,6 @@ namespace FM
 		int32_t		timer_step;
 	};
 
-// ---------------------------------------------------------------------------
-//	�����
-//
 inline void Timer::Reset()
 {
 	timera_count = 0;

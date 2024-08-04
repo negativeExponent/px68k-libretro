@@ -10,7 +10,7 @@
 using namespace FM;
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼À©¸æ
+//	ã‚¿ã‚¤ãƒãƒ¼åˆ¶å¾¡
 //
 void Timer::SetTimerControl(uint32_t data)
 {
@@ -31,7 +31,7 @@ void Timer::SetTimerControl(uint32_t data)
 #if 1
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼A ¼ş´üÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼A å‘¨æœŸè¨­å®š
 //
 void Timer::SetTimerA(uint32_t addr, uint32_t data)
 {
@@ -43,7 +43,7 @@ void Timer::SetTimerA(uint32_t addr, uint32_t data)
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼B ¼ş´üÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼B å‘¨æœŸè¨­å®š
 //
 void Timer::SetTimerB(uint32_t data)
 {
@@ -52,7 +52,7 @@ void Timer::SetTimerB(uint32_t data)
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼»ş´Ö½èÍı
+//	ã‚¿ã‚¤ãƒãƒ¼æ™‚é–“å‡¦ç†
 //
 bool Timer::Count(int32_t us)
 {
@@ -90,7 +90,7 @@ bool Timer::Count(int32_t us)
 }
 
 // ---------------------------------------------------------------------------
-//	¼¡¤Ë¥¿¥¤¥Ş¡¼¤¬È¯À¸¤¹¤ë¤Ş¤Ç¤Î»ş´Ö¤òµá¤á¤ë
+//	æ¬¡ã«ã‚¿ã‚¤ãƒãƒ¼ãŒç™ºç”Ÿã™ã‚‹ã¾ã§ã®æ™‚é–“ã‚’æ±‚ã‚ã‚‹
 //
 int32_t Timer::GetNextEvent()
 {
@@ -100,14 +100,14 @@ int32_t Timer::GetNextEvent()
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼´ğ½àÃÍÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼åŸºæº–å€¤è¨­å®š
 //
 void Timer::SetTimerBase(uint32_t clock)
 {
 	timer_step = int32_t(1000000. * 65536 / clock);
 }
 
-void Timer::Save(Timer_t *state)
+void Timer::Save(Timer_state_t *state)
 {
 	state->status = status;
 	state->regtc = regtc;
@@ -121,7 +121,7 @@ void Timer::Save(Timer_t *state)
 	state->timer_step = timer_step;
 }
 
-void Timer::Load(Timer_t *state)
+void Timer::Load(Timer_state_t *state)
 {
 	status = state->status;
 	regtc = state->regtc;
@@ -138,7 +138,7 @@ void Timer::Load(Timer_t *state)
 #else
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼A ¼ş´üÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼A å‘¨æœŸè¨­å®š
 //
 void Timer::SetTimerA(uint32_t addr, uint32_t data)
 {
@@ -147,7 +147,7 @@ void Timer::SetTimerA(uint32_t addr, uint32_t data)
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼B ¼ş´üÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼B å‘¨æœŸè¨­å®š
 //
 void Timer::SetTimerB(uint32_t data)
 {
@@ -155,7 +155,7 @@ void Timer::SetTimerB(uint32_t data)
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼»ş´Ö½èÍı
+//	ã‚¿ã‚¤ãƒãƒ¼æ™‚é–“å‡¦ç†
 //
 bool Timer::Count(int32_t us)
 {
@@ -195,7 +195,7 @@ bool Timer::Count(int32_t us)
 }
 
 // ---------------------------------------------------------------------------
-//	¼¡¤Ë¥¿¥¤¥Ş¡¼¤¬È¯À¸¤¹¤ë¤Ş¤Ç¤Î»ş´Ö¤òµá¤á¤ë
+//	æ¬¡ã«ã‚¿ã‚¤ãƒãƒ¼ãŒç™ºç”Ÿã™ã‚‹ã¾ã§ã®æ™‚é–“ã‚’æ±‚ã‚ã‚‹
 //
 int32_t Timer::GetNextEvent()
 {
@@ -207,7 +207,7 @@ int32_t Timer::GetNextEvent()
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼´ğ½àÃÍÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼åŸºæº–å€¤è¨­å®š
 //
 void Timer::SetTimerBase(uint32_t clock)
 {

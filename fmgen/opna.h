@@ -190,12 +190,12 @@ namespace FM
 		int32_t		adpcmlevel;		// ADPCM ²»ÎÌ
 		int32_t		adpcmvolume;
 		int32_t		adpcmvol;
-		uint32_t	deltan;			// ­ùN
+		uint32_t	deltan;			// delta (n)
 		int32_t		adplc;			// ¼þÇÈ¿ôÊÑ´¹ÍÑÊÑ¿ô
 		int32_t		adpld;			// ¼þÇÈ¿ôÊÑ´¹ÍÑÊÑ¿ôº¹Ê¬ÃÍ
 		uint32_t	adplbase;		// adpld ¤Î¸µ
-		int32_t		adpcmx;			// ADPCM ¹çÀ®ÍÑ x
-		int32_t		adpcmd;			// ADPCM ¹çÀ®ÍÑ ­ù
+		int32_t		adpcmx;			// ADPCM ¹çÀ®ÍÑ (x)
+		int32_t		adpcmd;			// ADPCM ¹çÀ®ÍÑ (delta)
 		int32_t		adpcmout;		// ADPCM ¹çÀ®¸å¤Î½ÐÎÏ
 		int32_t		apout0;			// out(t-2)+out(t-1)
 		int32_t		apout1;			// out(t-1)+out(t)

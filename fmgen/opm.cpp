@@ -20,7 +20,7 @@ int32_t OPM::pmtable[4][OPM_LFOENTS];
 static bool tablemade = false;
 
 // ---------------------------------------------------------------------------
-//	¹½ÃÛ
+//	æ§‹ç¯‰
 //
 OPM::OPM()
 {
@@ -35,7 +35,7 @@ OPM::OPM()
 }
 
 // ---------------------------------------------------------------------------
-//	½é´ü²½
+//	åˆæœŸåŒ–
 //
 bool OPM::Init(uint32_t c, uint32_t rf, bool ip)
 {
@@ -50,7 +50,7 @@ bool OPM::Init(uint32_t c, uint32_t rf, bool ip)
 }
 
 // ---------------------------------------------------------------------------
-//	ºÆÀßÄê
+//	å†è¨­å®š
 //
 bool OPM::SetRate(uint32_t c, uint32_t r, bool)
 {
@@ -64,7 +64,7 @@ bool OPM::SetRate(uint32_t c, uint32_t r, bool)
 }
 
 // ---------------------------------------------------------------------------
-//	¥Á¥ã¥ó¥Í¥ë¥Þ¥¹¥¯¤ÎÀßÄê
+//	ãƒãƒ£ãƒ³ãƒãƒ«ãƒžã‚¹ã‚¯ã®è¨­å®š
 //
 void OPM::SetChannelMask(uint32_t mask)
 {
@@ -73,7 +73,7 @@ void OPM::SetChannelMask(uint32_t mask)
 }
 
 // ---------------------------------------------------------------------------
-//	¥ê¥»¥Ã¥È
+//	ãƒªã‚»ãƒƒãƒˆ
 //
 void OPM::Reset()
 {
@@ -91,7 +91,7 @@ void OPM::Reset()
 }
 
 // ---------------------------------------------------------------------------
-//	ÀßÄê¤Ë°ÍÂ¸¤¹¤ë¥Æ¡¼¥Ö¥ë¤ÎºîÀ®
+//	è¨­å®šã«ä¾å­˜ã™ã‚‹ãƒ†ãƒ¼ãƒ–ãƒ«ã®ä½œæˆ
 //
 void OPM::RebuildTimeTable()
 {
@@ -112,7 +112,7 @@ void OPM::RebuildTimeTable()
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Þ¡¼ A È¯À¸»þ¥¤¥Ù¥ó¥È (CSM)
+//	ã‚¿ã‚¤ãƒžãƒ¼ A ç™ºç”Ÿæ™‚ã‚¤ãƒ™ãƒ³ãƒˆ (CSM)
 //
 void OPM::TimerA()
 {
@@ -127,7 +127,7 @@ void OPM::TimerA()
 }
 
 // ---------------------------------------------------------------------------
-//	²»ÎÌÀßÄê
+//	éŸ³é‡è¨­å®š
 //
 void OPM::SetVolume(int32_t db)
 {
@@ -139,7 +139,7 @@ void OPM::SetVolume(int32_t db)
 }
 
 // ---------------------------------------------------------------------------
-//	¥¹¥Æ¡¼¥¿¥¹¥Õ¥é¥°ÀßÄê
+//	ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒ•ãƒ©ã‚°è¨­å®š
 //
 void OPM::SetStatus(uint32_t bits)
 {
@@ -151,7 +151,7 @@ void OPM::SetStatus(uint32_t bits)
 }
 
 // ---------------------------------------------------------------------------
-//	¥¹¥Æ¡¼¥¿¥¹¥Õ¥é¥°²ò½ü
+//	ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒ•ãƒ©ã‚°è§£é™¤
 //
 void OPM::ResetStatus(uint32_t bits)
 {
@@ -164,7 +164,7 @@ void OPM::ResetStatus(uint32_t bits)
 }
 
 // ---------------------------------------------------------------------------
-//	¥ì¥¸¥¹¥¿¥¢¥ì¥¤¤Ë¥Ç¡¼¥¿¤òÀßÄê
+//	ãƒ¬ã‚¸ã‚¹ã‚¿ã‚¢ãƒ¬ã‚¤ã«ãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
 //
 void OPM::SetReg(uint32_t addr, uint32_t data)
 {
@@ -269,7 +269,7 @@ void OPM::SetReg(uint32_t addr, uint32_t data)
 
 
 // ---------------------------------------------------------------------------
-//	¥Ñ¥é¥á¡¼¥¿¥»¥Ã¥È
+//	ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 //
 void OPM::SetParameter(uint32_t addr, uint32_t data)
 {
@@ -419,7 +419,7 @@ inline uint32_t OPM::Noise()
 }
 
 // ---------------------------------------------------------------------------
-//	¹çÀ®¤Î°ìÉô
+//	åˆæˆã®ä¸€éƒ¨
 //
 inline void OPM::MixSub(int32_t activech, ISample** idest)
 {
@@ -459,7 +459,7 @@ inline void OPM::MixSubL(int32_t activech, ISample** idest)
 
 
 // ---------------------------------------------------------------------------
-//	¹çÀ® (stereo)
+//	åˆæˆ (stereo)
 //
 void OPM::Mix(Sample* buffer, int32_t nsamples, int16_t* pbsp, int16_t* pbep)
 {
@@ -478,7 +478,7 @@ void OPM::Mix(Sample* buffer, int32_t nsamples, int16_t* pbsp, int16_t* pbep)
 
 	if (activech & 0x5555)
 	{
-		// LFO ÇÈ·Á½é´ü²½¥Ó¥Ã¥È = 1 ¤Ê¤é¤Ð LFO ¤Ï¤«¤«¤é¤Ê¤¤?
+		// LFO æ³¢å½¢åˆæœŸåŒ–ãƒ“ãƒƒãƒˆ = 1 ãªã‚‰ã° LFO ã¯ã‹ã‹ã‚‰ãªã„?
 		if (reg01 & 0x02)
 			activech &= 0x5555;
 
@@ -511,7 +511,7 @@ void OPM::Mix(Sample* buffer, int32_t nsamples, int16_t* pbsp, int16_t* pbep)
 #undef IStoSample
 }
 
-void OPM::Save(opm_savestate_t *state)
+void OPM::Save(OPM_state_t *state)
 {
 	Timer::Save(&state->timer);
 
@@ -554,7 +554,7 @@ void OPM::Save(opm_savestate_t *state)
 	chip.Save(&state->chip);
 }
 
-void OPM::Load(opm_savestate_t *state)
+void OPM::Load(OPM_state_t *state)
 {
 	Timer::Load(&state->timer);
 

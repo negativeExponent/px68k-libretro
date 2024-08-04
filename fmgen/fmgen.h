@@ -7,15 +7,15 @@
 #define FM_GEN_H
 
 // ---------------------------------------------------------------------------
-//	½ĞÎÏ¥µ¥ó¥×¥ë¤Î·¿
+//	å‡ºåŠ›ã‚µãƒ³ãƒ—ãƒ«ã®å‹
 //
 #define FM_SAMPLETYPE	int16_t				// int16_t or int32_t
 
 // ---------------------------------------------------------------------------
-//	Äê¿ô¤½¤Î£±
-//	ÀÅÅª¥Æ¡¼¥Ö¥ë¤Î¥µ¥¤¥º
+//	å®šæ•°ãã®ï¼‘
+//	é™çš„ãƒ†ãƒ¼ãƒ–ãƒ«ã®ã‚µã‚¤ã‚º
 
-#define FM_LFOBITS		8					// ÊÑ¹¹ÉÔ²Ä
+#define FM_LFOBITS		8					// å¤‰æ›´ä¸å¯
 #define FM_TLBITS		7
 
 // ---------------------------------------------------------------------------
@@ -24,7 +24,7 @@
 #define FM_LFOENTS		(1 << FM_LFOBITS)
 #define FM_TLPOS		(FM_TLENTS/4)
 
-//	¥µ¥¤¥óÇÈ¤ÎÀºÅÙ¤Ï 2^(1/256)
+//	ã‚µã‚¤ãƒ³æ³¢ã®ç²¾åº¦ã¯ 2^(1/256)
 #define FM_CLENTS		(0x1000 * 2)	// sin + TL + LFO
 
 // ---------------------------------------------------------------------------
@@ -86,7 +86,7 @@ namespace FM
 		bool		amon_;
 		bool		param_changed_;
 		bool		mute_;
-	} operator_savestate_t;
+	} Operator_state_t;
 
 	class Operator
 	{
@@ -134,8 +134,8 @@ namespace FM
 		int			dbgGetIn2() { return in2_; }
 		void		dbgStopPG() { pg_diff_ = 0; pg_diff_lfo_ = 0; }
 
-		void		Save(operator_savestate_t *state);
-		void		Load(operator_savestate_t *state);
+		void		Save(Operator_state_t *state);
+		void		Load(Operator_state_t *state);
 
 	private:
 		typedef uint32_t Counter;
@@ -148,13 +148,13 @@ namespace FM
 		uint32_t	PGCalc();
 		uint32_t	PGCalcL();
 
-		uint32_t	dp_;		// ¦¤P
+		uint32_t	dp_;		// Î”P
 		uint32_t	detune_;		// Detune
 		uint32_t	detune2_;	// DT2
 		uint32_t	multiple_;	// Multiple
-		uint32_t	pg_count_;	// Phase ¸½ºßÃÍ
-		uint32_t	pg_diff_;	// Phase º¹Ê¬ÃÍ
-		int32_t		pg_diff_lfo_;	// Phase º¹Ê¬ÃÍ >> x
+		uint32_t	pg_count_;	// Phase ç¾åœ¨å€¤
+		uint32_t	pg_diff_;	// Phase å·®åˆ†å€¤
+		int32_t		pg_diff_lfo_;	// Phase å·®åˆ†å€¤ >> x
 
 	//	Envelop Generator ---------------------------------------------------
 		void		EGCalc();
@@ -167,14 +167,14 @@ namespace FM
 		ISample		LogToLin(uint32_t a);
 
 
-		OpType		type_;		// OP ¤Î¼ïÎà (M, N...)
+		OpType		type_;		// OP ã®ç¨®é¡ (M, N...)
 		uint32_t	bn_;		// Block/Note
-		int32_t		eg_level_;	// EG ¤Î½ĞÎÏÃÍ
-		int32_t		eg_level_on_next_phase_;	// ¼¡¤Î eg_phase_ ¤Ë°Ü¤ëÃÍ
-		int32_t		eg_count_;		// EG ¤Î¼¡¤ÎÊÑ°Ü¤Ş¤Ç¤Î»ş´Ö
-		int32_t		eg_count_diff_;	// eg_count_ ¤Îº¹Ê¬
-		int32_t		eg_out_;		// EG+TL ¤ò¹ç¤ï¤»¤¿½ĞÎÏÃÍ
-		int32_t		tl_out_;		// TL Ê¬¤Î½ĞÎÏÃÍ
+		int32_t		eg_level_;	// EG ã®å‡ºåŠ›å€¤
+		int32_t		eg_level_on_next_phase_;	// æ¬¡ã® eg_phase_ ã«ç§»ã‚‹å€¤
+		int32_t		eg_count_;		// EG ã®æ¬¡ã®å¤‰ç§»ã¾ã§ã®æ™‚é–“
+		int32_t		eg_count_diff_;	// eg_count_ ã®å·®åˆ†
+		int32_t		eg_out_;		// EG+TL ã‚’åˆã‚ã›ãŸå‡ºåŠ›å€¤
+		int32_t		tl_out_;		// TL åˆ†ã®å‡ºåŠ›å€¤
 //		int32_t		pm_depth_;		// PM depth
 //		int32_t		am_depth_;		// AM depth
 		int32_t		eg_rate_;
@@ -201,7 +201,7 @@ namespace FM
 
 		bool		keyon_;
 		bool		amon_;		// enable Amplitude Modulation
-		bool		param_changed_;	// ¥Ñ¥é¥á¡¼¥¿¤¬¹¹¿·¤µ¤ì¤¿
+		bool		param_changed_;	// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãŒæ›´æ–°ã•ã‚ŒãŸ
 		bool		mute_;
 
 	//	Tables ---------------------------------------------------------------
@@ -239,8 +239,8 @@ namespace FM
 		uint32_t	fb;
 		int32_t		buf[4];
 		int32_t		algo_;
-		operator_savestate_t	op[4];
-	} channel4_savestate_t;
+		Operator_state_t	op[4];
+	} Channel4_state_t;
 
 	class Channel4
 	{
@@ -266,15 +266,15 @@ namespace FM
 
 		void		dbgStopPG() { for (int i=0; i<4; i++) op[i].dbgStopPG(); }
 
-		void		Save(channel4_savestate_t *state);
-		void		Load(channel4_savestate_t *state);
+		void		Save(Channel4_state_t *state);
+		void		Load(Channel4_state_t *state);
 
 	private:
 		static const uint8_t fbtable[8];
 		uint32_t	fb;
 		int32_t		buf[4];
-		int32_t*	in[3];			// ³Æ OP ¤ÎÆşÎÏ¥İ¥¤¥ó¥¿
-		int32_t*	out[3];			// ³Æ OP ¤Î½ĞÎÏ¥İ¥¤¥ó¥¿
+		int32_t*	in[3];			// å„ OP ã®å…¥åŠ›ãƒã‚¤ãƒ³ã‚¿
+		int32_t*	out[3];			// å„ OP ã®å‡ºåŠ›ãƒã‚¤ãƒ³ã‚¿
 		int32_t*	pms;
 		int32_t		algo_;
 		Chip*		chip_;
@@ -298,7 +298,7 @@ namespace FM
 		int32_t		pmv_;
 		OpType		optype_;
 		uint32_t	multable_[4][16];
-	} chip_savestate_t;
+	} Chip_state_t;
 
 	class Chip
 	{
@@ -315,8 +315,8 @@ namespace FM
 		int			GetPMV() { return pmv_; }
 		uint32_t	GetRatio() { return ratio_; }
 
-		void		Save(chip_savestate_t *state);
-		void		Load(chip_savestate_t *state);
+		void		Save(Chip_state_t *state);
+		void		Load(Chip_state_t *state);
 
 	private:
 		void		MakeTable();

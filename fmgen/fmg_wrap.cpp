@@ -1,9 +1,9 @@
-// cisc¥¿¥ó¥Î¥¨¥í¥¬¥¾¥¦¥­¥Ü¥ó¥Ì¤ò¶¯°ú¤Ë¤±¤í¤Ô¡¼¤Ë·Ò¤°¤¿¤á¤Î
-// extern "C" ¤ÎÆþ¤ìÊý¤¬¤­¤Á¤ã¤Ê¤¯¤Æ¥¹¥Æ¥­¡Ê¤©
+// ciscã‚¿ãƒ³ãƒŽã‚¨ãƒ­ã‚¬ã‚¾ã‚¦ã‚­ãƒœãƒ³ãƒŒã‚’å¼·å¼•ã«ã‘ã‚ã´ãƒ¼ã«ç¹‹ããŸã‚ã®
+// extern "C" ã®å…¥ã‚Œæ–¹ãŒãã¡ã‚ƒãªãã¦ã‚¹ãƒ†ã‚­ï¼ˆã‰
 
-// readme.txt¤Ë½¾¤Ã¤Æ¡¢²þÊÑÅÀ¡§
-//  - opna.cpp¤ËYMF288ÍÑ¤Î¥¯¥é¥¹ÄÉ²Ã¤·¤Æ¤Þ¤¹¡£OPNA¤½¤Î¤Þ¤ó¤Þ¤À¤±¤É¤Í¡Ê¤Û¤ó¤È¤ÏÀµ¤·¤¯¤Ê¤¤¤¬¤Þ¤¢¤¤¤¤¤ä¡Ë
-//  - Â¿Ê¬Â¾¤ÏÏ®¤Ã¤Æ¤Ê¤¤¤Ï¤º¡Ä¡Ä
+// readme.txtã«å¾“ã£ã¦ã€æ”¹å¤‰ç‚¹ï¼š
+//  - opna.cppã«YMF288ç”¨ã®ã‚¯ãƒ©ã‚¹è¿½åŠ ã—ã¦ã¾ã™ã€‚OPNAãã®ã¾ã‚“ã¾ã ã‘ã©ã­ï¼ˆã»ã‚“ã¨ã¯æ­£ã—ããªã„ãŒã¾ã‚ã„ã„ã‚„ï¼‰
+//  - å¤šåˆ†ä»–ã¯å¼„ã£ã¦ãªã„ã¯ãšâ€¦â€¦
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,25 +58,25 @@ void 	opm_mix(void *opm, int16_t *buffer, int32_t length, int16_t *pbsp, int16_t
 void 	opm_setvolume(void *opm, int32_t db)				{ ((MyOPM *)opm)->SetVolume(db); }
 void	opm_setchannelmask(void* opm, uint32_t mask)		{ ((MyOPM*)opm)->SetChannelMask(mask); }
 
-static const size_t state_size = sizeof(FM::opm_savestate_t);
+static const size_t state_size = sizeof(FM::OPM_state_t);
 int opm_statecontext(void *opm, void *f, int writing)
 {
-	void *opm_state = new FM::opm_savestate_t;
+	void *opm_state = new FM::OPM_state_t;
 
 	if (opm_state)
 	{
 		if (writing)
 		{
-			((MyOPM *)opm)->Save((FM::opm_savestate_t *)opm_state);
+			((MyOPM *)opm)->Save((FM::OPM_state_t *)opm_state);
 			state_context_f(opm_state, state_size);
 		}
 		else
 		{
 			state_context_f(opm_state, state_size);
-			((MyOPM *)opm)->Load((FM::opm_savestate_t *)opm_state);
+			((MyOPM *)opm)->Load((FM::OPM_state_t *)opm_state);
 		}
 
-		delete (FM::opm_savestate_t *)opm_state;
+		delete (FM::OPM_state_t *)opm_state;
 	}
 
 	return 1;
@@ -137,7 +137,7 @@ void MyOPM::WriteIO(uint32_t adr, uint8_t data)
 #if 0
 				RMData[RMPtrW].time = timeGetTime();
 				RMData[RMPtrW].reg  = CurReg;
-				if ( CurReg==0x14 ) data &= 0xf3;	// Int Enable¤Ï¥Þ¥¹¥¯¤¹¤ë
+				if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableã¯ãƒžã‚¹ã‚¯ã™ã‚‹
 				RMData[RMPtrW].data = data;
 				RMPtrW = newptr;
 			}
@@ -146,7 +146,7 @@ void MyOPM::WriteIO(uint32_t adr, uint8_t data)
 			}
 			RMData[RMPtrW].time = timeGetTime();
 			RMData[RMPtrW].reg  = CurReg;
-			if ( CurReg==0x14 ) data &= 0xf3;	// Int Enable¤Ï¥Þ¥¹¥¯¤¹¤ë
+			if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableã¯ãƒžã‚¹ã‚¯ã™ã‚‹
 			RMData[RMPtrW].data = data;
 			RMPtrW = newptr;
 #endif
@@ -265,7 +265,7 @@ void FASTCALL OPM_Timer(uint32_t step)
 
 void OPM_SetVolume(uint8_t vol)
 {
-	int32_t v = (vol)?((16-vol)*4):192;		// ¤³¤Î¤¯¤é¤¤¤«¤Ê¤¡
+	int32_t v = (vol)?((16-vol)*4):192;		// ã“ã®ãã‚‰ã„ã‹ãªã
 	if ( opm ) opm->SetVolume(-v);
 }
 
@@ -287,9 +287,9 @@ void OPM_RomeoOut(uint32_t delay)
 
 #ifdef HAVE_MERCURY
 // ----------------------------------------------------------
-// ---------------------------- YMF288 (Ëþ³«ÈÇ¤Þ¢·¤­¤å¤ê¢·)
+// ---------------------------- YMF288 (æº€é–‹ç‰ˆã¾ï½žãã‚…ã‚Šï½ž)
 // ----------------------------------------------------------
-// TODO : ROMEO¤Î288¤òÃ¡¤¯¤Î
+// TODO : ROMEOã®288ã‚’å©ãã®
 
 class YMF288 : public FM::Y288
 {
@@ -437,8 +437,8 @@ void FASTCALL M288_Timer(uint32_t step)
 
 void M288_SetVolume(uint8_t vol)
 {
-	int32_t v1 = (vol)?((16-vol)*4-24):192;		// ¤³¤Î¤¯¤é¤¤¤«¤Ê¤¡
-	int32_t v2 = (vol)?((16-vol)*4):192;		// ¾¯¤·¾®¤µ¤á¤Ë
+	int32_t v1 = (vol)?((16-vol)*4-24):192;		// ã“ã®ãã‚‰ã„ã‹ãªã
+	int32_t v2 = (vol)?((16-vol)*4):192;		// å°‘ã—å°ã•ã‚ã«
 	if ( ymf288a ) {
 		ymf288a->SetVolumeFM(-v1);
 		ymf288a->SetVolumePSG(-v2);

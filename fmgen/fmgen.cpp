@@ -4,21 +4,21 @@
 // ---------------------------------------------------------------------------
 //	$fmgen-Id: fmgen.cpp,v 1.49 2003/09/02 14:51:04 cisc Exp $
 // ---------------------------------------------------------------------------
-//	»²¹Í:
+//	å‚è€ƒ:
 //		FM sound generator for M.A.M.E., written by Tatsuyuki Satoh.
 //
-// 	Ææ:
-//		OPNB ¤Î CSM ¥â¡¼¥É(»ÅÍÍ¤¬¤è¤¯¤ï¤«¤é¤Ê¤¤)
+// 	è¬:
+//		OPNB ã® CSM ãƒ¢ãƒ¼ãƒ‰(ä»•æ§˜ãŒã‚ˆãã‚ã‹ã‚‰ãªã„)
 //
-//	À©¸Â:
-//		¡¦AR!=31 ¤Ç SSGEC ¤ò»È¤¦¤ÈÇÈ·Á¤¬¼Âºİ¤È°Û¤Ê¤ë²ÄÇ½À­¤¢¤ê
+//	åˆ¶é™:
+//		ãƒ»AR!=31 ã§ SSGEC ã‚’ä½¿ã†ã¨æ³¢å½¢ãŒå®Ÿéš›ã¨ç•°ãªã‚‹å¯èƒ½æ€§ã‚ã‚Š
 //
-//	¼Õ¼­:
-//		Tatsuyuki Satoh ¤µ¤ó(fm.c)
-//		Hiromitsu Shioya ¤µ¤ó(ADPCM-A)
-//		DMP-SOFT. ¤µ¤ó(OPNB)
-//		KAJA ¤µ¤ó(test program)
-//		¤Û¤«·Ç¼¨ÈÄÅù¤ÇÍÍ¡¹¤Ê¤´½õ¸À¡¤¤´»Ù±ç¤ò¤ª´ó¤»¤¤¤¿¤À¤¤¤¿³§ÍÍ¤Ë
+//	è¬è¾:
+//		Tatsuyuki Satoh ã•ã‚“(fm.c)
+//		Hiromitsu Shioya ã•ã‚“(ADPCM-A)
+//		DMP-SOFT. ã•ã‚“(OPNB)
+//		KAJA ã•ã‚“(test program)
+//		ã»ã‹æ²ç¤ºæ¿ç­‰ã§æ§˜ã€…ãªã”åŠ©è¨€ï¼Œã”æ”¯æ´ã‚’ãŠå¯„ã›ã„ãŸã ã„ãŸçš†æ§˜ã«
 // ---------------------------------------------------------------------------
 
 #include <math.h>
@@ -195,7 +195,7 @@ namespace FM
 {
 
 // ---------------------------------------------------------------------------
-//	¥Æ¡¼¥Ö¥ëºîÀ®
+//	ãƒ†ãƒ¼ãƒ–ãƒ«ä½œæˆ
 //
 void MakeLFOTable()
 {
@@ -253,14 +253,14 @@ void MakeLFOTable()
 
 
 // ---------------------------------------------------------------------------
-//	¥Á¥Ã¥×Æâ¤Ç¶¦ÄÌ¤ÊÉôÊ¬
+//	ãƒãƒƒãƒ—å†…ã§å…±é€šãªéƒ¨åˆ†
 //
 Chip::Chip()
 : ratio_(0), aml_(0), pml_(0), pmv_(0), optype_(typeN)
 {
 }
 
-//	¥¯¥í¥Ã¥¯¡¦¥µ¥ó¥×¥ê¥ó¥°¥ì¡¼¥ÈÈæ¤Ë°ÍÂ¸¤¹¤ë¥Æ¡¼¥Ö¥ë¤òºîÀ®
+//	ã‚¯ãƒ­ãƒƒã‚¯ãƒ»ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ãƒ¬ãƒ¼ãƒˆæ¯”ã«ä¾å­˜ã™ã‚‹ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’ä½œæˆ
 void Chip::SetRatio(uint32_t ratio)
 {
 	if (ratio_ != ratio)
@@ -288,7 +288,7 @@ void Chip::MakeTable()
 	}
 }
 
-void Chip::Save(chip_savestate_t *state)
+void Chip::Save(Chip_state_t *state)
 {
 	state->ratio_ = ratio_;
 	state->aml_ = aml_;
@@ -298,7 +298,7 @@ void Chip::Save(chip_savestate_t *state)
 	memcpy(state->multable_, multable_, sizeof(uint32_t) * 4 * 16);
 }
 
-void Chip::Load(chip_savestate_t *state)
+void Chip::Load(Chip_state_t *state)
 {
 	ratio_ = state->ratio_;
 	aml_ = state->aml_;
@@ -315,7 +315,7 @@ bool FM::Operator::tablehasmade = false;
 uint32_t FM::Operator::sinetable[1024];
 int32_t FM::Operator::cltable[FM_CLENTS];
 
-//	¹½ÃÛ
+//	æ§‹ç¯‰
 FM::Operator::Operator()
 : chip_(0)
 {
@@ -341,7 +341,7 @@ FM::Operator::Operator()
 //	Reset();
 }
 
-//	½é´ü²½
+//	åˆæœŸåŒ–
 void FM::Operator::Reset()
 {
 	// EG part
@@ -363,7 +363,7 @@ void FM::Operator::Reset()
 
 void Operator::MakeTable()
 {
-	// ÂĞ¿ô¥Æ¡¼¥Ö¥ë¤ÎºîÀ®
+	// å¯¾æ•°ãƒ†ãƒ¼ãƒ–ãƒ«ã®ä½œæˆ
 	assert(FM_CLENTS >= 256);
 
 	int32_t* p = cltable;
@@ -384,7 +384,7 @@ void Operator::MakeTable()
 //	for (i=0; i<13*256; i++)
 //		printf("%4d, %d, %d\n", i, cltable[i*2], cltable[i*2+1]);
 
-	// ¥µ¥¤¥ó¥Æ¡¼¥Ö¥ë¤ÎºîÀ®
+	// ã‚µã‚¤ãƒ³ãƒ†ãƒ¼ãƒ–ãƒ«ã®ä½œæˆ
 	double log2 = log(2.);
 	for (i=0; i<FM_OPSINENTS/2; i++)
 	{
@@ -410,7 +410,7 @@ inline void FM::Operator::SetDPBN(uint32_t dp, uint32_t bn)
 }
 
 
-//	½àÈ÷
+//	æº–å‚™
 void Operator::Prepare()
 {
 	if (param_changed_)
@@ -462,7 +462,7 @@ void Operator::Prepare()
 		dbgopout_ = 0;
 	}
 }
-//	envelop ¤Î eg_phase_ ÊÑ¹¹
+//	envelop ã® eg_phase_ å¤‰æ›´
 void Operator::ShiftPhase(EGPhase nextphase)
 {
 	switch (nextphase)
@@ -544,13 +544,13 @@ void Operator::SetFNum(uint32_t f)
 	PARAMCHANGE(2);
 }
 
-//	£±¥µ¥ó¥×¥ë¹çÀ®
+//	ï¼‘ã‚µãƒ³ãƒ—ãƒ«åˆæˆ
 
-//	ISample ¤ò envelop count (2¦Ğ) ¤ËÊÑ´¹¤¹¤ë¥·¥Õ¥ÈÎÌ
+//	ISample ã‚’ envelop count (2Ï€) ã«å¤‰æ›ã™ã‚‹ã‚·ãƒ•ãƒˆé‡
 #define IS2EC_SHIFT		((20 + FM_PGBITS) - 13)
 
 
-// ÆşÎÏ: s = 20+FM_PGBITS = 29
+// å…¥åŠ›: s = 20+FM_PGBITS = 29
 #define Sine(s)	sinetable[((s) >> (20+FM_PGBITS-FM_OPSINBITS))&(FM_OPSINENTS-1)]
 #define SINE(s) sinetable[(s) & (FM_OPSINENTS-1)]
 
@@ -581,10 +581,10 @@ inline void Operator::SetEGRate(uint32_t rate)
 	eg_count_diff_ = decaytable2[rate / 4] * chip_->GetRatio();
 }
 
-//	EG ·×»»
+//	EG è¨ˆç®—
 void FM::Operator::EGCalc()
 {
-	eg_count_ = (2047 * 3) << FM_RATIOBITS;				// ##¤³¤Î¼êÈ´¤­¤ÏºÆ¸½À­¤òÄã²¼¤µ¤»¤ë
+	eg_count_ = (2047 * 3) << FM_RATIOBITS;				// ##ã“ã®æ‰‹æŠœãã¯å†ç¾æ€§ã‚’ä½ä¸‹ã•ã›ã‚‹
 
 	if (eg_phase_ == attack)
 	{
@@ -638,12 +638,12 @@ inline void FM::Operator::EGStep()
 {
 	eg_count_ -= eg_count_diff_;
 
-	// EG ¤ÎÊÑ²½¤ÏÁ´¥¹¥í¥Ã¥È¤ÇÆ±´ü¤·¤Æ¤¤¤ë¤È¤¤¤¦±½¤â¤¢¤ë
+	// EG ã®å¤‰åŒ–ã¯å…¨ã‚¹ãƒ­ãƒƒãƒˆã§åŒæœŸã—ã¦ã„ã‚‹ã¨ã„ã†å™‚ã‚‚ã‚ã‚‹
 	if (eg_count_ <= 0)
 		EGCalc();
 }
 
-//	PG ·×»»
+//	PG è¨ˆç®—
 //	ret:2^(20+PGBITS) / cycle
 inline uint32_t FM::Operator::PGCalc()
 {
@@ -661,8 +661,8 @@ inline uint32_t FM::Operator::PGCalcL()
 	return ret /* + pmv * pg_diff_;*/;
 }
 
-//	OP ·×»»
-//	in: ISample (ºÇÂç 8¦Ğ)
+//	OP è¨ˆç®—
+//	in: ISample (æœ€å¤§ 8Ï€)
 inline FM::ISample FM::Operator::Calc(ISample in)
 {
 	EGStep();
@@ -694,7 +694,7 @@ inline FM::ISample FM::Operator::CalcN(uint32_t noise)
 
 	int32_t lv = Max(0, 0x3ff - (tl_out_ + eg_level_)) << 1;
 
-	// noise & 1 ? lv : -lv ¤ÈÅù²Á
+	// noise & 1 ? lv : -lv ã¨ç­‰ä¾¡
 	noise = (noise & 1) - 1;
 	out_ = (lv + noise) ^ noise;
 
@@ -702,8 +702,8 @@ inline FM::ISample FM::Operator::CalcN(uint32_t noise)
 	return out_;
 }
 
-//	OP (FB) ·×»»
-//	Self Feedback ¤ÎÊÑÄ´ºÇÂç = 4¦Ğ
+//	OP (FB) è¨ˆç®—
+//	Self Feedback ã®å¤‰èª¿æœ€å¤§ = 4Ï€
 inline FM::ISample FM::Operator::CalcFB(uint32_t fb)
 {
 	EGStep();
@@ -742,7 +742,7 @@ inline FM::ISample FM::Operator::CalcFBL(uint32_t fb)
 }
 #undef Sine
 
-void Operator::Save(operator_savestate_t *state)
+void Operator::Save(Operator_state_t *state)
 {
 	state->out_ = out_;
 	state->out2_ = out2_;
@@ -785,7 +785,7 @@ void Operator::Save(operator_savestate_t *state)
 	state->mute_ = mute_;
 }
 
-void Operator::Load(operator_savestate_t *state)
+void Operator::Load(Operator_state_t *state)
 {
 	out_ = state->out_;
 	out2_ = state->out2_;
@@ -857,7 +857,7 @@ void Channel4::MakeTable()
 	}
 }
 
-// ¥ê¥»¥Ã¥È
+// ãƒªã‚»ãƒƒãƒˆ
 void Channel4::Reset()
 {
 	op[0].Reset();
@@ -866,7 +866,7 @@ void Channel4::Reset()
 	op[3].Reset();
 }
 
-//	Calc ¤ÎÍÑ°Õ
+//	Calc ã®ç”¨æ„
 int Channel4::Prepare()
 {
 	op[0].Prepare();
@@ -880,14 +880,14 @@ int Channel4::Prepare()
 	return key | lfo;
 }
 
-//	F-Number/BLOCK ¤òÀßÄê
+//	F-Number/BLOCK ã‚’è¨­å®š
 void Channel4::SetFNum(uint32_t f)
 {
 	for (int i=0; i<4; i++)
 		op[i].SetFNum(f);
 }
 
-//	KC/KF ¤òÀßÄê
+//	KC/KF ã‚’è¨­å®š
 void Channel4::SetKCKF(uint32_t kc, uint32_t kf)
 {
 	static const uint32_t kctable[16] =
@@ -915,7 +915,7 @@ void Channel4::SetKCKF(uint32_t kc, uint32_t kf)
 //printf(" %.8x\n", dp);
 }
 
-//	¥­¡¼À©¸æ
+//	ã‚­ãƒ¼åˆ¶å¾¡
 void Channel4::KeyControl(uint32_t key)
 {
 	if (key & 0x1) op[0].KeyOn(); else op[0].KeyOff();
@@ -924,7 +924,7 @@ void Channel4::KeyControl(uint32_t key)
 	if (key & 0x8) op[3].KeyOn(); else op[3].KeyOff();
 }
 
-//	¥¢¥ë¥´¥ê¥º¥à¤òÀßÄê
+//	ã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ ã‚’è¨­å®š
 void Channel4::SetAlgorithm(uint32_t algo)
 {
 	static const uint8_t table1[8][6] =
@@ -946,7 +946,7 @@ void Channel4::SetAlgorithm(uint32_t algo)
 	algo_ = algo;
 }
 
-//  ¹çÀ®
+//  åˆæˆ
 ISample Channel4::Calc()
 {
 	int32_t r = 0;
@@ -1004,7 +1004,7 @@ ISample Channel4::Calc()
 	return r;
 }
 
-//  ¹çÀ®
+//  åˆæˆ
 ISample Channel4::CalcL()
 {
 	chip_->SetPMV(pms[chip_->GetPML()]);
@@ -1064,7 +1064,7 @@ ISample Channel4::CalcL()
 	return r;
 }
 
-//  ¹çÀ®
+//  åˆæˆ
 ISample Channel4::CalcN(uint32_t noise)
 {
 	buf[1] = buf[2] = buf[3] = 0;
@@ -1077,7 +1077,7 @@ ISample Channel4::CalcN(uint32_t noise)
 	return *out[2] + o;
 }
 
-//  ¹çÀ®
+//  åˆæˆ
 ISample Channel4::CalcLN(uint32_t noise)
 {
 	chip_->SetPMV(pms[chip_->GetPML()]);
@@ -1091,7 +1091,7 @@ ISample Channel4::CalcLN(uint32_t noise)
 	return *out[2] + o;
 }
 
-void Channel4::Save(channel4_savestate_t *state)
+void Channel4::Save(Channel4_state_t *state)
 {
 	state->fb = fb;
 	memcpy(state->buf, buf, sizeof(int) * 4);
@@ -1103,7 +1103,7 @@ void Channel4::Save(channel4_savestate_t *state)
 	}
 }
 
-void Channel4::Load(channel4_savestate_t *state)
+void Channel4::Load(Channel4_state_t *state)
 {
 	fb = state->fb;
 	memcpy(buf, state->buf, sizeof(int) * 4);
