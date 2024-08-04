@@ -1,5 +1,5 @@
-#ifndef _WINX68K_CONFIG_H
-#define _WINX68K_CONFIG_H
+#ifndef _X68K_CONFIG_H
+#define _X68K_CONFIG_H
 
 typedef struct
 {
@@ -56,4 +56,4 @@ void SaveConfig(void);
 
 int set_modulepath(char *path);
 
-#endif /*_WINX68K_CONFIG_H */
+#endif /*_X68K_CONFIG_H */

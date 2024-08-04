@@ -1,4 +1,4 @@
-/* CRTC.C - CRT Controller / Video Controller */
+/* CRTC.C - CRT Controller */
 
 #include "../x11/common.h"
 #include "../x11/windraw.h"
@@ -8,6 +8,8 @@
 #include "bg.h"
 #include "palette.h"
 #include "tvram.h"
+
+#include "../x11/state.h"
 
 static uint16_t FastClearMask[16] = {
 	0xffff, 0xfff0, 0xff0f, 0xff00, 0xf0ff, 0xf0f0, 0xf00f, 0xf000,
@@ -21,7 +23,7 @@ uint32_t TextDotY = 512;
 uint16_t CRTC_VSTART = 0, CRTC_VEND = 0;
 uint16_t CRTC_HSTART = 0, CRTC_HEND = 0;
 uint32_t TextScrollX = 0, TextScrollY = 0;
-uint32_t GrphScrollX[4] = { 0, 0, 0, 0 }; /* 配列にしちゃった… */
+uint32_t GrphScrollX[4] = { 0, 0, 0, 0 };
 uint32_t GrphScrollY[4] = { 0, 0, 0, 0 };
 
 uint8_t  CRTC_FastClr     = 0;
@@ -29,16 +31,11 @@ uint16_t CRTC_FastClrMask = 0;
 uint16_t CRTC_IntLine     = 0;
 uint8_t  CRTC_VStep       = 2;
 
-uint8_t VCReg0[2] = { 0, 0 };
-uint8_t VCReg1[2] = { 0, 0 };
-uint8_t VCReg2[2] = { 0, 0 };
-
 static uint8_t CRTC_RCFlag[2] = { 0, 0 };
 
 int HSYNC_CLK = 324;
 extern int VID_MODE;
 
-/* らすたーこぴー */
 static void CRTC_RasterCopy(void)
 {
 	static const uint32_t off[4] = { 0, 0x20000, 0x40000, 0x60000 };
@@ -68,86 +65,6 @@ static void CRTC_RasterCopy(void)
 	TVRAM_RCUpdate();
 }
 
-/* びでおこんとろーるれじすた */
-
-/* Reg0の色モードは、ぱっと見CRTCと同じだけど役割違うので注意。
- * CRTCはGVRAMへのアクセス方法（メモリマップ上での見え方）が変わるのに対し、
- * VCtrlは、GVRAM→画面の展開方法を制御する。
- * つまり、アクセス方法（CRTC）は16bitモードで、表示は256色モードってな使い
- * 方も許されるのれす。
- * コットン起動時やYs（電波版）OPなどで使われてまふ。
- */
-
-/*
- * $e82000 256.w -- Graphics Palette
- * $e82200 256.w -- Text Palette, Sprite + BG Palette
- * $e82400 1.w R0 screen mode
- * $e82500 1.w R1 priority control
- * $e82600 1.w R2 ON/OFF control/special priority
- */
-
-uint8_t FASTCALL VCtrl_Read(uint32_t adr)
-{
-	if (adr < 0x00e82400)
-	{
-		return Pal_Read(adr);
-	}
-
-	if (adr < 0x00e82500)
-	{
-		return VCReg0[adr & 1];
-	}
-
-	if (adr < 0x00e82600)
-	{
-		return VCReg1[adr & 1];
-	}
-
-	if (adr < 0x00e82700)
-	{
-		return VCReg2[adr & 1];
-	}
-
-	return 0xff;
-}
-
-void FASTCALL VCtrl_Write(uint32_t adr, uint8_t data)
-{
-	if (adr < 0x00e82400)
-	{
-		Pal_Write(adr, data);
-	}
-	else if (adr < 0x00e82500)
-	{
-		if (VCReg0[adr & 1] != data)
-		{
-			VCReg0[adr & 1] = data;
-			TVRAM_SetAllDirty();
-		}
-	}
-	else if (adr < 0x00e82600)
-	{
-		if (VCReg1[adr & 1] != data)
-		{
-			VCReg1[adr & 1] = data;
-			TVRAM_SetAllDirty();
-		}
-	}
-	else if (adr < 0x00e82700)
-	{
-		if (VCReg2[adr & 1] != data)
-		{
-			VCReg2[adr & 1] = data;
-			TVRAM_SetAllDirty();
-		}
-	}
-}
-
-/*
- * CRTCれじすた
- * レジスタアクセスのコードが汚い ^^;
- */
-
 void CRTC_Init(void)
 {
 	memset(CRTC_Regs, 0, 48);
@@ -161,6 +78,22 @@ void CRTC_Init(void)
 
 	TextScrollX = 0;
 	TextScrollY = 0;
+}
+
+static void CRTC_ScreenChanged(void)
+{
+	if ((CRTC_Regs[0x29] & 0x14) == 0x10)
+	{
+		TextDotY /= 2;
+		CRTC_VStep = 1;
+	}
+	else if ((CRTC_Regs[0x29] & 0x14) == 0x04)
+	{
+		TextDotY *= 2;
+		CRTC_VStep = 4;
+	}
+	else
+		CRTC_VStep = 2;
 }
 
 uint8_t FASTCALL CRTC_Read(uint32_t adr)
@@ -187,10 +120,10 @@ uint8_t FASTCALL CRTC_Read(uint32_t adr)
 	}
 	else if (adr == 0xe80481)
 	{
-		/* FastClearの注意点：
-		 * FastClrビットに1を書き込むと、その時点ではReadBackしても1は見えない。
-		 * 1書き込み後の最初の垂直帰線期間で1が立ち、消去を開始する。
-		 * 1垂直同期期間で消去がおわり、0に戻る……らしひ（PITAPAT）
+		/* Notes on FastClear:
+		 * When you write a 1 to the FastClr bit, the 1 will not be visible even if you read it back at that point.
+		 * The bit will become 1 during the first vertical blanking period after writing the 1, and erasure will begin.
+		 * The erasure will end during one vertical sync period, and the bit will return to 0... PITAPAT.
 		 */
 		if (CRTC_FastClr)
 			return CRTC_Mode | 0x02;
@@ -234,7 +167,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 		case 0x05:
 			CRTC_HSTART = (((uint16_t)CRTC_Regs[0x04] << 8) + CRTC_Regs[0x05]) & 255;
 			TextDotX    = (CRTC_HEND - CRTC_HSTART) * 8;
-			BG_HAdjust  = ((long)BG_Regs[0x0d] - (CRTC_HSTART + 4)) * 8; /* 水平方向は解像度による1/2はいらない？（Tetris） */
+			BG_HAdjust  = ((int32_t)BG_Regs[0x0d] - (CRTC_HSTART + 4)) * 8; /*Isn't it necessary to divide the horizontal resolution by 1/2? (Tetris) */
 			WinDraw_ChangeSize();
 			break;
 		case 0x06:
@@ -245,7 +178,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			break;
 		case 0x08:
 		case 0x09:
-			VLINE_TOTAL = (((uint16_t)CRTC_Regs[0x08] << 8) + CRTC_Regs[0x09]);
+			VLINE_TOTAL = (((uint16_t)CRTC_Regs[0x08] << 8) + CRTC_Regs[0x09]) & 1023;
 			HSYNC_CLK   = ((CRTC_Regs[0x29] & 0x10) ? VSYNC_HIGH : VSYNC_NORM) / VLINE_TOTAL;
 			break;
 		case 0x0a:
@@ -255,42 +188,16 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 		case 0x0c:
 		case 0x0d:
 			CRTC_VSTART = (((uint16_t)CRTC_Regs[0x0c] << 8) + CRTC_Regs[0x0d]) & 1023;
-			BG_VLINE    = ((long)BG_Regs[0x0f] - CRTC_VSTART) / ((BG_Regs[0x11] & 4) ? 1 : 2); /* BGとその他がずれてる時の差分 */
+			BG_VLINE    = ((int32_t)BG_Regs[0x0f] - CRTC_VSTART) / ((BG_Regs[0x11] & 4) ? 1 : 2); /* Difference when BG and other elements are misaligned */
 			TextDotY    = CRTC_VEND - CRTC_VSTART;
-
-			if ((CRTC_Regs[0x29] & 0x14) == 0x10)
-			{
-				TextDotY /= 2;
-				CRTC_VStep = 1;
-			}
-			else if ((CRTC_Regs[0x29] & 0x14) == 0x04)
-			{
-				TextDotY *= 2;
-				CRTC_VStep = 4;
-			}
-			else
-				CRTC_VStep = 2;
-
+			CRTC_ScreenChanged();
 			WinDraw_ChangeSize();
 			break;
 		case 0x0e:
 		case 0x0f:
 			CRTC_VEND = (((uint16_t)CRTC_Regs[0x0e] << 8) + CRTC_Regs[0x0f]) & 1023;
 			TextDotY  = CRTC_VEND - CRTC_VSTART;
-
-			if ((CRTC_Regs[0x29] & 0x14) == 0x10)
-			{
-				TextDotY /= 2;
-				CRTC_VStep = 1;
-			}
-			else if ((CRTC_Regs[0x29] & 0x14) == 0x04)
-			{
-				TextDotY *= 2;
-				CRTC_VStep = 4;
-			}
-			else
-				CRTC_VStep = 2;
-
+			CRTC_ScreenChanged();
 			WinDraw_ChangeSize();
 			break;
 		case 0x28:
@@ -300,20 +207,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			HSYNC_CLK = ((CRTC_Regs[0x29] & 0x10) ? VSYNC_HIGH : VSYNC_NORM) / VLINE_TOTAL;
 			VID_MODE  = !!(CRTC_Regs[0x29] & 0x10);
 			TextDotY  = CRTC_VEND - CRTC_VSTART;
-
-			if ((CRTC_Regs[0x29] & 0x14) == 0x10)
-			{
-				TextDotY /= 2;
-				CRTC_VStep = 1;
-			}
-			else if ((CRTC_Regs[0x29] & 0x14) == 0x04)
-			{
-				TextDotY *= 2;
-				CRTC_VStep = 4;
-			}
-			else
-				CRTC_VStep = 2;
-
+			CRTC_ScreenChanged();
 			WinDraw_ChangeSize();
 			break;
 		case 0x10:
@@ -367,9 +261,9 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 		case 0x2a:
 		case 0x2b:
 			break;
-		case 0x2c: /* CRTC動作ポートのラスタコピーをONにしておいて（しておいたまま）、 */
-		case 0x2d: /* Src/Dstだけ次々変えていくのも許されるらしい（ドラキュラとか） */
-			CRTC_RCFlag[reg - 0x2c] = 1; /* Dst変更後に実行される？ */
+		case 0x2c: /* Turn on the raster copy of the CRTC operation port (and leave it on), */
+		case 0x2d: /* Apparently it's also permissible to change only the Src/Dst (like Dracula) */
+			CRTC_RCFlag[reg - 0x2c] = 1; /* Is it executed after changing Dst? */
 
 			if ((CRTC_Mode & 8) && /*(CRTC_RCFlag[0])&&*/ (CRTC_RCFlag[1]))
 			{
@@ -383,7 +277,6 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 	}
 	else if (adr == 0xe80481)
 	{
-		/* CRTC動作ポート */
 		CRTC_Mode = (data | (CRTC_Mode & 2));
 
 		/* Raster Copy */
@@ -394,10 +287,36 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			CRTC_RCFlag[1] = 0;
 		}
 
-		if (CRTC_Mode & 2) /* 高速クリア */
+		if (CRTC_Mode & 2) /* FastClear */
 		{
-			/* この時点のマスクが有効らしい（クォース） */
+			/* The mask at this point seems to be valid (Quoth) */
 			CRTC_FastClrMask = FastClearMask[CRTC_Regs[0x2b] & 15];
 		}
 	}
+}
+
+int CRTC_StateContext(void *f, int writing) {
+	state_context_f(CRTC_Regs, sizeof(CRTC_Regs));
+	state_context_f(&CRTC_Mode, sizeof(CRTC_Mode));
+	state_context_f(&TextDotX, sizeof(TextDotX));
+	state_context_f(&TextDotY, sizeof(TextDotY));
+	state_context_f(&CRTC_VSTART, sizeof(CRTC_VSTART));
+	state_context_f(&CRTC_VEND, sizeof(CRTC_VEND));
+	state_context_f(&CRTC_HSTART, sizeof(CRTC_HSTART));
+	state_context_f(&CRTC_HEND, sizeof(CRTC_HEND));
+	state_context_f(&TextScrollX, sizeof(TextScrollX));
+	state_context_f(&TextScrollY, sizeof(TextScrollY));
+	state_context_f(GrphScrollX, sizeof(GrphScrollX));
+	state_context_f(GrphScrollY, sizeof(GrphScrollY));
+
+	state_context_f(&CRTC_FastClr, sizeof(CRTC_FastClr));
+	state_context_f(&CRTC_FastClrMask, sizeof(CRTC_FastClrMask));
+	state_context_f(&CRTC_IntLine, sizeof(CRTC_IntLine));
+	state_context_f(&CRTC_VStep, sizeof(CRTC_VStep));
+
+	state_context_f(CRTC_RCFlag, sizeof(CRTC_RCFlag));
+
+	state_context_f(&HSYNC_CLK, sizeof(HSYNC_CLK));
+
+	return 1;
 }

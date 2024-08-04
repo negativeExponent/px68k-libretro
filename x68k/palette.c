@@ -8,20 +8,21 @@
 #include "crtc.h"
 #include "tvram.h"
 #include "x68kmemory.h"
+#include "../x11/state.h"
 
 uint8_t Pal_Regs[1024];
 uint16_t TextPal[256];
 uint16_t GrphPal[256];
 uint16_t Pal16[65536];
-uint16_t Ibit; /* 半透明処理とかで使うかも~ */
+uint16_t Ibit; /* Might be used for semi-transparent processing */
 
 uint16_t Pal_HalfMask, Pal_Ix2;
-static uint16_t Pal_R, Pal_G, Pal_B; /* 画面輝度変更時用 */
+static uint16_t Pal_R, Pal_G, Pal_B; /* For changing screen brightness */
 
-/* ----- DDrawの16ビットモードの色マスクからX68k→Win用の変換テーブルを作る -----
- * X68kは「GGGGGRRRRRBBBBBI」の構造。Winは「RRRRRGGGGGGBBBBB」の形が多いみたい。が、
- * 違う場合もあるみたいなので計算してみやう。
- */
+/* ----- Create a conversion table from X68k to Win using the 16-bit mode color mask of DDraw -----
+* X68k has a "GGGGGRRRRRBBBBBI" structure. Win often has a "RRRRRGGGGGGBBBBB" structure. However,
+* it seems that there are cases where this is different, so let's do some calculations.
+*/
 static void Pal_SetColor(void)
 {
 	uint16_t TempMask, bit;
@@ -32,10 +33,10 @@ static void Pal_SetColor(void)
 
 	r = g = b = 5;
 	Pal_R = Pal_G = Pal_B = 0;
-	TempMask              = 0; /* 使われているビットをチェック（Iビット用）*/
+	TempMask              = 0; /* Check which bits are used (for I bits) */
 	for (bit = 0x8000; bit; bit >>= 1)
 	{
-		/* 各色毎に左（上位）から5ビットずつ拾う */
+		/* Pick up 5 bits from the left (highest order) for each color */
 		if ((WinDraw_Pal16R & bit) && (r))
 		{
 			R[--r] = bit;
@@ -59,36 +60,34 @@ static void Pal_SetColor(void)
 	Ibit = 1;
 	for (bit = 1; bit; bit <<= 1)
 	{
-		/* 使われていないビット（通常は6ビット以上ある色の */
-		if (!(TempMask & bit)) /* 最下位ビット）をIビットとして扱う */
+		/* Unused bits (usually for colors with 6 or more bits */
+		if (!(TempMask & bit)) /* The least significant bit) is treated as the I bit */
 		{
-			/* 0のビットが複数だったときを考えて、Ibit=~TempMask; にはしてないです */
+			/* I did not set Ibit=~TempMask; in case there are multiple 0 bits */
 			Ibit = bit;
 			break;
 		}
 	}
 
-	/* ねこーねこー
-	 * Pal_Ix2 = 0 になったらどうしよう… その時は32bit拡張… */
-
-	/* → Riva128なんかでは見事になるみたい（笑） でもそれでも特に問題無いかも… */
+	/* Kitty kitty
+	 * What if Pal_Ix2 = 0? Then it'll be 32-bit expansion... */
+	/* 鐃緒申 It looks great on Riva128 (lol) but it might not be a problem... */
 
 	Pal_HalfMask = ~(B[0] | R[0] | G[0] | Ibit);
 	Pal_Ix2      = Ibit << 1;
 
 	/*
-	    // どーしても変そうなら、これを入れるか…32bit拡張めんどくさいし（汗
-	    if (Ibit==0x8000)			// Ibitが最上位ビットだったら、青の最下位と入れ替え
-	    {
-	        Ibit = B[0];
-	        B[0] = 0;			// 青は4bitになっちゃうけど我慢して ^^;
-	        Pal_HalfMask = ~(B[1] | R[0] | G[0] | Ibit | 0x8000);
-	        Pal_Ix2 = Ibit << 1;
-	    }
+		// If it seems strange, I'll put this in... 32bit expansion is a pain (sweat)
+		if (Ibit==0x8000)			// If Ibit is the most significant bit, swap it with the least significant bit of blue
+		{
+			Ibit = B[0];
+			B[0] = 0;			// The blue will be 4 bit but bear with me ^^;
+			Pal_HalfMask = ~(B[1] | R[0] | G[0] | Ibit | 0x8000);
+			Pal_Ix2 = Ibit << 1;
+		}
 	*/
 
-	/* X68kのビット配置に合わせてテーブル作成
-	   すっげ~手際が悪いね（汗 */
+	/* Creating a table based on the bit arrangement of the X68k */
 	for (i = 0; i < 65536; i++)
 	{
 		bit = 0;
@@ -128,7 +127,6 @@ static void Pal_SetColor(void)
 	}
 }
 
-/* 初期化 */
 void Pal_Init(void)
 {
 	memset(Pal_Regs, 0, 1024);
@@ -167,8 +165,8 @@ void FASTCALL Pal_Write(uint32_t adr, uint8_t data)
 	}
 	else if (adr < 0x400)
 	{
-		/* TODOL verify:
-		 * TextPalはバイトアクセスは出来ないらしい（神戸恋愛物語）> */
+		/* TODO: verify:
+		 * It seems that TextPal does not allow byte access (Kobe Love Story)> */
 		Pal_Regs[adr] = data;
 		TVRAM_SetAllDirty();
 
@@ -179,7 +177,7 @@ void FASTCALL Pal_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-/* こんとらすと変更（パレットに対するWin側の表示色で実現してます ^^;） */
+/* Changed the color of the palette */
 void Pal_ChangeContrast(int num)
 {
 	int r, g, b, i;
@@ -194,7 +192,7 @@ void Pal_ChangeContrast(int num)
 	TVRAM_SetAllDirty();
 	for (bit = 0x8000; bit; bit >>= 1)
 	{
-		/* 各色毎に左（上位）から5ビットずつ拾う */
+		/* Pick up 5 bits from the left (highest order) for each color */
 		if ((WinDraw_Pal16R & bit) && (r))
 			R[--r] = bit;
 		if ((WinDraw_Pal16G & bit) && (g))
@@ -261,4 +259,13 @@ void Pal_ChangeContrast(int num)
 
 		TextPal[i] = Pal16[pal];
 	}
+}
+
+int Pal_StateContext(void *f, int writing) {
+	state_context_f(Pal_Regs, sizeof(Pal_Regs));
+	state_context_f(TextPal, sizeof(Pal_Regs));
+	state_context_f(GrphPal, sizeof(Pal_Regs));
+	state_context_f(Pal16, sizeof(Pal_Regs));
+
+	return 1;
 }

@@ -9,43 +9,49 @@
 #ifndef M68000_H
 #define M68000_H
 
-#if defined (HAVE_CYCLONE)
-#include "cyclone.h"
-#elif defined (HAVE_M68000)
-#include "c68k.h"
-#elif defined (HAVE_C68K)
-#include "c68k/c68k.h"
-#elif defined (HAVE_MUSASHI)
-#include "musashi/m68k.h"
-#include "musashi/m68kcpu.h"
-#endif
+typedef uint32_t FASTCALL M68K_READ(const uint32_t adr);
+typedef void     FASTCALL M68K_WRITE(const uint32_t adr, uint32_t data);
 
-/* MAME互換のレジスタ番号 (一部未対応) */
-enum
-{
-	/* NOTE: M68K_SP fetches the current SP, be it USP, ISP, or MSP */
-	M68K_PC=1, M68K_SP, M68K_ISP, M68K_USP, M68K_MSP, M68K_SR, M68K_VBR,
-	M68K_SFC, M68K_DFC, M68K_CACR, M68K_CAAR, M68K_PREF_ADDR, M68K_PREF_DATA,
-	M68K_D0, M68K_D1, M68K_D2, M68K_D3, M68K_D4, M68K_D5, M68K_D6, M68K_D7,
-	M68K_A0, M68K_A1, M68K_A2, M68K_A3, M68K_A4, M68K_A5, M68K_A6, M68K_A7
-};
+typedef struct M68K_struct {
+	void (*Init)(void);
+	void (*Close)(void);
+	void (*Reset)(void);
+
+	void (*SetFetch)(uint32_t low_adr, uint32_t high_adr, uintptr_t fetch_adr);
+	void (*SetReadB)(M68K_READ *Func);
+	void (*SetReadW)(M68K_READ *Func);
+	void (*SetWriteB)(M68K_WRITE *Func);
+	void (*SetWriteW)(M68K_WRITE *Func);
+
+	int32_t (*Exec)(int32_t cycle);
+	void (*SetIRQ)(int32_t line);
+
+	uint32_t (*GetDReg)(uint32_t num);
+	uint32_t (*GetAReg)(uint32_t num);
+	uint32_t (*GetPC)(void);
+	uint32_t (*GetSR)(void);
+	uint32_t (*GetUSP)(void);
+	uint32_t (*GetMSP)(void);
+
+	void (*SetDReg)(uint32_t num, uint32_t val);
+	void (*SetAReg)(uint32_t num, uint32_t val);
+	void (*SetPC)(uint32_t val);
+	void (*SetSR)(uint32_t val);
+	void (*SetUSP)(uint32_t val);
+	void (*SetMSP)(uint32_t val);
+
+	int (*StateContext)(void *, int writing);
+} M68K_struct;
+
+extern M68K_struct *M68K;
+
+extern	int32_t	ICount;
 
 void m68000_init(void);
 void m68000_reset(void);
 void m68000_exit(void);
-int  m68000_execute(int cycles);
-
-void m68000_set_irq_line(int irqline);
-void m68000_set_irq_callback(int (*callback)(int irqline));
-uint32_t  m68000_get_reg(int regnum);
-void m68000_set_reg(int regnum, uint32_t val);
-
-
-#ifdef SAVE_STATE
-STATE_SAVE( m68000 );
-STATE_LOAD( m68000 );
-#endif
-
-extern	int	ICount;
+void m68000_set_irq_line(uint32_t irqline);
+int32_t m68000_execute(int32_t cycles);
+int32_t my_irqh_callback(int32_t level);
 
 #endif /* M68000_H */

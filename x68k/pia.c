@@ -1,6 +1,7 @@
-/* PIA.C - uPD8255（必要最低限のみ） */
+/* PIA.C - uPD8255 (only the bare minimum) */
 
 #include "../x11/common.h"
+#include "../x11/state.h"
 
 #include "../x11/joystick.h"
 #include "../m68000/m68000.h"
@@ -17,7 +18,6 @@ typedef struct {
 
 static PIA pia;
 
-/*  初期化 */
 void PIA_Init(void)
 {
 	pia.PortA = 0xff;
@@ -79,4 +79,10 @@ uint8_t FASTCALL PIA_Read(uint32_t adr)
 	if (adr == 0xe9a005)
 		return pia.PortC;
 	return 0xff;
+}
+
+int PIA_StateContext(void *f, int writing) {
+	state_context_f(&pia, sizeof(pia));
+
+	return 1;
 }

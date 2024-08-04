@@ -1,5 +1,5 @@
-#ifndef _WINX68K_XDF_H
-#define _WINX68K_XDF_H
+#ifndef _X68K_XDF_H
+#define _X68K_XDF_H
 
 void XDF_Init(void);
 void XDF_Cleanup(void);
@@ -13,4 +13,4 @@ int XDF_ReadDiag(int drv, FDCID *id, FDCID *retid, uint8_t *buf);
 int XDF_Write(int drv, FDCID *id, uint8_t *buf, int del);
 int XDF_GetCurrentID(int drv, FDCID *id);
 
-#endif /* _WINX68K_XDF_H */
+#endif /* _X68K_XDF_H */

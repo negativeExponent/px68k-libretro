@@ -8,14 +8,15 @@
 #define MISC_H
 
 #include <stdint.h>
+#include <string.h>
 
-inline int Max(int x, int y) { return (x > y) ? x : y; }
-inline int Min(int x, int y) { return (x < y) ? x : y; }
-inline int Abs(int x) { return x >= 0 ? x : -x; }
+inline int32_t Max(int32_t x, int32_t y) { return (x > y) ? x : y; }
+inline int32_t Min(int32_t x, int32_t y) { return (x < y) ? x : y; }
+inline int32_t Abs(int32_t x) { return x >= 0 ? x : -x; }
 
-inline int Limit(int v, int max, int min) 
-{ 
-	return v > max ? max : (v < min ? min : v); 
+inline int32_t Limit(int32_t v, int32_t max, int32_t min)
+{
+	return v > max ? max : (v < min ? min : v);
 }
 
 inline uint32_t BSwap(uint32_t a)

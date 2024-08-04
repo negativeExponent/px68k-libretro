@@ -2,6 +2,7 @@
 //	OPM-like Sound Generator
 //	Copyright (C) cisc 1998, 2003.
 // ---------------------------------------------------------------------------
+//	$Id: opm.h,v 1.14 2003/06/07 08:25:53 cisc Exp $
 
 #ifndef FM_OPM_H
 #define FM_OPM_H
@@ -12,147 +13,188 @@
 
 // ---------------------------------------------------------------------------
 //	class OPM
-//	OPM ¤ËÎÉ¤¯»÷¤¿(?)²»¤òÀ¸À®¤¹¤ë²»¸»¥æ¥Ë¥Ã¥È
-//
+//	OPM ï¿½ï¿½ï¿½É¤ï¿½ï¿½ï¿½ï¿½ï¿½(?)ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë²»ï¿½ï¿½ï¿½ï¿½Ë¥Ã¥ï¿½
+//	
 //	interface:
 //	bool Init(uint clock, uint rate, bool);
-//		½é´ü²½¡¥¤³¤Î¥¯¥é¥¹¤ò»ÈÍÑ¤¹¤ëÁ°¤Ë¤«¤Ê¤é¤º¸Æ¤ó¤Ç¤ª¤¯¤³¤È¡¥
-//		Ãí°Õ: Àþ·ÁÊä´°¥â¡¼¥É¤ÏÇÑ»ß¤µ¤ì¤Þ¤·¤¿
+//		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¥ï¿½ï¿½é¥¹ï¿½ï¿½ï¿½ï¿½Ñ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¤ï¿½ï¿½Ê¤é¤ºï¿½Æ¤ï¿½Ç¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½
+//		ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½ä´°ï¿½â¡¼ï¿½É¤ï¿½ï¿½Ñ»ß¤ï¿½ï¿½ï¿½Þ¤ï¿½ï¿½ï¿½
 //
-//		clock:	OPM ¤Î¥¯¥í¥Ã¥¯¼þÇÈ¿ô(Hz)
+//		clock:	OPM ï¿½Î¥ï¿½ï¿½ï¿½ï¿½Ã¥ï¿½ï¿½ï¿½ï¿½È¿ï¿½(Hz)
 //
-//		rate:	À¸À®¤¹¤ë PCM ¤ÎÉ¸ËÜ¼þÇÈ¿ô(Hz)
+//		rate:	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCM ï¿½ï¿½É¸ï¿½Ü¼ï¿½ï¿½È¿ï¿½(Hz)
 //
-//
-//		ÊÖÃÍ	½é´ü²½¤ËÀ®¸ù¤¹¤ì¤Ð true
+//				
+//		ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ true
 //
 //	bool SetRate(uint clock, uint rate, bool)
-//		¥¯¥í¥Ã¥¯¤ä PCM ¥ì¡¼¥È¤òÊÑ¹¹¤¹¤ë
-//		°ú¿ôÅù¤Ï Init ¤ÈÆ±ÍÍ¡¥
-//
+//		ï¿½ï¿½ï¿½ï¿½ï¿½Ã¥ï¿½ï¿½ï¿½ PCM ï¿½ì¡¼ï¿½È¤ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½
+//		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Init ï¿½ï¿½Æ±ï¿½Í¡ï¿½
+//	
 //	void Mix(Sample* dest, int nsamples)
-//		Stereo PCM ¥Ç¡¼¥¿¤ò nsamples Ê¬¹çÀ®¤·¡¤ dest ¤Ç»Ï¤Þ¤ëÇÛÎó¤Ë
-//		²Ã¤¨¤ë(²Ã»»¤¹¤ë)
-//		¡¦dest ¤Ë¤Ï sample*2 ¸ÄÊ¬¤ÎÎÎ°è¤¬É¬Í×
-//		¡¦³ÊÇ¼·Á¼°¤Ï L, R, L, R... ¤È¤Ê¤ë¡¥
-//		¡¦¤¢¤¯¤Þ¤Ç²Ã»»¤Ê¤Î¤Ç¡¤¤¢¤é¤«¤¸¤áÇÛÎó¤ò¥¼¥í¥¯¥ê¥¢¤¹¤ëÉ¬Í×¤¬¤¢¤ë
-//		¡¦FM_SAMPLETYPE ¤¬ short ·¿¤Î¾ì¹ç¥¯¥ê¥Ã¥Ô¥ó¥°¤¬¹Ô¤ï¤ì¤ë.
-//		¡¦¤³¤Î´Ø¿ô¤Ï²»¸»ÆâÉô¤Î¥¿¥¤¥Þ¡¼¤È¤ÏÆÈÎ©¤·¤Æ¤¤¤ë¡¥
-//		  Timer ¤Ï Count ¤È GetNextEvent ¤ÇÁàºî¤¹¤ëÉ¬Í×¤¬¤¢¤ë¡¥
-//
+//		Stereo PCM ï¿½Ç¡ï¿½ï¿½ï¿½ï¿½ï¿½ nsamples Ê¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ dest ï¿½Ç»Ï¤Þ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//		ï¿½Ã¤ï¿½ï¿½ï¿½(ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½)
+//		ï¿½ï¿½dest ï¿½Ë¤ï¿½ sample*2 ï¿½ï¿½Ê¬ï¿½ï¿½ï¿½Î°è¤¬É¬ï¿½ï¿½
+//		ï¿½ï¿½ï¿½ï¿½Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ L, R, L, R... ï¿½È¤Ê¤ë¡¥
+//		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¤Ç²Ã»ï¿½ï¿½Ê¤Î¤Ç¡ï¿½ï¿½ï¿½ï¿½é¤«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ò¥¼¥ï¿½ï¿½ï¿½ï¿½ê¥¢ï¿½ï¿½ï¿½ï¿½É¬ï¿½×¤ï¿½ï¿½ï¿½ï¿½ï¿½
+//		ï¿½ï¿½FM_SAMPLETYPE ï¿½ï¿½ short ï¿½ï¿½ï¿½Î¾ï¿½ç¥¯ï¿½ï¿½Ã¥Ô¥ó¥°¤ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½.
+//		ï¿½ï¿½ï¿½ï¿½ï¿½Î´Ø¿ï¿½ï¿½Ï²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¥ï¿½ï¿½ï¿½ï¿½Þ¡ï¿½ï¿½È¤ï¿½ï¿½ï¿½Î©ï¿½ï¿½ï¿½Æ¤ï¿½ï¿½ë¡¥
+//		  Timer ï¿½ï¿½ Count ï¿½ï¿½ GetNextEvent ï¿½ï¿½ï¿½ï¿½î¤¹ï¿½ï¿½É¬ï¿½×¤ï¿½ï¿½ï¿½ï¿½ë¡¥
+//	
 //	void Reset()
-//		²»¸»¤ò¥ê¥»¥Ã¥È(½é´ü²½)¤¹¤ë
+//		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê¥»ï¿½Ã¥ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½)ï¿½ï¿½ï¿½ï¿½
 //
 //	void SetReg(uint reg, uint data)
-//		²»¸»¤Î¥ì¥¸¥¹¥¿ reg ¤Ë data ¤ò½ñ¤­¹þ¤à
-//
+//		ï¿½ï¿½ï¿½ï¿½ï¿½Î¥ì¥¸ï¿½ï¿½ï¿½ï¿½ reg ï¿½ï¿½ data ï¿½ï¿½ñ¤­¹ï¿½ï¿½ï¿½
+//	
 //	uint ReadStatus()
-//		²»¸»¤Î¥¹¥Æ¡¼¥¿¥¹¥ì¥¸¥¹¥¿¤òÆÉ¤ß½Ð¤¹
-//		busy ¥Õ¥é¥°¤Ï¾ï¤Ë 0
-//
+//		ï¿½ï¿½ï¿½ï¿½ï¿½Î¥ï¿½ï¿½Æ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ì¥¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¤ß½Ð¤ï¿½
+//		busy ï¿½Õ¥é¥°ï¿½Ï¾ï¿½ï¿½ 0
+//	
 //	bool Count(uint32 t)
-//		²»¸»¤Î¥¿¥¤¥Þ¡¼¤ò t [10^(-6) ÉÃ] ¿Ê¤á¤ë¡¥
-//		²»¸»¤ÎÆâÉô¾õÂÖ¤ËÊÑ²½¤¬¤¢¤Ã¤¿»þ(timer ¥ª¡¼¥Ð¡¼¥Õ¥í¡¼)
-//		true ¤òÊÖ¤¹
+//		ï¿½ï¿½ï¿½ï¿½ï¿½Î¥ï¿½ï¿½ï¿½ï¿½Þ¡ï¿½ï¿½ï¿½ t [10^(-6) ï¿½ï¿½] ï¿½Ê¤ï¿½ë¡¥
+//		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½Ñ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½ï¿½ï¿½(timer ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½Õ¥ï¿½ï¿½ï¿½)
+//		true ï¿½ï¿½ï¿½Ö¤ï¿½
 //
 //	uint32 GetNextEvent()
-//		²»¸»¤Î¥¿¥¤¥Þ¡¼¤Î¤É¤Á¤é¤«¤¬¥ª¡¼¥Ð¡¼¥Õ¥í¡¼¤¹¤ë¤Þ¤Ç¤ËÉ¬Í×¤Ê
-//		»þ´Ö[¦ÌÉÃ]¤òÊÖ¤¹
-//		¥¿¥¤¥Þ¡¼¤¬Ää»ß¤·¤Æ¤¤¤ë¾ì¹ç¤Ï 0 ¤òÊÖ¤¹¡¥
-//
+//		ï¿½ï¿½ï¿½ï¿½ï¿½Î¥ï¿½ï¿½ï¿½ï¿½Þ¡ï¿½ï¿½Î¤É¤ï¿½ï¿½é¤«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½Õ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¤Ç¤ï¿½É¬ï¿½×¤ï¿½
+//		ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½]ï¿½ï¿½ï¿½Ö¤ï¿½
+//		ï¿½ï¿½ï¿½ï¿½ï¿½Þ¡ï¿½ï¿½ï¿½ï¿½ï¿½ß¤ï¿½ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0 ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½
+//	
 //	void SetVolume(int db)
-//		³Æ²»¸»¤Î²»ÎÌ¤ò¡Ü¡ÝÊý¸þ¤ËÄ´Àá¤¹¤ë¡¥É¸½àÃÍ¤Ï 0.
-//		Ã±°Ì¤ÏÌó 1/2 dB¡¤Í­¸úÈÏ°Ï¤Î¾å¸Â¤Ï 20 (10dB)
+//		ï¿½Æ²ï¿½ï¿½ï¿½ï¿½Î²ï¿½ï¿½Ì¤ï¿½ï¿½?ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½á¤¹ï¿½ë¡¥É¸ï¿½ï¿½ï¿½Í¤ï¿½ 0.
+//		Ã±ï¿½Ì¤ï¿½ï¿½ï¿½ 1/2 dBï¿½ï¿½Í­ï¿½ï¿½ï¿½Ï°Ï¤Î¾ï¿½Â¤ï¿½ 20 (10dB)
 //
-//	²¾ÁÛ´Ø¿ô:
+//	ï¿½ï¿½ï¿½Û´Ø¿ï¿½:
 //	virtual void Intr(bool irq)
-//		IRQ ½ÐÎÏ¤ËÊÑ²½¤¬¤¢¤Ã¤¿¾ì¹ç¸Æ¤Ð¤ì¤ë¡¥
-//		irq = true:  IRQ Í×µá¤¬È¯À¸
-//		irq = false: IRQ Í×µá¤¬¾Ã¤¨¤ë
+//		IRQ ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½Ñ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½ï¿½ï¿½ï¿½Æ¤Ð¤ï¿½ë¡¥
+//		irq = true:  IRQ ï¿½×µá¤¬È¯ï¿½ï¿½
+//		irq = false: IRQ ï¿½×µá¤¬ï¿½Ã¤ï¿½ï¿½ï¿½
 //
+
 namespace FM
 {
 	//	YM2151(OPM) ----------------------------------------------------
+	typedef struct {
+		Timer_t 	timer;
+		int32_t		fmvolume;
+
+		uint32_t	clock;
+		uint32_t	rate;
+		uint32_t	pcmrate;
+
+		uint32_t	pmd;
+		uint32_t	amd;
+		uint32_t	lfocount;
+		uint32_t	lfodcount;
+
+		uint32_t	lfo_count_;
+		uint32_t	lfo_count_diff_;
+		uint32_t	lfo_step_;
+		uint32_t	lfo_count_prev_;
+
+		uint32_t	lfowaveform;
+		uint32_t	rateratio;
+		uint32_t	noise;
+		int32_t		noisecount;
+		uint32_t	noisedelta;
+		
+		bool		interpolation;
+		uint8_t		lfofreq;
+		uint8_t		status;
+		uint8_t		reg01;
+
+		uint8_t		kc[8];
+		uint8_t		kf[8];
+		uint8_t		pan[8];
+
+		channel4_savestate_t	ch[8];
+		chip_savestate_t		chip;
+	} opm_savestate_t;
+
 	class OPM : public Timer
 	{
 	public:
 		OPM();
-		virtual ~OPM() {}
+		~OPM() {}
 
-		bool	Init(uint c, uint r, bool=false);
-		bool	SetRate(uint c, uint r, bool);
-		void	SetLPFCutoff(uint freq);
-		void	Reset();
+		bool		Init(uint32_t c, uint32_t r, bool=false);
+		bool		SetRate(uint32_t c, uint32_t r, bool);
+		void		SetLPFCutoff(uint32_t freq);
+		void		Reset();
+		
+		void 		SetReg(uint32_t addr, uint32_t data);
+		uint32_t	GetReg(uint32_t addr);
+		uint32_t	ReadStatus() { return status & 0x03; }
+		
+		void 		Mix(Sample* buffer, int32_t nsamples, int16_t *pbsp, int16_t *pbep);
+		
+		void		SetVolume(int32_t db);
+		void		SetChannelMask(uint32_t mask);
 
-		void 	SetReg(uint addr, uint data);
-		uint	GetReg(uint addr);
-		uint	ReadStatus() { return status & 0x03; }
-
-		void 	Mix(Sample* buffer, int nsamples, uint8_t* pbsp, uint8_t* pbep);
-
-		void	SetVolume(int db);
-		void	SetChannelMask(uint mask);
+		void		Save(opm_savestate_t* data);
+		void		Load(opm_savestate_t* data);
 
 	private:
 		virtual void Intr(bool) {}
-
+	
 	private:
 		enum
 		{
 			OPM_LFOENTS = 512,
 		};
+		
+		void		SetStatus(uint32_t bit);
+		void		ResetStatus(uint32_t bit);
+		void		SetParameter(uint32_t addr, uint32_t data);
+		void		TimerA();
+		void		RebuildTimeTable();
+		void		MixSub(int32_t activech, ISample**);
+		void		MixSubL(int32_t activech, ISample**);
+		void		LFO();
+		uint32_t	Noise();
+		
+		int32_t		fmvolume;
 
-		void	SetStatus(uint bit);
-		void	ResetStatus(uint bit);
-		void	SetParameter(uint addr, uint data);
-		void	TimerA();
-		void	RebuildTimeTable();
-		void	MixSub(int activech, ISample**);
-		void	MixSubL(int activech, ISample**);
-		void	LFO();
-		uint	Noise();
+		uint32_t	clock;
+		uint32_t	rate;
+		uint32_t	pcmrate;
 
-		int		fmvolume;
+		uint32_t	pmd;
+		uint32_t	amd;
+		uint32_t	lfocount;
+		uint32_t	lfodcount;
 
-		uint	clock;
-		uint	rate;
-		uint	pcmrate;
+		uint32_t	lfo_count_;
+		uint32_t	lfo_count_diff_;
+		uint32_t	lfo_step_;
+		uint32_t	lfo_count_prev_;
 
-		uint	pmd;
-		uint	amd;
-		uint	lfocount;
-		uint	lfodcount;
+		uint32_t	lfowaveform;
+		uint32_t	rateratio;
+		uint32_t	noise;
+		int32_t		noisecount;
+		uint32_t	noisedelta;
+		
+		bool		interpolation;
+		uint8_t		lfofreq;
+		uint8_t		status;
+		uint8_t		reg01;
 
-		uint	lfo_count_;
-		uint	lfo_count_diff_;
-		uint	lfo_step_;
-		uint	lfo_count_prev_;
+		uint8_t		kc[8];
+		uint8_t		kf[8];
+		uint8_t		pan[8];
 
-		uint	lfowaveform;
-		uint	rateratio;
-		uint	noise;
-		int32	noisecount;
-		uint32	noisedelta;
-
-		bool	interpolation;
-		uint8	lfofreq;
-		uint8	status;
-		uint8	reg01;
-
-		uint8	kc[8];
-		uint8	kf[8];
-		uint8	pan[8];
-
-		Channel4 ch[8];
-		Chip	chip;
+		Channel4 	ch[8];
+		Chip		chip;
 
 		static void	BuildLFOTable();
-		static int amtable[4][OPM_LFOENTS];
-		static int pmtable[4][OPM_LFOENTS];
+		static int32_t amtable[4][OPM_LFOENTS];
+		static int32_t pmtable[4][OPM_LFOENTS];
 
 	public:
-		int		dbgGetOpOut(int c, int s) { return ch[c].op[s].dbgopout_; }
-		Channel4* dbgGetCh(int c) { return &ch[c]; }
+		int32_t		dbgGetOpOut(int32_t c, int32_t s) { return ch[c].op[s].dbgopout_; }
+		Channel4*	dbgGetCh(int32_t c) { return &ch[c]; }
 
 	};
 }

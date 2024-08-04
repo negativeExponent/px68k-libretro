@@ -1,5 +1,5 @@
-#ifndef _WINX68K_KEYBOARD_H
-#define _WINX68K_KEYBOARD_H
+#ifndef _X68K_KEYBOARD_H
+#define _X68K_KEYBOARD_H
 
 #define KeyBufSize 128
 
@@ -28,4 +28,4 @@ void Keyboard_ToggleSkbd(void);
 #define KBD_OPT1 0x72
 #define KBD_OPT2 0x73
 
-#endif /* _WINX68K_KEYBOARD_H */
+#endif /* _X68K_KEYBOARD_H */

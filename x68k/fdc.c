@@ -1,10 +1,11 @@
 /*
  *  FDC.C - Floppy Disk Controller (uPD72065)
- *  ToDo : 未実装コマンド、胡散臭い部分（多数）の見直し、DMACとの連携部の見直し
- *    D88でのエラー処理とかマシになったはず……でもその分汚い……
+ *  ToDo: Review of unimplemented commands, suspicious parts (numerous), review of the link with DMAC
+ *    The error handling in D88 should have gotten better... but it's also messy...
  */
 
 #include "../x11/common.h"
+#include "../x11/state.h"
 
 #include "fdc.h"
 #include "dmac.h"
@@ -299,15 +300,15 @@ static void FDC_ExecCmd(void)
 		fdc.cyl = 0;
 		if ((!FDD_IsReady(fdc.drv)) && (!fdc.ready))
 		{
-			fdc.st0 |= 0x48; /* FDなし */
+			fdc.st0 |= 0x48; /* no FD */
 		}
 		else if ((fdc.drv >= 0) && (fdc.drv < 2))
 		{
-			fdc.st0 |= 0x20; /* FDあり、ドライブあり */
+			fdc.st0 |= 0x20; /* With FD and drive */
 		}
 		else
 		{
-			fdc.st0 |= 0x50; /* ドライブなし */
+			fdc.st0 |= 0x50; /* No drive */
 		}
 		FDC_SetInt();
 		break;
@@ -617,4 +618,10 @@ void FASTCALL FDC_Write(uint32_t adr, uint8_t data)
 		fdc.drv = (data & 0x80) ? (data & 3) : (-1);
 		FDD_SetAccess(fdc.drv);
 	}
+}
+
+int FDC_StateContext(void *f, int writing) {
+	state_context_f(&fdc, sizeof(fdc));
+
+	return 1;
 }

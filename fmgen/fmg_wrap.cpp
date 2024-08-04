@@ -13,6 +13,7 @@ extern "C" {
 #include "../x11/winx68k.h"
 #include "../x11/dswin.h"
 #include "../x11/prop.h"
+#include "../x11/state.h"
 
 #include "../x68k/mfp.h"
 #include "../x68k/adpcm.h"
@@ -28,6 +29,60 @@ extern "C" {
 }
 #endif
 
+class MyOPM : public FM::OPM
+{
+	public:
+		MyOPM() { }
+		virtual ~MyOPM() { }
+
+	private:
+		virtual void Intr(bool);
+};
+
+void MyOPM::Intr(bool f)
+{
+	if (f)
+	{
+		::MFP_Int(12);
+	}
+}
+
+void	*opm_new(int32_t c, int32_t r)						{ void *opm = new MyOPM; if (!opm) return NULL; ((MyOPM *)opm)->Init(c, r, 0); return opm; }
+void    opm_delete(void *opm)								{ delete (MyOPM *)opm; }
+void	opm_setrate(void* opm, uint32_t c, uint32_t r)		{ ((MyOPM*)opm)->SetRate(c, r, 0); }
+void	opm_reset(void *opm)								{ ((MyOPM *)opm)->Reset(); }
+void 	opm_count(void *opm, int32_t us)					{ ((MyOPM *)opm)->Count(us); }
+void 	opm_setreg(void *opm, uint32_t addr, uint32_t data)	{ ((MyOPM *)opm)->SetReg(addr, data); }
+uint32_t opm_readstatus(void *opm)							{ return ((MyOPM *)opm)->ReadStatus(); }
+void 	opm_mix(void *opm, int16_t *buffer, int32_t length, int16_t *pbsp, int16_t *pbep) { ((MyOPM *)opm)->Mix((FM::Sample *)buffer, length, pbsp, pbep); }
+void 	opm_setvolume(void *opm, int32_t db)				{ ((MyOPM *)opm)->SetVolume(db); }
+void	opm_setchannelmask(void* opm, uint32_t mask)		{ ((MyOPM*)opm)->SetChannelMask(mask); }
+
+static const size_t state_size = sizeof(FM::opm_savestate_t);
+int opm_statecontext(void *opm, void *f, int writing)
+{
+	void *opm_state = new FM::opm_savestate_t;
+
+	if (opm_state)
+	{
+		if (writing)
+		{
+			((MyOPM *)opm)->Save((FM::opm_savestate_t *)opm_state);
+			state_context_f(opm_state, state_size);
+		}
+		else
+		{
+			state_context_f(opm_state, state_size);
+			((MyOPM *)opm)->Load((FM::opm_savestate_t *)opm_state);
+		}
+
+		delete (FM::opm_savestate_t *)opm_state;
+	}
+
+	return 1;
+}
+
+#if 0 /* original OPM wrapper implementation */
 /* DUMMY CALLBACKS */
 #define	juliet_load()
 #define	juliet_unload()
@@ -40,13 +95,13 @@ extern "C" {
 
 typedef struct {
 	uint32_t time;
-	int reg;
+	int32_t reg;
 	uint8_t data;
 } RMDATA;
 
 static RMDATA RMData[RMBUFSIZE];
-static int RMPtrW;
-static int RMPtrR;
+static int32_t RMPtrW;
+static int32_t RMPtrR;
 
 class MyOPM : public FM::OPM
 {
@@ -57,7 +112,8 @@ public:
 	void Count2(uint32_t clock);
 private:
 	virtual void Intr(bool);
-	int CurReg;
+public:
+	int32_t CurReg;
 	uint32_t CurCount;
 };
 
@@ -74,7 +130,7 @@ void MyOPM::WriteIO(uint32_t adr, uint8_t data)
 			::ADPCM_SetClock((data>>5)&4);
 			::FDC_SetForceReady((data>>6)&1);
 		}
-		SetReg((int)CurReg, (int)data);
+		SetReg((int32_t)CurReg, (int32_t)data);
 		if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
 			int newptr = (RMPtrW+1)%RMBUFSIZE;
 			if ( newptr!=RMPtrR ) {
@@ -96,7 +152,7 @@ void MyOPM::WriteIO(uint32_t adr, uint8_t data)
 #endif
 		}
 	} else {
-		CurReg = (int)data;
+		CurReg = (int32_t)data;
 	}
 }
 
@@ -113,10 +169,9 @@ void MyOPM::Count2(uint32_t clock)
 	CurCount %= 10;
 }
 
-
 static MyOPM* opm = NULL;
 
-int OPM_Init(int clock, int rate)
+int OPM_Init(int32_t clock, int32_t rate)
 {
 	juliet_load();
 	juliet_prepare();
@@ -144,7 +199,7 @@ void OPM_Cleanup(void)
 }
 
 
-void OPM_SetRate(int clock, int rate)
+void OPM_SetRate(int32_t clock, int32_t rate)
 {
 	if ( opm ) opm->SetRate(clock, rate, TRUE);
 }
@@ -184,7 +239,7 @@ void FASTCALL OPM_Write(uint32_t adr, uint8_t data)
 
 	if (adr & 1)
 	{
-		uint reg = !!((adr & 3) == 3);
+		uint32_t reg = !!((adr & 3) == 3);
 		if (opm) opm->WriteIO(reg, data);
 	}
 
@@ -195,7 +250,7 @@ void FASTCALL OPM_Write(uint32_t adr, uint8_t data)
 #endif
 }
 
-void OPM_Update(int16_t *buffer, int length, uint8_t *pbsp, uint8_t *pbep)
+void OPM_Update(int16_t *buffer, int32_t length, uint8_t *pbsp, uint8_t *pbep)
 {
 	if ( (!juliet_YM2151IsEnable())||(!Config.SoundROMEO) )
 		if ( opm ) opm->Mix((FM::Sample*)buffer, length, pbsp, pbep);
@@ -210,7 +265,7 @@ void FASTCALL OPM_Timer(uint32_t step)
 
 void OPM_SetVolume(uint8_t vol)
 {
-	int v = (vol)?((16-vol)*4):192;		// このくらいかなぁ
+	int32_t v = (vol)?((16-vol)*4):192;		// このくらいかなぁ
 	if ( opm ) opm->SetVolume(-v);
 }
 
@@ -228,8 +283,9 @@ void OPM_RomeoOut(uint32_t delay)
 		}
 	}
 }
+#endif
 
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
 // ----------------------------------------------------------
 // ---------------------------- YMF288 (満開版ま~きゅり~)
 // ----------------------------------------------------------
@@ -243,12 +299,13 @@ public:
 	void WriteIO(uint32_t adr, uint8_t data);
 	uint8_t ReadIO(uint32_t adr);
 	void Count2(uint32_t clock);
-	void SetInt(int f) { IntrFlag = f; };
+	void SetInt(int32_t f) { IntrFlag = f; };
 private:
 	virtual void Intr(bool);
-	int CurReg[2];
+	int32_t CurReg[2];
 	uint32_t CurCount;
-	int IntrFlag;
+	int32_t IntrFlag;
+	int StateContext_internal(void *f, int writing) { return 1; }
 };
 
 YMF288::YMF288()
@@ -261,9 +318,9 @@ YMF288::YMF288()
 void YMF288::WriteIO(uint32_t adr, uint8_t data)
 {
 	if( adr&1 ) {
-		SetReg(((adr&2)?(CurReg[1]+0x100):CurReg[0]), (int)data);
+		SetReg(((adr&2)?(CurReg[1]+0x100):CurReg[0]), (int32_t)data);
 	} else {
-		CurReg[(adr>>1)&1] = (int)data;
+		CurReg[(adr>>1)&1] = (int32_t)data;
 	}
 }
 
@@ -298,7 +355,7 @@ static YMF288* ymf288a = NULL;
 static YMF288* ymf288b = NULL;
 
 
-int M288_Init(int clock, int rate, const char* path)
+int M288_Init(int32_t clock, int32_t rate, const char* path)
 {
 	ymf288a = new YMF288();
 	ymf288b = new YMF288();
@@ -324,7 +381,7 @@ void M288_Cleanup(void)
 }
 
 
-void M288_SetRate(int clock, int rate)
+void M288_SetRate(int32_t clock, int32_t rate)
 {
 	if ( ymf288a ) ymf288a->SetRate(clock, rate, TRUE);
 	if ( ymf288b ) ymf288b->SetRate(clock, rate, TRUE);
@@ -364,7 +421,7 @@ void FASTCALL M288_Write(uint32_t adr, uint8_t data)
 }
 
 
-void M288_Update(int16_t *buffer, int length)
+void M288_Update(int16_t *buffer, int32_t length)
 {
 	if ( ymf288a ) ymf288a->Mix((FM::Sample*)buffer, length);
 	if ( ymf288b ) ymf288b->Mix((FM::Sample*)buffer, length);
@@ -380,8 +437,8 @@ void FASTCALL M288_Timer(uint32_t step)
 
 void M288_SetVolume(uint8_t vol)
 {
-	int v1 = (vol)?((16-vol)*4-24):192;		// このくらいかなぁ
-	int v2 = (vol)?((16-vol)*4):192;		// 少し小さめに
+	int32_t v1 = (vol)?((16-vol)*4-24):192;		// このくらいかなぁ
+	int32_t v2 = (vol)?((16-vol)*4):192;		// 少し小さめに
 	if ( ymf288a ) {
 		ymf288a->SetVolumeFM(-v1);
 		ymf288a->SetVolumePSG(-v2);
@@ -391,4 +448,4 @@ void M288_SetVolume(uint8_t vol)
 		ymf288b->SetVolumePSG(-v2);
 	}
 }
-#endif /* !NO_MERCURY */
+#endif /* !HAVE_MERCURY */

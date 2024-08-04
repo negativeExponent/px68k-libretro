@@ -4,6 +4,7 @@
 
 #include "mfp.h"
 #include "rtc.h"
+#include "../x11/state.h"
 
 #include <time.h>
 
@@ -109,11 +110,11 @@ void FASTCALL RTC_Write(uint32_t adr, uint8_t data)
 	}
 	else if (adr == 0xe8a01b)
 	{
-		RTC_Regs[0][13] = RTC_Regs[1][13] = data & 0x0c; /* Alarm/Timer Enable制御 */
+		RTC_Regs[0][13] = RTC_Regs[1][13] = data & 0x0c; /* Alarm/Timer Enable control */
 	}
 	else if (adr == 0xe8a01f)
 	{
-		RTC_Regs[0][15] = RTC_Regs[1][15] = data & 0x0c; /* Alarm端子出力制御 */
+		RTC_Regs[0][15] = RTC_Regs[1][15] = data & 0x0c; /* Alarm terminal output control */
 	}
 }
 
@@ -133,4 +134,13 @@ void RTC_Timer(int clock)
 			MFP_Int(15);
 		RTC_Timer16 -= 625000;
 	}
+}
+
+int RTC_StateContext(void *f, int writing) {
+	state_context_f(RTC_Regs, sizeof(RTC_Regs));
+	state_context_f(&RTC_Bank, sizeof(RTC_Bank)); /* never changed but whatever */
+	state_context_f(&RTC_Timer1, sizeof(RTC_Timer1));
+	state_context_f(&RTC_Timer16, sizeof(RTC_Timer16));
+
+	return 1;
 }

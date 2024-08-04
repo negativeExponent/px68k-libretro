@@ -1,5 +1,5 @@
-#ifndef _WINX68K_GVRAM_H
-#define _WINX68K_GVRAM_H
+#ifndef _X68K_GVRAM_H
+#define _X68K_GVRAM_H
 
 extern uint8_t GVRAM[0x80000];
 extern uint16_t Grp_LineBuf[1024];
@@ -24,4 +24,4 @@ void FASTCALL Grp_DrawLine4hSP(void);
 void FASTCALL Grp_DrawLine8TR(int page, int opaq);
 void FASTCALL Grp_DrawLine8TR_GT(int page, int opaq);
 void FASTCALL Grp_DrawLine4TR(uint32_t page, int opaq);
-#endif /* _WINX68K_GVRAM_H */
+#endif /* _X68K_GVRAM_H */

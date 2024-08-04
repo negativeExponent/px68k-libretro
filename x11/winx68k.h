@@ -1,5 +1,5 @@
-#ifndef _WINX68K_CORE_H
-#define _WINX68K_CORE_H
+#ifndef _X68K_CORE_H
+#define _X68K_CORE_H
 
 #include "common.h"
 
@@ -30,6 +30,9 @@ void end_loop_retro(void);
 void exec_app_retro(void);
 void shutdown_app_retro(void);
 
+int PX68KSS_Save_Mem(void);
+int PX68KSS_Load_Mem(void);
+
 #define NELEMENTS(array) ((int)(sizeof(array) / sizeof(array[0])))
 
-#endif /* _WINX68K_CORE_H */
+#endif /* _X68K_CORE_H */

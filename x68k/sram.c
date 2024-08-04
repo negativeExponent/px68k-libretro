@@ -1,5 +1,5 @@
 /*
- *  SRAM.C - SRAM (16kb) нн╟Х
+ *  SRAM.C - SRAM (16kb)
  */
 
 #include "../x11/common.h"

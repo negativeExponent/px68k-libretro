@@ -1,5 +1,5 @@
-#ifndef _WINX68K_DIM_H
-#define _WINX68K_DIM_H
+#ifndef _X68K_DIM_H
+#define _X68K_DIM_H
 
 void DIM_Init(void);
 void DIM_Cleanup(void);
@@ -13,4 +13,4 @@ int DIM_ReadDiag(int drv, FDCID *id, FDCID *retid, uint8_t *buf);
 int DIM_Write(int drv, FDCID *id, uint8_t *buf, int del);
 int DIM_GetCurrentID(int drv, FDCID *id);
 
-#endif /* _WINX68K_DIM_H */
+#endif /* _X68K_DIM_H */

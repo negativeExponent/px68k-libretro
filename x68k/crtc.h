@@ -1,5 +1,5 @@
-#ifndef _WINX68K_CRTC_H
-#define _WINX68K_CRTC_H
+#ifndef _X68K_CRTC_H
+#define _X68K_CRTC_H
 
 #define VSYNC_HIGH 180310L
 #define VSYNC_NORM 162707L
@@ -25,8 +25,6 @@ extern uint32_t GrphScrollY[];
 
 void    CRTC_Init(void);
 uint8_t FASTCALL CRTC_Read(uint32_t adr);
-uint8_t FASTCALL VCtrl_Read(uint32_t adr);
 void    FASTCALL CRTC_Write(uint32_t adr, uint8_t data);
-void    FASTCALL VCtrl_Write(uint32_t adr, uint8_t data);
 
-#endif /* _WINX68K_CRTC_H */
+#endif /* _X68K_CRTC_H */

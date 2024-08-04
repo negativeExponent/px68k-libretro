@@ -1,23 +1,25 @@
 /*
- *  MIDI.C - MIDI Board (CZ-6BM1) emulator
- *                           Powered by §◊§À§Â§µ§Ûè¢∑
+ * MIDI.C - MIDI Board (CZ-6BM1) emulator
+ * Powered by Punyu-san
  */
 
-/* 4/18 Ã§Ã¿: •®•Ø•π•Ø•Î°º•∑•Ù§¨§¶§ﬁ§ØƒÃ§È§ §§§Œ§ÚΩ§¿µ
- * 4/18 ƒ´°°: •Ï• •‡§«Ãƒ§È§ §´§√§ø§Œ§ÚΩ§¿µ
- * 4/18 √Î°°: •®•Ø•π•Ø•Î°º•∑•Ù¡˜øÆ¥∞Œª§Ú¥∞¡¥§À¬‘§ƒªˆ§«•…•È•≠•Â•È§™§√§±°º
+/* 4/18 dawn:      Fixed exclusive not working properly
+ * 4/18 morning:   Fixed not working with Lenam
+ * 4/18 afternoon: Dracula is OK by waiting for exclusive transmission to be completed
  */
 
-/* ToDo: °¶•®•Ø•π•Ø•Î°º•∑•Ù¡˜øÆ√Ê(Œ„§®§–•…•È•≠•Â•È§Œ≤ªøß¿ﬂƒÍ√Ê)§À
- *         ŒÆ¿–§À1MHz§ﬁ§«ÕÓ§¡π˛§‡§Œ§œ°ƒ
- *         MIDI§Œæı¬÷§Ú ÷§π•›°º•»§Ú∂µ§®§∆§‚§È§¶§≥§»è¢∑
- *       °¶MT-32§«§Œ•È•Û•À•Û•∞•π•∆°º•ø•π§Œª≈ÕÕ§Ú•¡•ß•√•Ø
- *       °¶Ω™Œªª˛§Œ≤ª∏ª§Œ•Í•ª•√•»
- *       °¶IPL•Í•ª•√•»ª˛§œº¬µ°§«§‚•Í•ª•√•»§µ§Ï§ §§»¶§¿§¨°¢
- *         §≥§≥§È ’§œπ•§ﬂ§ §Œ§« config§«¿ﬂƒÍ§«§≠§∆§‚§§§§§´§‚
+/* ToDo: - During exclusive transmission (e.g. while setting the Dracula tone)
+ *         As expected, it will drop to 1MHz...
+ *         Get the port that returns the MIDI status
+ *       - Check the specifications of the running status in MT-32
+ *       - Reset the sound source when exiting
+ *       - It shouldn't be reset on the actual machine when the IPL is reset,
+ *         This is a matter of preference, so it might be nice to
+ *         be able to set it in the config
  */
 
 #include "../x11/common.h"
+#include "../x11/state.h"
 
 #include "dosio.h"
 #include "mmsystem.h"
@@ -28,24 +30,30 @@
 #include "irqh.h"
 #include "x68kmemory.h"
 
-#define MIDIBUFFERS  1024 /* 1024§œŒÆ¿–§À±€§®§ §§§«§∑§Á§¶^_^; */
-#define MIDIBUFTIMER 3200 /* 10MHz / (31.25K / 10bit) = 3200 §¨¿µ≤Ú§À§ §Í§ﬁ§π... */
-#define MIDIFIFOSIZE 256
-#define MIDIDELAYBUF 4096 /* 31250/10 = 3125 byts (1s ¨) §¢§Ï§–§™§√§±°© */
+enum
+{
+	MIDIBUFFERS  = 1024, /* 1024 (should never needed more than this) */
+	MIDIBUFTIMER = 3200, /* 10MHz / (31.25K / 10bit) = 3200 */
+	MIDIFIFOSIZE = 256,
+	MIDIDELAYBUF = 4096 /* is it ok to have 31250/10 = 3125 byts (1sec)?  */
+};
 
-#define MIDI_NOTUSED 0
-#define MIDI_DEFAULT 1
-#define MIDI_MT32    2
-#define MIDI_CM32L   3
-#define MIDI_CM64    4
-#define MIDI_CM300   5
-#define MIDI_CM500   6
-#define MIDI_SC55    7
-#define MIDI_SC88    8
-#define MIDI_LA      9
-#define MIDI_GM     10
-#define MIDI_GS     11
-#define MIDI_XG     12
+enum
+{
+	MIDI_NOTUSED = 0,
+	MIDI_DEFAULT,
+	MIDI_MT32,
+	MIDI_CM32L,
+	MIDI_CM64,
+	MIDI_CM300,
+	MIDI_CM500,
+	MIDI_SC55,
+	MIDI_SC88,
+	MIDI_LA,
+	MIDI_GM,
+	MIDI_GS,
+	MIDI_XG,
+};
 
 static void *hOut = 0;
 static MIDIHDR hHdr;
@@ -59,18 +67,18 @@ static uint8_t MIDI_BUF[MIDIBUFFERS];
 static uint8_t MIDI_EXCVBUF[MIDIBUFFERS];
 static uint8_t MIDI_EXCVWAIT;
 
-static uint8_t MIDI_RegHigh    = 0; /* X68KÕ— */
+static uint8_t MIDI_RegHigh    = 0;
 static uint8_t MIDI_Vector     = 0;
 static uint8_t MIDI_IntEnable  = 0;
 static uint8_t MIDI_IntVect    = 0;
 static uint8_t MIDI_IntFlag    = 0;
 static uint32_t MIDI_Buffered  = 0;
-static long MIDI_BufTimer      = 3333;
+static int32_t MIDI_BufTimer   = 3333;
 static uint8_t MIDI_R05        = 0;
 static uint32_t MIDI_GTimerMax = 0;
 static uint32_t MIDI_MTimerMax = 0;
-static long MIDI_GTimerVal     = 0;
-static long MIDI_MTimerVal     = 0;
+static int32_t MIDI_GTimerVal  = 0;
+static int32_t MIDI_MTimerVal  = 0;
 static uint8_t MIDI_MODULE     = MIDI_NOTUSED;
 
 static uint8_t MIDI_ResetType[5] = {
@@ -87,12 +95,15 @@ static DELAYBUFITEM DelayBuf[MIDIDELAYBUF];
 static int DBufPtrW = 0;
 static int DBufPtrR = 0;
 
-/* §Õ§≥§ﬂ§¬6°¢MIMPI•»°º•Û•ﬁ•√•◊¬–±˛¥ÿ∑∏ */
+/* Nekomichi 6, MIMPI tone map compatibility */
 
-#define MIMPI_LA     0
-#define MIMPI_PCM    1
-#define MIMPI_GS     2
-#define MIMPI_RHYTHM 3
+enum
+{
+	MIMPI_LA = 0,
+	MIMPI_PCM,
+	MIMPI_GS,
+	MIMPI_RHYTHM
+};
 
 static uint8_t LOADED_TONEMAP = 0;
 static uint8_t ENABLE_TONEMAP = 0;
@@ -100,30 +111,36 @@ static uint8_t TONE_CH[16];
 static uint8_t TONEBANK[3][128];
 static uint8_t TONEMAP[3][128];
 
-static uint8_t EXCV_MTRESET[] = { 0xfe, 0xfe, 0xfe };
+static uint8_t EXCV_MTRESET[] = { 0xf0, 0x41, 0x10, 0x16, 0x12, 0x7f, 0x00, 0x00, 0x00, 0x01, 0xf7 };
 static uint8_t EXCV_GMRESET[] = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7 };
 static uint8_t EXCV_GSRESET[] = { 0xf0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7f, 0x00, 0x41, 0xf7 };
-static uint8_t EXCV_XGRESET[] = { 0xf0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xf7 };
+static uint8_t EXCV_XGRESET[] = { 0xf0, 0x43, 0x10, 0x4c, 0x00, 0x00, 0x7e, 0x00, 0xf7 };
 
-#define MIDICTRL_READY     0
-#define MIDICTRL_2BYTES    1
-#define MIDICTRL_3BYTES    2
-#define MIDICTRL_EXCLUSIVE 3
-#define MIDICTRL_TIMECODE  4
-#define MIDICTRL_SYSTEM    5
+enum
+{
+	MIDICTRL_READY = 0,
+	MIDICTRL_2BYTES,
+	MIDICTRL_3BYTES,
+	MIDICTRL_EXCLUSIVE,
+	MIDICTRL_TIMECODE,
+	MIDICTRL_SYSTEM
+};
 
-#define MIDI_EXCLUSIVE   0xf0
-#define MIDI_TIMECODE    0xf1
-#define MIDI_SONGPOS     0xf2
-#define MIDI_SONGSELECT  0xf3
-#define MIDI_TUNEREQUEST 0xf6
-#define MIDI_EOX         0xf7
-#define MIDI_TIMING      0xf8
-#define MIDI_START       0xfa
-#define MIDI_CONTINUE    0xfb
-#define MIDI_STOP        0xfc
-#define MIDI_ACTIVESENSE 0xfe
-#define MIDI_SYSTEMRESET 0xff
+enum
+{
+	MIDI_EXCLUSIVE   = 0xf0,
+	MIDI_TIMECODE    = 0xf1,
+	MIDI_SONGPOS     = 0xf2,
+	MIDI_SONGSELECT  = 0xf3,
+	MIDI_TUNEREQUEST = 0xf6,
+	MIDI_EOX         = 0xf7,
+	MIDI_TIMING      = 0xf8,
+	MIDI_START       = 0xfa,
+	MIDI_CONTINUE    = 0xfb,
+	MIDI_STOP        = 0xfc,
+	MIDI_ACTIVESENSE = 0xfe,
+	MIDI_SYSTEMRESET = 0xff
+};
 
 #define MIDIOUTS(a, b, c) (((uint32_t)c << 16) | ((uint32_t)b << 8) | (uint32_t)a)
 
@@ -136,11 +153,10 @@ static int32_t FASTCALL MIDI_Int(int32_t irq)
 	return IRQ_DEFAULT_VECTOR;
 }
 
-/* Advance the midi timer */
 void FASTCALL MIDI_Timer(uint32_t clk)
 {
 	if (!Config.MIDI_SW)
-		return; /* MIDI OFFª˛§œµ¢§Î */
+		return; /* return when MIDI is OFF */
 
 	MIDI_BufTimer -= clk;
 	if (MIDI_BufTimer < 0)
@@ -149,7 +165,7 @@ void FASTCALL MIDI_Timer(uint32_t clk)
 		if (MIDI_Buffered)
 		{
 			MIDI_Buffered--;
-			if ((MIDI_Buffered < MIDIFIFOSIZE) && (MIDI_IntEnable & 0x40)) /* Tx FIFO Empty Interrupt° •®•»•◊•Í°À */
+			if ((MIDI_Buffered < MIDIFIFOSIZE) && (MIDI_IntEnable & 0x40)) /* Tx FIFO Empty InterruptÔøΩ •ÔøΩÔøΩ»•◊•ÔøΩÔøΩ */
 			{
 				MIDI_IntFlag |= 0x40;
 				MIDI_IntVect = 0x0c;
@@ -177,7 +193,7 @@ void FASTCALL MIDI_Timer(uint32_t clk)
 	if (MIDI_GTimerMax)
 	{
 		MIDI_GTimerVal -= clk;
-		if (MIDI_GTimerVal < 0) /* §∏§ß§Õ§È§Î§ø§§§ﬁ°º≥‰§Íπ˛§ﬂ° RCD.X°À */
+		if (MIDI_GTimerVal < 0) /* General timer interrupt (RCD.X) */
 		{
 			while (MIDI_GTimerVal < 0)
 				MIDI_GTimerVal += MIDI_GTimerMax * 80;
@@ -212,24 +228,42 @@ static void MIDI_Sendexclusive(uint8_t *excv, int length)
 
 static void MIDI_Waitlastexclusiveout(void)
 {
-	/* •®•Ø•π•Ø•Î°º•∑•Ù¡˜øÆ¥∞Œª§ﬁ§«¬‘§¡§ﬁ§∑§Á§¶è¢∑ */
+#if 1
+	MIDI_EXCVWAIT = 0;
+#else
+	/* Let's wait until the exclusive transmission is complete~ */
 	if (MIDI_EXCVWAIT)
 	{
 		while (midiOutUnprepareHeader(hOut, &hHdr, sizeof(MIDIHDR)) == MIDIERR_STILLPLAYING)
 			;
 		MIDI_EXCVWAIT = 0;
 	}
+#endif
+}
+
+static void MIDI_AllNoteOff(void)
+{
+	if (hOut)
+	{
+		int i;
+		MIDI_Waitlastexclusiveout();
+		for (i = 0; i < 16; i++)
+		{
+			midiOutShortMsg(hOut, (uint32_t)(0x7bb0 + i));
+		}
+	}
 }
 
 void MIDI_Reset(void)
 {
-	uint32_t msg;
-
 	memset(DelayBuf, 0, sizeof(DelayBuf));
 	DBufPtrW = DBufPtrR = 0;
 
 	if (hOut)
 	{
+		uint8_t *excv;
+		uint32_t excv_len;
+
 		switch (MIDI_MODULE)
 		{
 		case MIDI_NOTUSED:
@@ -238,31 +272,31 @@ void MIDI_Reset(void)
 		case MIDI_CM32L:
 		case MIDI_CM64:
 		case MIDI_LA:
-			/* §¡§Á§√§»ÕÀΩ§´§ §°°ƒ
-			 * ∞Ï±˛ SC∑œ§«§‚ƒÃ§Î»¶§«§π§±§…°ƒ */
-			MIDI_Waitlastexclusiveout();
-			MIDI_Sendexclusive(EXCV_MTRESET, sizeof(EXCV_MTRESET));
+			excv = EXCV_MTRESET;
+			excv_len = sizeof(EXCV_MTRESET);
 			break;
+		case MIDI_CM300:
 		case MIDI_SC55:
 		case MIDI_SC88:
 		case MIDI_GS:
-			MIDI_Waitlastexclusiveout();
-			MIDI_Sendexclusive(EXCV_GSRESET, sizeof(EXCV_GSRESET));
+			excv = EXCV_GSRESET;
+			excv_len = sizeof(EXCV_GSRESET);
 			break;
 		case MIDI_XG:
-			MIDI_Waitlastexclusiveout();
-			MIDI_Sendexclusive(EXCV_XGRESET, sizeof(EXCV_XGRESET));
+			excv = EXCV_XGRESET;
+			excv_len = sizeof(EXCV_XGRESET);
 			break;
-		default:
-			MIDI_Waitlastexclusiveout();
-			MIDI_Sendexclusive(EXCV_GMRESET, sizeof(EXCV_GMRESET));
+		default: /* GM */
+			excv = EXCV_GMRESET;
+			excv_len = sizeof(EXCV_GMRESET);
 			break;
 		}
-		MIDI_Waitlastexclusiveout();
-		for (msg = 0x7bb0; msg < 0x7bc0; msg++)
+		if (excv && hOut)
 		{
-			midiOutShortMsg(hOut, msg);
+			MIDI_Waitlastexclusiveout();
+			MIDI_Sendexclusive(excv, excv_len);
 		}
+		MIDI_AllNoteOff();
 	}
 }
 
@@ -272,10 +306,10 @@ void MIDI_Init(void)
 	DBufPtrW = DBufPtrR = 0;
 
 	MIDI_SetModule();
-	MIDI_RegHigh   = 0; /* X68K */
-	MIDI_Vector    = 0; /* X68K */
+	MIDI_RegHigh   = 0;
+	MIDI_Vector    = 0;
 	MIDI_IntEnable = 0;
-	MIDI_IntVect   = 0;
+	MIDI_IntVect   = 0x10;
 	MIDI_IntFlag   = 0;
 	MIDI_R05       = 0;
 
@@ -296,21 +330,14 @@ void MIDI_Init(void)
 
 void MIDI_Stop(void)
 {
-	if (hOut)
-	{
-		uint32_t msg;
-		MIDI_Waitlastexclusiveout();
-		for (msg = 0x7bb0; msg < 0x7bc0; msg++)
-		{
-			midiOutShortMsg(hOut, msg);
-		}
-	}
+	MIDI_AllNoteOff();
 }
 
 void MIDI_Cleanup(void)
 {
 	if (hOut)
 	{
+		MIDI_Stop();
 		MIDI_Reset();
 		MIDI_Waitlastexclusiveout();
 		midiOutReset(hOut);
@@ -333,14 +360,11 @@ static void MIDI_Message(uint8_t mes)
 	case MIDI_CONTINUE:
 	case MIDI_STOP:
 	case MIDI_ACTIVESENSE:
-		return;
-	case MIDI_SYSTEMRESET: /* ∞Ï±˛•§•Í°º•¨•Îè¢∑ */
+	case MIDI_SYSTEMRESET:
 		return;
 	}
-
 	if (MIDI_CTRL == MIDICTRL_READY)
 	{
-		/* ΩÈ≤Û∏¬ƒÍ */
 		if (mes & 0x80)
 		{
 			/* status */
@@ -349,6 +373,7 @@ static void MIDI_Message(uint8_t mes)
 			{
 			case 0xc0:
 			case 0xd0:
+				MIDI_LAST = mes;
 				MIDI_CTRL = MIDICTRL_2BYTES;
 				break;
 			case 0x80:
@@ -356,7 +381,7 @@ static void MIDI_Message(uint8_t mes)
 			case 0xa0:
 			case 0xb0:
 			case 0xe0:
-				MIDI_LAST = mes; /* §≥§Œ ˝§¨º∫«‘§∑§ §§§ §Í°ƒ */
+				MIDI_LAST = mes;
 				MIDI_CTRL = MIDICTRL_3BYTES;
 				break;
 			default:
@@ -386,15 +411,30 @@ static void MIDI_Message(uint8_t mes)
 				break;
 			}
 		}
-		else /* Key-on§Œ§ﬂ§ µ§§¨§∑§ø§Û§¿§±§…À∫§Ï§ø°ƒ */
+		else
 		{
 			/* running status */
 			MIDI_BUF[0] = MIDI_LAST;
 			MIDI_POS    = 1;
-			MIDI_CTRL   = MIDICTRL_3BYTES;
+			switch (MIDI_LAST & 0xf0)
+			{
+			case 0xc0:
+			case 0xd0:
+				MIDI_CTRL = MIDICTRL_2BYTES;
+				break;
+			case 0x80:
+			case 0x90:
+			case 0xa0:
+			case 0xb0:
+			case 0xe0:
+				MIDI_CTRL   = MIDICTRL_3BYTES;
+				break;
+			default:
+				return;
+			}
 		}
 	}
-	else if ((mes & 0x80) && ((MIDI_CTRL != MIDICTRL_EXCLUSIVE) || (mes != MIDI_EOX))) /* •·•√•ª°º•∏§Œ•«°º•ø…Ù§À•≥•Û•»•Ì°º•Î•–•§•»§¨Ω–§øª˛°ƒ° GENOCIDE2°À*/
+	else if ((mes & 0x80) && ((MIDI_CTRL != MIDICTRL_EXCLUSIVE) || (mes != MIDI_EOX))) /* When a control byte appears in the data section of a message... (GENOCIDE2)*/
 	{
 		/* status */
 		MIDI_POS = 0;
@@ -409,7 +449,7 @@ static void MIDI_Message(uint8_t mes)
 		case 0xa0:
 		case 0xb0:
 		case 0xe0:
-			MIDI_LAST = mes; /* §≥§Œ ˝§¨º∫«‘§∑§ §§§ §Í°ƒ */
+			MIDI_LAST = mes;
 			MIDI_CTRL = MIDICTRL_3BYTES;
 			break;
 		default:
@@ -440,7 +480,8 @@ static void MIDI_Message(uint8_t mes)
 		}
 	}
 
-	MIDI_BUF[MIDI_POS++] = mes;
+	MIDI_BUF[MIDI_POS] = mes;
+	MIDI_POS++;
 
 	switch (MIDI_CTRL)
 	{
@@ -474,7 +515,7 @@ static void MIDI_Message(uint8_t mes)
 			MIDI_Sendexclusive(MIDI_BUF, MIDI_POS);
 			MIDI_CTRL = MIDICTRL_READY;
 		}
-		else if (MIDI_POS >= MIDIBUFFERS)  /* §™°º§–°º§’§Ì°º */
+		else if (MIDI_POS >= MIDIBUFFERS)  /* overflow */
 		{
 			MIDI_CTRL = MIDICTRL_READY;
 		}
@@ -482,7 +523,7 @@ static void MIDI_Message(uint8_t mes)
 	case MIDICTRL_TIMECODE:
 		if (MIDI_POS >= 2)
 		{
-			if ((mes == 0x7e) || (mes == 0x7f)) /* exclusive§»∆±§∏§«§§§§»¶°ƒ */
+			if ((mes == 0x7e) || (mes == 0x7f)) /* it should be the same as exclusive */
 			{
 				MIDI_CTRL = MIDICTRL_EXCLUSIVE;
 			}
@@ -499,99 +540,6 @@ static void MIDI_Message(uint8_t mes)
 		}
 		break;
 	}
-}
-
-uint8_t FASTCALL MIDI_Read(uint32_t adr)
-{
-	uint8_t ret = 0;
-
-	if ((adr < 0xeafa01) || (adr >= 0xeafa10) || (!Config.MIDI_SW)) /*  —§ •¢•…•Ï•π§´°¢ */
-	{                                                               /* MIDI OFFª˛§À§œ•–•π•®•È°º§À§π§Î */
-		BusErrFlag = 1;
-		return 0;
-	}
-
-	switch (adr & 15)
-	{
-	case 0x01:
-		ret          = (MIDI_Vector | MIDI_IntVect);
-		MIDI_IntVect = 0x10;
-		break;
-	case 0x03: break;
-	case 0x05: break;
-	case 0x07: break;
-	case 0x09: /* R04, 14, ... 94 */
-		switch (MIDI_RegHigh)
-		{
-		case 0: break;
-		case 1: break;
-		case 2: break;
-		case 3: break;
-		case 4: break;
-		case 6: break;
-		case 7: break;
-		case 8: break;
-		case 9: break;
-
-		case 5:
-			if (MIDI_Buffered >= MIDIFIFOSIZE)
-			{
-				ret = 0x01; /* Tx full/not ready */
-			}
-			else
-			{
-				ret = 0xc0; /* Tx empty/ready */
-			}
-			break;
-		}
-		break;
-	case 0x0b: /* R05, 15, ... 95 */
-		switch (MIDI_RegHigh)
-		{
-		case 0: break;
-		case 1: break;
-		case 2: break;
-		case 3: break;
-		case 4: break;
-		case 5: break;
-		case 6: break;
-		case 7: break;
-		case 8: break;
-		case 9: break;
-		}
-		break;
-	case 0x0d: /* R06, 16, ... 96 */
-		switch (MIDI_RegHigh)
-		{
-		case 0: break;
-		case 1: break;
-		case 2: break;
-		case 3: break;
-		case 4: break;
-		case 5: break;
-		case 6: break;
-		case 7: break;
-		case 8: break;
-		case 9: break;
-		}
-		break;
-	case 0x0f: /* R07, 17, ... 97 */
-		switch (MIDI_RegHigh)
-		{
-		case 0: break;
-		case 1: break;
-		case 2: break;
-		case 3: break;
-		case 4: break;
-		case 5: break;
-		case 6: break;
-		case 7: break;
-		case 8: break;
-		case 9: break;
-		}
-		break;
-	}
-	return ret;
 }
 
 static void AddDelayBuf(uint8_t msg)
@@ -620,146 +568,274 @@ void MIDI_DelayOut(uint32_t delay)
 	}
 }
 
+uint8_t FASTCALL MIDI_Read(uint32_t adr)
+{
+	uint8_t ret = 0;
+
+	if ((adr < 0xeafa01) || (adr >= 0xeafa10) || (!Config.MIDI_SW))
+	{
+		/* when MIDI is OFF, a bus error occurs */
+		BusErrFlag = 1;
+		BusErrAdr  = adr;
+		return 0xff;
+	}
+
+	adr -= 0xeafa00;
+	adr >>= 1;
+
+	switch (adr)
+	{
+	case 0x00: /* R00 */
+		ret          = (MIDI_Vector | MIDI_IntVect);
+		MIDI_IntVect = 0x10;
+		break;
+	case 0x01: /* R01 */
+		break;
+	case 0x02: /* R02 */
+		return MIDI_IntFlag;
+		break;
+	case 0x03: /* R03 */
+		break;
+	case 0x04: /* R04, 14, ... 94 */
+		switch (MIDI_RegHigh)
+		{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 6: break;
+		case 7: break;
+		case 8: break;
+		case 9: break;
+
+		case 5:
+#if 0
+			if (MIDI_Buffered >= MIDIFIFOSIZE)
+			{
+				ret = 0x01; /* Tx full/not ready */
+			}
+			else
+			{
+				ret = 0xc0; /* Tx empty/ready */
+			}
+#endif
+			if (MIDI_Buffered == 0)
+			{
+				ret = 0xc0; /* FIFO empty & Tx ready */
+			}
+			else
+			{
+				if (MIDI_Buffered < MIDIFIFOSIZE)
+				{
+					ret = 0x41; /* FIFO has free space. Transmitting */
+				}
+				else
+				{
+					ret = 0x01; /* No free space in FIFO. Transmitting */
+				}
+			}
+			break;
+		}
+		break;
+	case 0x05: /* R05, 15, ... 95 */
+		switch (MIDI_RegHigh)
+		{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
+		case 8: break;
+		case 9: break;
+		}
+		break;
+	case 0x06: /* R06, 16, ... 96 */
+		switch (MIDI_RegHigh)
+		{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
+		case 8: break;
+		case 9: break;
+		}
+		break;
+	case 0x07: /* R07, 17, ... 97 */
+		switch (MIDI_RegHigh)
+		{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
+		case 8: break;
+		case 9: break;
+		}
+		break;
+	}
+
+	/* undefined register returns 0 */
+	return ret;
+}
+
 void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 {
-	if ((adr < 0xeafa01) || (adr >= 0xeafa10) || (!Config.MIDI_SW)) /*  —§ •¢•…•Ï•π§´°¢ */
-	{                                                               /* MIDI OFFª˛§À§œ•–•π•®•È°º§À§π§Î */
-		BusErrFlag = 1;
+	if ((adr < 0xeafa01) || (adr >= 0xeafa10) || (!Config.MIDI_SW))
+	{
+		/* when MIDI is OFF, a bus error occurs */                                                /* MIDI OFFÔøΩÔøΩÔøΩÀ§œ•–•ÔøΩÔøΩÔøΩÔøΩÈ°ºÔøΩÀ§ÔøΩÔøΩÔøΩ */
+		BusErrFlag = 2;
+		BusErrAdr = adr;
 		return;
 	}
 
-	switch (adr & 15)
+	adr -= 0xeafa00;
+	adr >>= 1;
+
+	switch (adr)
 	{
-	case 0x01:
+	case 0x00: /* R00 */
 		break;
-	case 0x03:
-		MIDI_RegHigh = data & 0x0f;
+	case 0x01: /* R01 */
 		if (data & 0x80)
+		{
 			MIDI_Init();
+		}
+		MIDI_RegHigh = data & 0x0f;
 		break;
-	case 0x05:
+	case 0x02: /* R02 */
 		break;
-	case 0x07:
+	case 0x03: /* R03 */
+		MIDI_IntFlag &= ~data;
 		break;
-	case 0x09: /* R04, 14, ... 94 */
+	case 0x04: /* R04, 14, ... 94 */
 		switch (MIDI_RegHigh)
 		{
 		case 0:
 			MIDI_Vector = (data & 0xe0);
 			break;
-		case 1:
-			break;
-		case 2:
-			break;
-		case 3:
-			break;
-		case 4:
-			break;
-		case 5:
-			break;
-		case 6:
-			break;
-		case 7:
-			break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
 		case 8:
 			MIDI_GTimerMax = (MIDI_GTimerMax & 0xff00) | (uint32_t)data;
 			break;
-		case 9:
-			break;
+		case 9: break;
 		}
 		break;
-	case 0x0b: /* R05, 15, ... 95 */
+	case 0x05: /* R05, 15, ... 95 */
 		switch (MIDI_RegHigh)
 		{
 		case 0:
 			MIDI_R05 = data;
 			break;
-		case 1:
-			break;
-		case 2:
-			break;
-		case 3:
-			break;
-		case 4:
-			break;
-		case 5:
-			break;
-		case 6:
-			break;
-		case 7:
-			break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
 		case 8:
 			MIDI_GTimerMax = (MIDI_GTimerMax & 0xff) | (((uint32_t)(data & 0x3f)) * 256);
 			if (data & 0x80)
 				MIDI_GTimerVal = MIDI_GTimerMax * 80;
 			break;
-		case 9:
-			break;
+		case 9: break;
 		}
 		break;
-	case 0x0d: /* R06, 16, ... 96 */
+	case 0x06: /* R06, 16, ... 96 */
 		switch (MIDI_RegHigh)
 		{
 		case 0:
 			MIDI_IntEnable = data;
 			break;
-		case 1:
-			break;
-		case 2:
-			break;
-		case 3:
-			break;
-		case 4:
-			break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
 		case 5: /* Out Data Byte */
 			if (!MIDI_Buffered)
 				MIDI_BufTimer = MIDIBUFTIMER;
 			MIDI_Buffered++;
 			AddDelayBuf(data);
 			break;
-		case 6:
-			break;
-		case 7:
-			break;
+		case 6: break;
+		case 7: break;
 		case 8:
 			MIDI_MTimerMax = (MIDI_MTimerMax & 0xff00) | (uint32_t)data;
 			break;
-		case 9:
-			break;
+		case 9: break;
 		}
 		break;
-	case 0x0f: /* R07, 17, ... 97 */
+	case 0x07: /* R07, 17, ... 97 */
 		switch (MIDI_RegHigh)
 		{
-		case 0:
-			break;
-		case 1:
-			break;
-		case 2:
-			break;
-		case 3:
-			break;
-		case 4:
-			break;
-		case 5:
-			break;
-		case 6:
-			break;
-		case 7:
-			break;
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
 		case 8:
 			MIDI_MTimerMax = (MIDI_MTimerMax & 0xff) | (((uint32_t)(data & 0x3f)) * 256);
 			if (data & 0x80)
 				MIDI_MTimerVal = MIDI_MTimerMax * 80;
 			break;
-		case 9:
-			break;
+		case 9: break;
 		}
 		break;
 	}
 }
 
-/* MIMPI•»°º•Û•’•°•§•Î∆…§ﬂπ˛§ﬂ° §Õ§≥§ﬂ§¬6°À */
+int MIDI_StateContext(void *f, int writing) {
+	state_context_f(&MIDI_CTRL, sizeof(MIDI_CTRL));
+	state_context_f(&MIDI_POS, sizeof(MIDI_POS));
+	state_context_f(&MIDI_SYSCOUNT, sizeof(MIDI_SYSCOUNT));
+
+	state_context_f(&MIDI_LAST, sizeof(MIDI_LAST));
+	state_context_f(MIDI_BUF, sizeof(MIDI_BUF));
+	state_context_f(MIDI_EXCVBUF, sizeof(MIDI_EXCVBUF));
+	state_context_f(&MIDI_EXCVWAIT, sizeof(MIDI_EXCVWAIT));
+
+	state_context_f(&MIDI_RegHigh, sizeof(MIDI_RegHigh));
+	state_context_f(&MIDI_Vector, sizeof(MIDI_Vector));
+	state_context_f(&MIDI_IntEnable, sizeof(MIDI_IntEnable));
+	state_context_f(&MIDI_IntVect, sizeof(MIDI_IntVect));
+	state_context_f(&MIDI_IntFlag, sizeof(MIDI_IntFlag));
+	state_context_f(&MIDI_Buffered, sizeof(MIDI_Buffered));
+	state_context_f(&MIDI_BufTimer, sizeof(MIDI_BufTimer));
+	state_context_f(&MIDI_R05, sizeof(MIDI_R05));
+	state_context_f(&MIDI_GTimerMax, sizeof(MIDI_GTimerMax));
+	state_context_f(&MIDI_MTimerMax, sizeof(MIDI_MTimerMax));
+	state_context_f(&MIDI_GTimerVal, sizeof(MIDI_GTimerVal));
+	state_context_f(&MIDI_MTimerVal, sizeof(MIDI_MTimerVal));
+	state_context_f(&MIDI_MODULE, sizeof(MIDI_MODULE));
+
+	state_context_f(DelayBuf, sizeof(DelayBuf));
+	state_context_f(&DBufPtrW, sizeof(DBufPtrW));
+	state_context_f(&DBufPtrR, sizeof(DBufPtrR));
+
+	return 1;
+}
+
+/* Load MIMPI tone file (Nekomichi 6) */
 
 static int exstrcmp(char *str, char *cmp)
 {

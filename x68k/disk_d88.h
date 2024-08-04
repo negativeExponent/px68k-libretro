@@ -1,5 +1,5 @@
-#ifndef _WINX68K_D88_H
-#define _WINX68K_D88_H
+#ifndef _X68K_D88_H
+#define _X68K_D88_H
 
 typedef struct {          /* Header Part (size:2B0h) */
 	uint8_t fd_name[17];  /* Disk Name */
@@ -22,4 +22,4 @@ int D88_ReadDiag(int drv, FDCID *id, FDCID *retid, uint8_t *buf);
 int D88_Write(int drv, FDCID *id, uint8_t *buf, int del);
 int D88_GetCurrentID(int drv, FDCID *id);
 
-#endif /* _WINX68K_D88_H */
+#endif /* _X68K_D88_H */

@@ -1,13 +1,14 @@
 /*
  *  ADPCM.C - ADPCM (OKI MSM6258V)
- *    な~んか、X68Sound.dllに比べてカシャカシャした音になるんだよなぁ……
- *    DSoundのクセってのもあるけど、それだけじゃなさそうな気もする
+ *    For some reason, the sound is more scratchy than with X68Sound.dll...
+ *    It could be a quirk of DSound, but I don't think that's the only reason
  */
 
 #include <math.h>
 
 #include "../x11/common.h"
 #include "../x11/prop.h"
+#include "../x11/state.h"
 
 #include "adpcm.h"
 #include "dmac.h"
@@ -42,6 +43,7 @@ static const int32_t ADPCM_Clocks[8] = {
 	93750, 125000, 187500, 125000, 46875, 62500, 93750, 62500
 };
 static int32_t dif_table[49 * 16];
+
 static int16_t ADPCM_BufR[ADPCM_BufSize];
 static int16_t ADPCM_BufL[ADPCM_BufSize];
 
@@ -72,7 +74,6 @@ int ADPCM_IsReady(void)
 	return 1;
 }
 
-/* てーぶる初期化 */
 static void ADPCM_InitTable(void)
 {
 	static int32_t bit[16][4] = {
@@ -98,8 +99,8 @@ static void ADPCM_InitTable(void)
 	}
 }
 
-/* MPUクロック経過分だけバッファにデータを溜めておく */
-void FASTCALL ADPCM_PreUpdate(uint32_t clock)
+/* Store data in the buffer for the number of MPU clock cycles */
+void FASTCALL ADPCM_PreUpdate(int32_t clock)
 {
 #if 0
 	/*if (!ADPCM_Playing) return;*/
@@ -107,7 +108,7 @@ void FASTCALL ADPCM_PreUpdate(uint32_t clock)
 	ADPCM_PreCounter += ((ADPCM_ClockRate / 24) * clock);
 	while (ADPCM_PreCounter >= 10000000L)
 	{
-		/* ↓ データの送りすぎ防止（A-JAX）。200サンプリングくらいまでは許そう…。 */
+		/* Preventing excessive data transmission (A-JAX). I'll allow up to 200 samples... */
 		ADPCM_DifBuf -= ((ADPCM_SampleRate * 400) / ADPCM_ClockRate);
 		if (ADPCM_DifBuf <= 0)
 		{
@@ -118,8 +119,8 @@ void FASTCALL ADPCM_PreUpdate(uint32_t clock)
 	}
 }
 
-/* DSoundが指定してくる分だけバッファにデータを書き出す */
-void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, uint8_t *pbsp, uint8_t *pbep)
+/* Write data to the buffer */
+void FASTCALL ADPCM_Update(int16_t *buffer, int32_t length, int16_t *pbsp, int16_t *pbep)
 {
 	if (length <= 0)
 		return;
@@ -130,9 +131,9 @@ void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, uint8_t *pbsp, uint
 		int32_t outl, outr;
 		int32_t tmpl, tmpr;
 
-		if (buffer >= (int16_t *)pbep)
+		if (buffer >= pbep)
 		{
-			buffer = (int16_t *)pbsp;
+			buffer = pbsp;
 		}
 
 		if ((ADPCM_WrPtr == ADPCM_RdPtr) && (!(DMA[3].CCR & 0x40)))
@@ -216,7 +217,7 @@ void FASTCALL ADPCM_Update(int16_t *buffer, uint32_t length, uint8_t *pbsp, uint
 		ADPCM_DifBuf += ADPCM_BufSize;
 }
 
-/* 1nibble（4bit）をデコード */
+/* Decode 1 nibble (4 bits) */
 static INLINE void ADPCM_WriteOne(uint8_t val)
 {
 	ADPCM_Out += dif_table[(ADPCM_Step << 4) + val];
@@ -303,10 +304,13 @@ void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 uint8_t FASTCALL ADPCM_Read(uint32_t adr)
 {
 	/* adpcm status */
-	if (adr == 0xe92001)
+	if (adr & 1)
 	{
 		/* bit 7 : 0:playing 1:recording/standby */
-		return ADPCM_Playing ? 0x7f : 0xff;
+		if (ADPCM_Playing) {
+			return 0x7f;
+		}
+		return 0xff;
 	}
 
 	return 0xff;
@@ -366,4 +370,34 @@ void ADPCM_Init(uint32_t samplerate)
 
 	ADPCM_SetPan(0x0b);
 	ADPCM_InitTable();
+}
+
+int ADPCM_StateContext(void *f, int writing) {
+	state_context_f(ADPCM_BufL, sizeof(ADPCM_BufL));
+	state_context_f(ADPCM_BufR, sizeof(ADPCM_BufR));
+
+	state_context_f(&ADPCM_VolumeShift, sizeof(ADPCM_VolumeShift));
+	state_context_f(&ADPCM_WrPtr, sizeof(ADPCM_WrPtr));
+	state_context_f(&ADPCM_RdPtr, sizeof(ADPCM_RdPtr));
+
+	state_context_f(&ADPCM_ClockRate, sizeof(ADPCM_ClockRate));
+	state_context_f(&ADPCM_Count, sizeof(ADPCM_Count));
+
+	state_context_f(&ADPCM_Step, sizeof(ADPCM_Step));
+	state_context_f(&ADPCM_Out, sizeof(ADPCM_Out));
+	state_context_f(&ADPCM_Playing, sizeof(ADPCM_Playing));
+	state_context_f(&ADPCM_Clock, sizeof(ADPCM_Clock));
+	state_context_f(&ADPCM_PreCounter, sizeof(ADPCM_PreCounter));
+	state_context_f(&ADPCM_DifBuf, sizeof(ADPCM_DifBuf));
+
+	state_context_f(&ADPCM_Pan, sizeof(ADPCM_Pan));
+	state_context_f(&OldR, sizeof(OldR));
+	state_context_f(&OldL, sizeof(OldL));
+	state_context_f(Outs, sizeof(Outs));
+	state_context_f(OutsIp, sizeof(OutsIp));
+	state_context_f(OutsIpR, sizeof(OutsIpR));
+	state_context_f(OutsIpL, sizeof(OutsIpL));
+
+	return 1;
+
 }

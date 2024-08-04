@@ -15,8 +15,9 @@
 namespace FM
 {
 
-int OPM::amtable[4][OPM_LFOENTS] = { -1, };
-int OPM::pmtable[4][OPM_LFOENTS];
+int32_t OPM::amtable[4][OPM_LFOENTS] = { -1, };
+int32_t OPM::pmtable[4][OPM_LFOENTS];
+static bool tablemade = false;
 
 // ---------------------------------------------------------------------------
 //	構築
@@ -36,7 +37,7 @@ OPM::OPM()
 // ---------------------------------------------------------------------------
 //	初期化
 //
-bool OPM::Init(uint c, uint rf, bool ip)
+bool OPM::Init(uint32_t c, uint32_t rf, bool ip)
 {
 	if (!SetRate(c, rf, ip))
 		return false;
@@ -51,7 +52,7 @@ bool OPM::Init(uint c, uint rf, bool ip)
 // ---------------------------------------------------------------------------
 //	再設定
 //
-bool OPM::SetRate(uint c, uint r, bool)
+bool OPM::SetRate(uint32_t c, uint32_t r, bool)
 {
 	clock = c;
 	pcmrate = r;
@@ -65,7 +66,7 @@ bool OPM::SetRate(uint c, uint r, bool)
 // ---------------------------------------------------------------------------
 //	チャンネルマスクの設定
 //
-void OPM::SetChannelMask(uint mask)
+void OPM::SetChannelMask(uint32_t mask)
 {
 	for (int i=0; i<8; i++)
 		ch[i].Mute(!!(mask & (1 << i)));
@@ -94,7 +95,7 @@ void OPM::Reset()
 //
 void OPM::RebuildTimeTable()
 {
-	uint fmclock = clock / 64;
+	uint32_t fmclock = clock / 64;
 
 	assert(fmclock < (0x80000000 >> FM_RATIOBITS));
 	rateratio = ((fmclock << FM_RATIOBITS) + rate/2) / rate;
@@ -128,11 +129,11 @@ void OPM::TimerA()
 // ---------------------------------------------------------------------------
 //	音量設定
 //
-void OPM::SetVolume(int db)
+void OPM::SetVolume(int32_t db)
 {
 	db = Min(db, 20);
 	if (db > -192)
-		fmvolume = int(16384.0 * pow(10, db / 40.0));
+		fmvolume = int32_t(16384.0 * pow(10, db / 40.0));
 	else
 		fmvolume = 0;
 }
@@ -140,7 +141,7 @@ void OPM::SetVolume(int db)
 // ---------------------------------------------------------------------------
 //	ステータスフラグ設定
 //
-void OPM::SetStatus(uint bits)
+void OPM::SetStatus(uint32_t bits)
 {
 	if (!(status & bits))
 	{
@@ -152,7 +153,7 @@ void OPM::SetStatus(uint bits)
 // ---------------------------------------------------------------------------
 //	ステータスフラグ解除
 //
-void OPM::ResetStatus(uint bits)
+void OPM::ResetStatus(uint32_t bits)
 {
 	if (status & bits)
 	{
@@ -165,12 +166,12 @@ void OPM::ResetStatus(uint bits)
 // ---------------------------------------------------------------------------
 //	レジスタアレイにデータを設定
 //
-void OPM::SetReg(uint addr, uint data)
+void OPM::SetReg(uint32_t addr, uint32_t data)
 {
 	if (addr >= 0x100)
 		return;
 
-	int c = addr & 7;
+	int32_t c = addr & 7;
 	switch (addr & 0xff)
 	{
 	case 0x01:					// TEST (lfo restart)
@@ -270,16 +271,16 @@ void OPM::SetReg(uint addr, uint data)
 // ---------------------------------------------------------------------------
 //	パラメータセット
 //
-void OPM::SetParameter(uint addr, uint data)
+void OPM::SetParameter(uint32_t addr, uint32_t data)
 {
-	static const uint8 sltable[16] =
+	static const uint8_t sltable[16] =
 	{
 		  0,   4,   8,  12,  16,  20,  24,  28,
 		 32,  36,  40,  44,  48,  52,  56, 124,
 	};
-	static const uint8 slottable[4] = { 0, 2, 1, 3 };
+	static const uint8_t slottable[4] = { 0, 2, 1, 3 };
 
-	uint slot = slottable[(addr >> 3) & 3];
+	uint32_t slot = slottable[(addr >> 3) & 3];
 	Operator* op = &ch[addr & 7].op[slot];
 
 	switch ((addr >> 5) & 7)
@@ -320,15 +321,15 @@ void OPM::SetParameter(uint addr, uint data)
 //
 void OPM::BuildLFOTable()
 {
-	if (amtable[0][0] != -1)
+	if (tablemade)
 		return;
 
 	for (int type=0; type<4; type++)
 	{
-		int r = 0;
+		int32_t r = 0;
 		for (int c=0; c<OPM_LFOENTS; c++)
 		{
-			int a, p;
+			int32_t a, p;
 
 			switch (type)
 			{
@@ -363,6 +364,7 @@ void OPM::BuildLFOTable()
 
 			amtable[type][c] = a;
 			pmtable[type][c] = -p-1;
+			tablemade = true;
 //			printf("%d ", p);
 		}
 	}
@@ -376,7 +378,7 @@ inline void OPM::LFO()
 	{
 //		if ((lfo_count_ ^ lfo_count_prev_) & ~((1 << 15) - 1))
 		{
-			int c = (lfo_count_ >> 15) & 0x1fe;
+			int32_t c = (lfo_count_ >> 15) & 0x1fe;
 //	fprintf(stderr, "%.8x %.2x\n", lfo_count_, c);
 			chip.SetPML(pmtable[lfowaveform][c] * pmd / 128 + 0x80);
 			chip.SetAML(amtable[lfowaveform][c] * amd / 128);
@@ -386,7 +388,7 @@ inline void OPM::LFO()
 	{
 		if ((lfo_count_ ^ lfo_count_prev_) & ~((1 << 17) - 1))
 		{
-			int c = (rand() / 17) & 0xff;
+			int32_t c = (rand() / 17) & 0xff;
 			chip.SetPML((c - 0x80) * pmd / 128 + 0x80);
 			chip.SetAML(c * amd / 128);
 		}
@@ -399,12 +401,12 @@ inline void OPM::LFO()
 	}
 }
 
-inline uint OPM::Noise()
+inline uint32_t OPM::Noise()
 {
 	noisecount += 2 * rateratio;
 	if (noisecount >= (32 << FM_RATIOBITS))
 	{
-		int n = 32 - (noisedelta & 0x1f);
+		int32_t n = 32 - (noisedelta & 0x1f);
 		if (n == 1)
 			n = 2;
 
@@ -419,7 +421,7 @@ inline uint OPM::Noise()
 // ---------------------------------------------------------------------------
 //	合成の一部
 //
-inline void OPM::MixSub(int activech, ISample** idest)
+inline void OPM::MixSub(int32_t activech, ISample** idest)
 {
 	if (activech & 0x4000) (*idest[0]  = ch[0].Calc());
 	if (activech & 0x1000) (*idest[1] += ch[1].Calc());
@@ -437,7 +439,7 @@ inline void OPM::MixSub(int activech, ISample** idest)
 	}
 }
 
-inline void OPM::MixSubL(int activech, ISample** idest)
+inline void OPM::MixSubL(int32_t activech, ISample** idest)
 {
 	if (activech & 0x4000) (*idest[0]  = ch[0].CalcL());
 	if (activech & 0x1000) (*idest[1] += ch[1].CalcL());
@@ -459,18 +461,18 @@ inline void OPM::MixSubL(int activech, ISample** idest)
 // ---------------------------------------------------------------------------
 //	合成 (stereo)
 //
-void OPM::Mix(Sample* buffer, int nsamples, uint8_t* pbsp, uint8_t* pbep)
+void OPM::Mix(Sample* buffer, int32_t nsamples, int16_t* pbsp, int16_t* pbep)
 {
 #define IStoSample(s)	((Limit(s, 0xffff, -0x10000) * fmvolume) >> 14)
 //#define IStoSample(s)	((s * fmvolume) >> 14)
 
-#define CHECK_BUF_END() if ((uint8_t *)dest >= pbep) {dest = (Sample *)pbsp;}
+#define CHECK_BUF_END() if ((int16_t *)dest >= pbep) {dest = (Sample *)pbsp;}
 
 	Sample* dest;
 	int i;
 
 	// odd bits - active, even bits - lfo
-	uint activech=0;
+	uint32_t activech=0;
 	for (i=0; i<8; i++)
 		activech = (activech << 2) | ch[i].Prepare();
 
@@ -507,6 +509,91 @@ void OPM::Mix(Sample* buffer, int nsamples, uint8_t* pbsp, uint8_t* pbep)
 		}
 	}
 #undef IStoSample
+}
+
+void OPM::Save(opm_savestate_t *state)
+{
+	Timer::Save(&state->timer);
+
+	state->fmvolume = fmvolume;
+
+	state->clock = clock;
+	state->rate = rate;
+	state->pcmrate = pcmrate;
+
+	state->pmd = pmd;
+	state->amd = amd;
+	state->lfocount = lfocount;
+	state->lfodcount = lfodcount;
+
+	state->lfo_count_ = lfo_count_;
+	state->lfo_count_diff_ = lfo_count_diff_;
+	state->lfo_step_ = lfo_step_;
+	state->lfo_count_prev_ = lfo_count_prev_;
+
+	state->lfowaveform = lfowaveform;
+	state->rateratio = rateratio;
+	state->noise = noise;
+	state->noisecount = noisecount;
+	state->noisedelta = noisedelta;
+
+	state->interpolation = interpolation;
+	state->lfofreq = lfofreq;
+	state->status = status;
+	state->reg01 = reg01;
+
+	memcpy(state->kc, kc, 8);
+	memcpy(state->kf, kf, 8);
+	memcpy(state->pan, pan, 8);
+
+	for (int i = 0; i < 8; i++)
+	{
+		ch[i].Save(&state->ch[i]);
+	}
+
+	chip.Save(&state->chip);
+}
+
+void OPM::Load(opm_savestate_t *state)
+{
+	Timer::Load(&state->timer);
+
+	fmvolume = state->fmvolume;
+	clock = state->clock;
+	rate = state->rate;
+	pcmrate = state->pcmrate;
+
+	pmd = state->pmd;
+	amd = state->amd;
+	lfocount = state->lfocount;
+	lfodcount = state->lfodcount;
+
+	lfo_count_ = state->lfo_count_;
+	lfo_count_diff_ = state->lfo_count_diff_;
+	lfo_step_ = state->lfo_step_;
+	lfo_count_prev_ = state->lfo_count_prev_;
+
+	lfowaveform = state->lfowaveform;
+	rateratio = state->rateratio;
+	noise = state->noise;
+	noisecount = state->noisecount;
+	noisedelta = state->noisedelta;
+
+	interpolation = state->interpolation;
+	lfofreq = state->lfofreq;
+	status = state->status;
+	reg01 = state->reg01;
+
+	memcpy(kc, state->kc, 8);
+	memcpy(kf, state->kf, 8);
+	memcpy(pan, state->pan, 8);
+
+	for (int i = 0; i < 8; i++)
+	{
+		ch[i].Load(&state->ch[i]);
+	}
+
+	chip.Load(&state->chip);
 }
 
 }	// namespace FM

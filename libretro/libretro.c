@@ -9,23 +9,25 @@
 #include <file/file_path.h>
 #include <string/stdstring.h>
 #include <streams/file_stream.h>
+#include <streams/memory_stream.h>
 
 #include "libretro_core_options.h"
 
 #include "../x11/common.h"
 
-#include "../fmgen/fmg_wrap.h"
 #include "../x11/dswin.h"
 #include "../x11/keyboard.h"
 #include "../x11/mouse.h"
 #include "../x11/prop.h"
+#include "../x11/state.h"
+#include "../x11/winx68k.h"
 #include "../x68k/adpcm.h"
 #include "../x68k/fdd.h"
+#include "../x68k/opm.h"
 #include "../x68k/sram.h"
 #include "../x68k/x68kmemory.h"
-#include "../x11/winx68k.h"
 
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
 #include "../x68k/mercury.h"
 #endif
 
@@ -88,6 +90,7 @@ struct retro_vfs_interface *vfs_interface;
 
 static unsigned no_content;
 static int opt_rumble_enabled = 1;
+static size_t serialize_size = 0;
 
 int FDD_IsReading = 0;
 
@@ -246,20 +249,49 @@ static void extract_directory(char *buf, const char *path, size_t size)
 
 static int libretro_supports_midi_output   = 0;
 static struct retro_midi_interface midi_cb = { 0 };
+static uint64_t midi_write_time = 0;
 
 uint32_t midiOutClose(void *hmo) { return MMSYSERR_NOERROR; }
 uint32_t midiOutReset(void *hmo) { return MMSYSERR_NOERROR; }
 uint32_t midiOutPrepareHeader(void *hmo, MIDIHDR *pmh, uint32_t cbmh) { return !MIDIERR_STILLPLAYING; }
 uint32_t midiOutUnprepareHeader(void *hmo, MIDIHDR *pmh, uint32_t cbmh) { return MMSYSERR_NOERROR; }
 
+/* might not be correct but whatever */
+static void midi_write(uint8_t msg)
+{
+   uint64_t current_time = timeGetTime() * 1000;
+   uint64_t delta_time;
+   if (midi_write_time == 0)
+      midi_write_time = current_time;
+   delta_time = current_time - midi_write_time;
+   midi_write_time = current_time;
+   if (delta_time > 0xFFFFFFFF)
+      delta_time = 0;
+   midi_cb.write(msg, (uint32_t)delta_time);
+}
+
 uint32_t midiOutShortMsg(void *hmo, uint32_t dwMsg)
 {
    if (libretro_supports_midi_output && midi_cb.output_enabled())
-   {
-      midi_cb.write(dwMsg & 0xFF, 0);         /* status byte */
-      midi_cb.write((dwMsg >> 8) & 0xFF, 0);  /* note no. */
-      midi_cb.write((dwMsg >> 16) & 0xFF, 0); /* velocity */
-      midi_cb.write((dwMsg >> 24) & 0xFF, 0); /* none */
+   {  
+      switch (dwMsg & 0xf0)
+      {
+      case 0x80:
+      case 0x90:
+      case 0xa0:
+      case 0xb0:
+      case 0xe0:
+         midi_write(dwMsg & 0xff);
+         midi_write((dwMsg >> 8) & 0xff);
+         midi_write((dwMsg >> 16) & 0xff);
+         break;
+      case 0xc0:
+      case 0xd0:
+         midi_write(dwMsg & 0xff);
+         midi_write((dwMsg >> 8) & 0xff);
+         midi_write(0);
+         break;
+      }
    }
    return MMSYSERR_NOERROR;
 }
@@ -269,8 +301,9 @@ uint32_t midiOutLongMsg(void *hmo, MIDIHDR *pmh, uint32_t cbmh)
    unsigned i;
    if (libretro_supports_midi_output && midi_cb.output_enabled())
    {
+      if (!pmh->dwBufferLength) return MMSYSERR_NOERROR;
       for (i = 0; i < pmh->dwBufferLength; i++)
-         midi_cb.write((uint8_t)pmh->lpData[i], 0);
+         midi_write((uint8_t)pmh->lpData[i]);
    }
 
    return MMSYSERR_NOERROR;
@@ -1015,7 +1048,7 @@ static void update_variables(int running)
       }
    }
 
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
    var.key   = "px68k_mercury_vol";
    var.value = NULL;
 
@@ -1204,9 +1237,20 @@ static void update_variables(int running)
  * libretro implementation
  ************************************/
 
-size_t retro_serialize_size(void) { return 0; }
-bool retro_serialize(void *data, size_t size) { return false; }
-bool retro_unserialize(const void *data, size_t size) { return false; }
+size_t retro_serialize_size(void) {
+	return STATE_SIZE;
+}
+
+bool retro_serialize(void *data, size_t size) {
+   if (size != STATE_SIZE) return false;
+	return PX68K_SaveStateMem(data);
+}
+
+bool retro_unserialize(const void *data, size_t size) {
+   if (size != STATE_SIZE) return false;
+	return PX68K_LoadStateMem(data);
+}
+
 void retro_cheat_reset(void) { }
 void retro_cheat_set(unsigned index, bool enabled, const char *code) { }
 bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info) { return false; }
@@ -1246,7 +1290,7 @@ void retro_get_system_info(struct retro_system_info *info)
    info->library_name     = "PX68K";
    info->library_version  = PX68K_VERSION GIT_VERSION;
    info->need_fullpath    = true;
-   info->valid_extensions = "dim|zip|img|d88|88d|hdm|dup|2hd|xdf|hdf|cmd|m3u";
+   info->valid_extensions = "dim|img|d88|88d|hdm|dup|2hd|xdf|hdf|cmd|m3u";
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
@@ -1379,6 +1423,8 @@ void retro_init(void)
    struct retro_rumble_interface rumble;
    const char *system_dir  = NULL;
 
+   serialize_size = 0;
+
    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
       log_cb = log.log;
    else
@@ -1481,7 +1527,7 @@ void retro_run(void)
          audio_samples_discard(nsamples - soundbuf_size);
    }
 
-   raudio_callback(soundbuf, soundbuf_size << 2);
+   raudio_callback(soundbuf, soundbuf_size * sizeof(int16_t));
 
    audio_batch_cb((const int16_t *)soundbuf, soundbuf_size);
    video_cb(videoBuffer, retrow, retroh, FULLSCREEN_WIDTH << 1);

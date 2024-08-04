@@ -1,6 +1,7 @@
-/* IRQH.C - IRQ Handler (架空のデバイスにょ) */
+/* IRQH.C - IRQ Handler (fictitious device) */
 
 #include "../x11/common.h"
+#include "../x11/state.h"
 
 #include "../m68000/m68000.h"
 
@@ -71,4 +72,10 @@ int32_t my_irqh_callback(int32_t level)
 	}
 
 	return (int32_t)vect;
+}
+
+int IRQH_StateContext(void *f, int writing) {
+	state_context_f(IRQH_IRQ, sizeof(IRQH_IRQ));
+
+	return 1;
 }

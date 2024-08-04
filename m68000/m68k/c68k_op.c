@@ -2345,7 +2345,7 @@ OP(asr_8_s)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 	res = ((int32_t)src) >> sft;
 	CPU->flag_N = res >> 0;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint8_t *)(&DY) = res;
 	RET(6)
 }
@@ -2362,7 +2362,7 @@ OP(asr_16_s)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 	res = ((int32_t)src) >> sft;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint16_t *)(&DY) = res;
 	RET(6)
 }
@@ -2379,7 +2379,7 @@ OP(asr_32_s)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 	res = ((int32_t)src) >> sft;
 	CPU->flag_N = res >> 24;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint32_t *)(&DY) = res;
 	RET(8)
 }
@@ -2395,7 +2395,7 @@ OP(lsr_8_s)
 	CPU->flag_N = CPU->flag_V = 0;
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 	res = (uint32_t)src >> sft;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint8_t *)(&DY) = res;
 	RET(6)
 }
@@ -2411,7 +2411,7 @@ OP(lsr_16_s)
 	CPU->flag_N = CPU->flag_V = 0;
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 	res = (uint32_t)src >> sft;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint16_t *)(&DY) = res;
 	RET(6)
 }
@@ -2427,7 +2427,7 @@ OP(lsr_32_s)
 	CPU->flag_N = CPU->flag_V = 0;
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 	res = (uint32_t)src >> sft;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint32_t *)(&DY) = res;
 	RET(8)
 }
@@ -2445,7 +2445,7 @@ OP(roxr_8_s)
 	CPU->flag_X = CPU->flag_C = res >> 0;
 	CPU->flag_V = 0;
 	CPU->flag_N = res >> 0;
-	CPU->flag_Z = res & 0xff;
+	CPU->flag_notZ = res & 0xff;
 	*(uint8_t *)(&DY) = res;
 	RET(6)
 }
@@ -2463,7 +2463,7 @@ OP(roxr_16_s)
 	CPU->flag_X = CPU->flag_C = res >> 8;
 	CPU->flag_V = 0;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	*(uint16_t *)(&DY) = res;
 	RET(6)
 }
@@ -2482,7 +2482,7 @@ OP(roxr_32_s)
 	CPU->flag_X = CPU->flag_C;
 	CPU->flag_V = 0;
 	CPU->flag_N = res >> 24;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint32_t *)(&DY) = res;
 	RET(8)
 }
@@ -2499,7 +2499,7 @@ OP(ror_8_s)
 	CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 	res = ((uint32_t)src >> sft) | ((uint32_t)src << (8 - sft));
 	CPU->flag_N = res >> 0;
-	CPU->flag_Z = res & 0xff;
+	CPU->flag_notZ = res & 0xff;
 	*(uint8_t *)(&DY) = res;
 	RET(6)
 }
@@ -2516,7 +2516,7 @@ OP(ror_16_s)
 	CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 	res = ((uint32_t)src >> sft) | ((uint32_t)src << (16 - sft));
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	*(uint16_t *)(&DY) = res;
 	RET(6)
 }
@@ -2533,7 +2533,7 @@ OP(ror_32_s)
 	CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 	res = ((uint32_t)src >> sft) | ((uint32_t)src << (32 - sft));
 	CPU->flag_N = res >> 24;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint32_t *)(&DY) = res;
 	RET(8)
 }
@@ -2551,7 +2551,7 @@ OP(asl_8_s)
 		CPU->flag_X = CPU->flag_C = (uint32_t)src << (0 + sft);
 		res = (uint32_t)src << sft;
 		CPU->flag_N = res >> 0;
-		CPU->flag_Z = res & 0xff;
+		CPU->flag_notZ = res & 0xff;
 		*(uint8_t *)(&DY) = res;
 		CPU->flag_V = 0;
 		if ((sft > 7) && (src)) CPU->flag_V = C68K_SR_V;
@@ -2570,7 +2570,7 @@ OP(asl_8_s)
 	res = 0;
 	*(uint8_t *)(&DY) = res;
 	CPU->flag_N = 0;
-	CPU->flag_Z = 0;
+	CPU->flag_notZ = 0;
 	RET(6)
 }
 
@@ -2585,7 +2585,7 @@ OP(asl_16_s)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src >> (8 - sft);
 	res = (uint32_t)src << sft;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	*(uint16_t *)(&DY) = res;
 	CPU->flag_V = 0;
 	{
@@ -2607,7 +2607,7 @@ OP(asl_32_s)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src >> (24 - sft);
 	res = (uint32_t)src << sft;
 	CPU->flag_N = res >> 24;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint32_t *)(&DY) = res;
 	CPU->flag_V = 0;
 	{
@@ -2630,7 +2630,7 @@ OP(lsl_8_s)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << (0 + sft);
 	res = (uint32_t)src << sft;
 	CPU->flag_N = res >> 0;
-	CPU->flag_Z = res & 0xff;
+	CPU->flag_notZ = res & 0xff;
 	*(uint8_t *)(&DY) = res;
 	RET(6)
 }
@@ -2647,7 +2647,7 @@ OP(lsl_16_s)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src >> (8 - sft);
 	res = (uint32_t)src << sft;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	*(uint16_t *)(&DY) = res;
 	RET(6)
 }
@@ -2664,7 +2664,7 @@ OP(lsl_32_s)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src >> (24 - sft);
 	res = (uint32_t)src << sft;
 	CPU->flag_N = res >> 24;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint32_t *)(&DY) = res;
 	RET(8)
 }
@@ -2682,7 +2682,7 @@ OP(roxl_8_s)
 	CPU->flag_X = CPU->flag_C = res >> 0;
 	CPU->flag_V = 0;
 	CPU->flag_N = res >> 0;
-	CPU->flag_Z = res & 0xff;
+	CPU->flag_notZ = res & 0xff;
 	*(uint8_t *)(&DY) = res;
 	RET(6)
 }
@@ -2700,7 +2700,7 @@ OP(roxl_16_s)
 	CPU->flag_X = CPU->flag_C = res >> 8;
 	CPU->flag_V = 0;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	*(uint16_t *)(&DY) = res;
 	RET(6)
 }
@@ -2719,7 +2719,7 @@ OP(roxl_32_s)
 	CPU->flag_X = CPU->flag_C;
 	CPU->flag_V = 0;
 	CPU->flag_N = res >> 24;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint32_t *)(&DY) = res;
 	RET(8)
 }
@@ -2736,7 +2736,7 @@ OP(rol_8_s)
 	CPU->flag_C = (uint32_t)src << (0 + sft);
 	res = ((uint32_t)src << sft) | ((uint32_t)src >> (8 - sft));
 	CPU->flag_N = res >> 0;
-	CPU->flag_Z = res & 0xff;
+	CPU->flag_notZ = res & 0xff;
 	*(uint8_t *)(&DY) = res;
 	RET(6)
 }
@@ -2753,7 +2753,7 @@ OP(rol_16_s)
 	CPU->flag_C = (uint32_t)src >> (8 - sft);
 	res = ((uint32_t)src << sft) | ((uint32_t)src >> (16 - sft));
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	*(uint16_t *)(&DY) = res;
 	RET(6)
 }
@@ -2770,7 +2770,7 @@ OP(rol_32_s)
 	CPU->flag_C = (uint32_t)src >> (24 - sft);
 	res = ((uint32_t)src << sft) | ((uint32_t)src >> (32 - sft));
 	CPU->flag_N = res >> 24;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	*(uint32_t *)(&DY) = res;
 	RET(8)
 }
@@ -2791,7 +2791,7 @@ OP(asr_8_r)
 			CPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 			res = ((int32_t)src) >> sft;
 			CPU->flag_N = res >> 0;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint8_t *)(&DY) = res;
 			RET(6)
 		}
@@ -2799,7 +2799,7 @@ OP(asr_8_r)
 		if (src & (1 << 7))
 		{
 			CPU->flag_N = C68K_SR_N;
-			CPU->flag_Z = 1;
+			CPU->flag_notZ = 1;
 			CPU->flag_V = 0;
 			CPU->flag_C = C68K_SR_C;
 			CPU->flag_X = C68K_SR_X;
@@ -2809,7 +2809,7 @@ OP(asr_8_r)
 		}
 
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		CPU->flag_V = 0;
 		CPU->flag_C = 0;
 		CPU->flag_X = 0;
@@ -2821,7 +2821,7 @@ OP(asr_8_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 0;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -2841,7 +2841,7 @@ OP(asr_16_r)
 			CPU->flag_X = CPU->flag_C = ((uint32_t)src >> (sft - 1)) << C68K_SR_C_SFT;
 			res = ((int32_t)src) >> sft;
 			CPU->flag_N = res >> 8;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint16_t *)(&DY) = res;
 			RET(6)
 		}
@@ -2849,7 +2849,7 @@ OP(asr_16_r)
 		if (src & (1 << 15))
 		{
 			CPU->flag_N = C68K_SR_N;
-			CPU->flag_Z = 1;
+			CPU->flag_notZ = 1;
 			CPU->flag_V = 0;
 			CPU->flag_C = C68K_SR_C;
 			CPU->flag_X = C68K_SR_X;
@@ -2859,7 +2859,7 @@ OP(asr_16_r)
 		}
 
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		CPU->flag_V = 0;
 		CPU->flag_C = 0;
 		CPU->flag_X = 0;
@@ -2871,7 +2871,7 @@ OP(asr_16_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 8;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -2891,7 +2891,7 @@ OP(asr_32_r)
 			CPU->flag_X = CPU->flag_C = ((uint32_t)src >> (sft - 1)) << C68K_SR_C_SFT;
 			res = ((int32_t)src) >> sft;
 			CPU->flag_N = res >> 24;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint32_t *)(&DY) = res;
 			RET(8)
 		}
@@ -2899,7 +2899,7 @@ OP(asr_32_r)
 		if (src & (1 << 31))
 		{
 			CPU->flag_N = C68K_SR_N;
-			CPU->flag_Z = 1;
+			CPU->flag_notZ = 1;
 			CPU->flag_V = 0;
 			CPU->flag_C = C68K_SR_C;
 			CPU->flag_X = C68K_SR_X;
@@ -2909,7 +2909,7 @@ OP(asr_32_r)
 		}
 
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		CPU->flag_V = 0;
 		CPU->flag_C = 0;
 		CPU->flag_X = 0;
@@ -2921,7 +2921,7 @@ OP(asr_32_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 24;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(8)
 }
 
@@ -2940,14 +2940,14 @@ OP(lsr_8_r)
 			CPU->flag_N = CPU->flag_V = 0;
 			CPU->flag_X = CPU->flag_C = (uint32_t)src << ((C68K_SR_C_SFT + 1) - sft);
 			res = (uint32_t)src >> sft;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint8_t *)(&DY) = res;
 			RET(6)
 		}
 
 		CPU->flag_X = CPU->flag_C = 0;
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		CPU->flag_V = 0;
 		res = 0;
 		*(uint8_t *)(&DY) = res;
@@ -2957,7 +2957,7 @@ OP(lsr_8_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 0;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -2976,14 +2976,14 @@ OP(lsr_16_r)
 			CPU->flag_N = CPU->flag_V = 0;
 			CPU->flag_X = CPU->flag_C = ((uint32_t)src >> (sft - 1)) << C68K_SR_C_SFT;
 			res = (uint32_t)src >> sft;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint16_t *)(&DY) = res;
 			RET(6)
 		}
 
 		CPU->flag_X = CPU->flag_C = 0;
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		CPU->flag_V = 0;
 		res = 0;
 		*(uint16_t *)(&DY) = res;
@@ -2993,7 +2993,7 @@ OP(lsr_16_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 8;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3012,7 +3012,7 @@ OP(lsr_32_r)
 			CPU->flag_N = CPU->flag_V = 0;
 			CPU->flag_X = CPU->flag_C = ((uint32_t)src >> (sft - 1)) << C68K_SR_C_SFT;
 			res = (uint32_t)src >> sft;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint32_t *)(&DY) = res;
 			RET(8)
 		}
@@ -3021,7 +3021,7 @@ OP(lsr_32_r)
 		else CPU->flag_C = 0;
 		CPU->flag_X = CPU->flag_C;
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		CPU->flag_V = 0;
 		res = 0;
 		*(uint32_t *)(&DY) = res;
@@ -3031,7 +3031,7 @@ OP(lsr_32_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 24;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(8)
 }
 
@@ -3052,7 +3052,7 @@ OP(roxr_8_r)
 		CPU->flag_X = CPU->flag_C = res >> 0;
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 0;
-		CPU->flag_Z = res & 0xff;
+		CPU->flag_notZ = res & 0xff;
 		*(uint8_t *)(&DY) = res;
 		RET(6)
 	}
@@ -3060,7 +3060,7 @@ OP(roxr_8_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = CPU->flag_X;
 	CPU->flag_N = (uint32_t)src >> 0;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3081,7 +3081,7 @@ OP(roxr_16_r)
 		CPU->flag_X = CPU->flag_C = res >> 8;
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 8;
-		CPU->flag_Z = res & 0xffff;
+		CPU->flag_notZ = res & 0xffff;
 		*(uint16_t *)(&DY) = res;
 		RET(6)
 	}
@@ -3089,7 +3089,7 @@ OP(roxr_16_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = CPU->flag_X;
 	CPU->flag_N = (uint32_t)src >> 8;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3115,7 +3115,7 @@ OP(roxr_32_r)
 		CPU->flag_C = CPU->flag_X;
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 24;
-		CPU->flag_Z = res;
+		CPU->flag_notZ = res;
 		*(uint32_t *)(&DY) = res;
 		RET(8)
 	}
@@ -3123,7 +3123,7 @@ OP(roxr_32_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = CPU->flag_X;
 	CPU->flag_N = (uint32_t)src >> 24;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(8)
 }
 
@@ -3143,7 +3143,7 @@ OP(ror_8_r)
 		res = ((uint32_t)src >> sft) | ((uint32_t)src << (8 - sft));
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 0;
-		CPU->flag_Z = res & 0xff;
+		CPU->flag_notZ = res & 0xff;
 		*(uint8_t *)(&DY) = res;
 		RET(6)
 	}
@@ -3151,7 +3151,7 @@ OP(ror_8_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 0;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3171,7 +3171,7 @@ OP(ror_16_r)
 		res = ((uint32_t)src >> sft) | ((uint32_t)src << (16 - sft));
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 8;
-		CPU->flag_Z = res & 0xffff;
+		CPU->flag_notZ = res & 0xffff;
 		*(uint16_t *)(&DY) = res;
 		RET(6)
 	}
@@ -3179,7 +3179,7 @@ OP(ror_16_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 8;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3199,7 +3199,7 @@ OP(ror_32_r)
 		res = ((uint32_t)src >> sft) | ((uint32_t)src << (32 - sft));
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 24;
-		CPU->flag_Z = res;
+		CPU->flag_notZ = res;
 		*(uint32_t *)(&DY) = res;
 		RET(8)
 	}
@@ -3207,7 +3207,7 @@ OP(ror_32_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 24;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(8)
 }
 
@@ -3226,7 +3226,7 @@ OP(asl_8_r)
 			CPU->flag_X = CPU->flag_C = ((uint32_t)src << sft) >> 0;
 			res = ((uint32_t)src << sft) & 0xff;
 			CPU->flag_N = res >> 0;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint8_t *)(&DY) = res;
 			CPU->flag_V = 0;
 			{
@@ -3243,14 +3243,14 @@ OP(asl_8_r)
 		CPU->flag_V = (src) ? C68K_SR_V : 0;
 		*(uint8_t *)(&DY) = 0;
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		RET(6)
 	}
 
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 0;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3269,7 +3269,7 @@ OP(asl_16_r)
 			CPU->flag_X = CPU->flag_C = ((uint32_t)src << sft) >> 8;
 			res = ((uint32_t)src << sft) & 0xffff;
 			CPU->flag_N = res >> 8;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint16_t *)(&DY) = res;
 			CPU->flag_V = 0;
 			{
@@ -3286,14 +3286,14 @@ OP(asl_16_r)
 		CPU->flag_V = (src) ? C68K_SR_V : 0;
 		*(uint16_t *)(&DY) = 0;
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		RET(6)
 	}
 
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 8;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3312,7 +3312,7 @@ OP(asl_32_r)
 			CPU->flag_X = CPU->flag_C = ((uint32_t)src >> (32 - sft)) << C68K_SR_C_SFT;
 			res = (uint32_t)src << sft;
 			CPU->flag_N = res >> 24;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint32_t *)(&DY) = res;
 			CPU->flag_V = 0;
 			{
@@ -3329,14 +3329,14 @@ OP(asl_32_r)
 		CPU->flag_V = (src) ? C68K_SR_V : 0;
 		*(uint32_t *)(&DY) = 0;
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		RET(8)
 	}
 
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 24;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(8)
 }
 
@@ -3356,14 +3356,14 @@ OP(lsl_8_r)
 			res = ((uint32_t)src << sft) & 0xff;
 			CPU->flag_V = 0;
 			CPU->flag_N = res >> 0;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint8_t *)(&DY) = res;
 			RET(6)
 		}
 
 		CPU->flag_X = CPU->flag_C = 0;
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		CPU->flag_V = 0;
 		*(uint8_t *)(&DY) = 0;
 		RET(6)
@@ -3372,7 +3372,7 @@ OP(lsl_8_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 0;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3392,14 +3392,14 @@ OP(lsl_16_r)
 			res = ((uint32_t)src << sft) & 0xffff;
 			CPU->flag_V = 0;
 			CPU->flag_N = res >> 8;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint16_t *)(&DY) = res;
 			RET(6)
 		}
 
 		CPU->flag_X = CPU->flag_C = 0;
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		CPU->flag_V = 0;
 		*(uint16_t *)(&DY) = 0;
 		RET(6)
@@ -3408,7 +3408,7 @@ OP(lsl_16_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 8;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3428,7 +3428,7 @@ OP(lsl_32_r)
 			res = (uint32_t)src << sft;
 			CPU->flag_V = 0;
 			CPU->flag_N = res >> 24;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint32_t *)(&DY) = res;
 			RET(8)
 		}
@@ -3437,7 +3437,7 @@ OP(lsl_32_r)
 		else CPU->flag_C = 0;
 		CPU->flag_X = CPU->flag_C;
 		CPU->flag_N = 0;
-		CPU->flag_Z = 0;
+		CPU->flag_notZ = 0;
 		CPU->flag_V = 0;
 		*(uint32_t *)(&DY) = 0;
 		RET(8)
@@ -3446,7 +3446,7 @@ OP(lsl_32_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 24;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(8)
 }
 
@@ -3467,7 +3467,7 @@ OP(roxl_8_r)
 		CPU->flag_X = CPU->flag_C = res >> 0;
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 0;
-		CPU->flag_Z = res & 0xff;
+		CPU->flag_notZ = res & 0xff;
 		*(uint8_t *)(&DY) = res;
 		RET(6)
 	}
@@ -3475,7 +3475,7 @@ OP(roxl_8_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = CPU->flag_X;
 	CPU->flag_N = (uint32_t)src >> 0;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3496,7 +3496,7 @@ OP(roxl_16_r)
 		CPU->flag_X = CPU->flag_C = res >> 8;
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 8;
-		CPU->flag_Z = res & 0xffff;
+		CPU->flag_notZ = res & 0xffff;
 		*(uint16_t *)(&DY) = res;
 		RET(6)
 	}
@@ -3504,7 +3504,7 @@ OP(roxl_16_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = CPU->flag_X;
 	CPU->flag_N = (uint32_t)src >> 8;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3530,7 +3530,7 @@ OP(roxl_32_r)
 		CPU->flag_C = CPU->flag_X;
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 24;
-		CPU->flag_Z = res;
+		CPU->flag_notZ = res;
 		*(uint32_t *)(&DY) = res;
 		RET(8)
 	}
@@ -3538,7 +3538,7 @@ OP(roxl_32_r)
 	CPU->flag_V = 0;
 	CPU->flag_C = CPU->flag_X;
 	CPU->flag_N = (uint32_t)src >> 24;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(8)
 }
 
@@ -3558,7 +3558,7 @@ OP(rol_8_r)
 			res = (uint32_t)(((src << sft) | (src >> (8 - sft))) & 0x000000FF);
 			CPU->flag_V = 0;
 			CPU->flag_N = res >> 0;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint8_t *)(&DY) = res;
 			RET(6)
 		}
@@ -3566,14 +3566,14 @@ OP(rol_8_r)
 		CPU->flag_V = 0;
 		CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 		CPU->flag_N = (uint32_t)src >> 0;
-		CPU->flag_Z = (uint32_t)src;
+		CPU->flag_notZ = (uint32_t)src;
 		RET(6)
 	}
 
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 0;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3593,7 +3593,7 @@ OP(rol_16_r)
 			res = (uint32_t)(((src << sft) | (src >> (16 - sft))) & 0x0000FFFF);
 			CPU->flag_V = 0;
 			CPU->flag_N = res >> 8;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint16_t *)(&DY) = res;
 			RET(6)
 		}
@@ -3601,14 +3601,14 @@ OP(rol_16_r)
 		CPU->flag_V = 0;
 		CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 		CPU->flag_N = (uint32_t)src >> 8;
-		CPU->flag_Z = (uint32_t)src;
+		CPU->flag_notZ = (uint32_t)src;
 		RET(6)
 	}
 
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 8;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(6)
 }
 
@@ -3628,7 +3628,7 @@ OP(rol_32_r)
 			res = ((uint32_t)src << sft) | ((uint32_t)src >> (32 - sft));
 			CPU->flag_V = 0;
 			CPU->flag_N = res >> 24;
-			CPU->flag_Z = res;
+			CPU->flag_notZ = res;
 			*(uint32_t *)(&DY) = res;
 			RET(8)
 		}
@@ -3636,14 +3636,14 @@ OP(rol_32_r)
 		CPU->flag_V = 0;
 		CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 		CPU->flag_N = (uint32_t)src >> 24;
-		CPU->flag_Z = (uint32_t)src;
+		CPU->flag_notZ = (uint32_t)src;
 		RET(8)
 	}
 
 	CPU->flag_V = 0;
 	CPU->flag_C = 0;
 	CPU->flag_N = (uint32_t)src >> 24;
-	CPU->flag_Z = (uint32_t)src;
+	CPU->flag_notZ = (uint32_t)src;
 	RET(8)
 }
 
@@ -3756,7 +3756,7 @@ OP(asr_16_ai)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = ((uint32_t)src >> 1) | ((uint32_t)src & (1 << 15));
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -3771,7 +3771,7 @@ OP(asr_16_pi)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = ((uint32_t)src >> 1) | ((uint32_t)src & (1 << 15));
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -3786,7 +3786,7 @@ OP(asr_16_pd)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = ((uint32_t)src >> 1) | ((uint32_t)src & (1 << 15));
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(14)
 }
@@ -3801,7 +3801,7 @@ OP(asr_16_di)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = ((uint32_t)src >> 1) | ((uint32_t)src & (1 << 15));
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -3816,7 +3816,7 @@ OP(asr_16_ix)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = ((uint32_t)src >> 1) | ((uint32_t)src & (1 << 15));
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(18)
 }
@@ -3831,7 +3831,7 @@ OP(asr_16_aw)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = ((uint32_t)src >> 1) | ((uint32_t)src & (1 << 15));
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -3846,7 +3846,7 @@ OP(asr_16_al)
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = ((uint32_t)src >> 1) | ((uint32_t)src & (1 << 15));
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(20)
 }
@@ -3859,7 +3859,7 @@ OP(lsr_16_ai)
 	CPU->flag_N = CPU->flag_V = 0;
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = (uint32_t)(src >> 1);
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -3873,7 +3873,7 @@ OP(lsr_16_pi)
 	CPU->flag_N = CPU->flag_V = 0;
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = (uint32_t)(src >> 1);
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -3887,7 +3887,7 @@ OP(lsr_16_pd)
 	CPU->flag_N = CPU->flag_V = 0;
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = (uint32_t)(src >> 1);
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(14)
 }
@@ -3901,7 +3901,7 @@ OP(lsr_16_di)
 	CPU->flag_N = CPU->flag_V = 0;
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = (uint32_t)(src >> 1);
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -3915,7 +3915,7 @@ OP(lsr_16_ix)
 	CPU->flag_N = CPU->flag_V = 0;
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = (uint32_t)(src >> 1);
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(18)
 }
@@ -3929,7 +3929,7 @@ OP(lsr_16_aw)
 	CPU->flag_N = CPU->flag_V = 0;
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = (uint32_t)(src >> 1);
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -3943,7 +3943,7 @@ OP(lsr_16_al)
 	CPU->flag_N = CPU->flag_V = 0;
 	CPU->flag_X = CPU->flag_C = (uint32_t)src << C68K_SR_C_SFT;
 	res = (uint32_t)(src >> 1);
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(20)
 }
@@ -3957,7 +3957,7 @@ OP(roxr_16_ai)
 	res = ((uint32_t)src >> 1) | ((CPU->flag_X & C68K_SR_X) << 7);
 	CPU->flag_C = CPU->flag_X = (uint32_t)(src << C68K_SR_C_SFT);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -3972,7 +3972,7 @@ OP(roxr_16_pi)
 	res = ((uint32_t)src >> 1) | ((CPU->flag_X & C68K_SR_X) << 7);
 	CPU->flag_C = CPU->flag_X = (uint32_t)(src << C68K_SR_C_SFT);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -3987,7 +3987,7 @@ OP(roxr_16_pd)
 	res = ((uint32_t)src >> 1) | ((CPU->flag_X & C68K_SR_X) << 7);
 	CPU->flag_C = CPU->flag_X = (uint32_t)(src << C68K_SR_C_SFT);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(14)
 }
@@ -4002,7 +4002,7 @@ OP(roxr_16_di)
 	res = ((uint32_t)src >> 1) | ((CPU->flag_X & C68K_SR_X) << 7);
 	CPU->flag_C = CPU->flag_X = (uint32_t)(src << C68K_SR_C_SFT);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4017,7 +4017,7 @@ OP(roxr_16_ix)
 	res = ((uint32_t)src >> 1) | ((CPU->flag_X & C68K_SR_X) << 7);
 	CPU->flag_C = CPU->flag_X = (uint32_t)(src << C68K_SR_C_SFT);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(18)
 }
@@ -4032,7 +4032,7 @@ OP(roxr_16_aw)
 	res = ((uint32_t)src >> 1) | ((CPU->flag_X & C68K_SR_X) << 7);
 	CPU->flag_C = CPU->flag_X = (uint32_t)(src << C68K_SR_C_SFT);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4047,7 +4047,7 @@ OP(roxr_16_al)
 	res = ((uint32_t)src >> 1) | ((CPU->flag_X & C68K_SR_X) << 7);
 	CPU->flag_C = CPU->flag_X = (uint32_t)(src << C68K_SR_C_SFT);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res;
+	CPU->flag_notZ = res;
 	WRITE_MEM_16(adr, res);
 	RET(20)
 }
@@ -4061,7 +4061,7 @@ OP(ror_16_ai)
 	CPU->flag_C = (uint32_t)(src << C68K_SR_C_SFT);
 	res = ((uint32_t)src >> 1) | ((uint32_t)src << 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -4076,7 +4076,7 @@ OP(ror_16_pi)
 	CPU->flag_C = (uint32_t)(src << C68K_SR_C_SFT);
 	res = ((uint32_t)src >> 1) | ((uint32_t)src << 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -4091,7 +4091,7 @@ OP(ror_16_pd)
 	CPU->flag_C = (uint32_t)(src << C68K_SR_C_SFT);
 	res = ((uint32_t)src >> 1) | ((uint32_t)src << 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(14)
 }
@@ -4106,7 +4106,7 @@ OP(ror_16_di)
 	CPU->flag_C = (uint32_t)(src << C68K_SR_C_SFT);
 	res = ((uint32_t)src >> 1) | ((uint32_t)src << 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4121,7 +4121,7 @@ OP(ror_16_ix)
 	CPU->flag_C = (uint32_t)(src << C68K_SR_C_SFT);
 	res = ((uint32_t)src >> 1) | ((uint32_t)src << 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(18)
 }
@@ -4136,7 +4136,7 @@ OP(ror_16_aw)
 	CPU->flag_C = (uint32_t)(src << C68K_SR_C_SFT);
 	res = ((uint32_t)src >> 1) | ((uint32_t)src << 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4151,7 +4151,7 @@ OP(ror_16_al)
 	CPU->flag_C = (uint32_t)(src << C68K_SR_C_SFT);
 	res = ((uint32_t)src >> 1) | ((uint32_t)src << 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(20)
 }
@@ -4165,7 +4165,7 @@ OP(asl_16_ai)
 	res = (uint32_t)(src << 1);
 	CPU->flag_V = ((uint32_t)src ^ res) >> 8;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -4180,7 +4180,7 @@ OP(asl_16_pi)
 	res = (uint32_t)(src << 1);
 	CPU->flag_V = ((uint32_t)src ^ res) >> 8;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -4195,7 +4195,7 @@ OP(asl_16_pd)
 	res = (uint32_t)(src << 1);
 	CPU->flag_V = ((uint32_t)src ^ res) >> 8;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(14)
 }
@@ -4210,7 +4210,7 @@ OP(asl_16_di)
 	res = (uint32_t)(src << 1);
 	CPU->flag_V = ((uint32_t)src ^ res) >> 8;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4225,7 +4225,7 @@ OP(asl_16_ix)
 	res = (uint32_t)(src << 1);
 	CPU->flag_V = ((uint32_t)src ^ res) >> 8;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(18)
 }
@@ -4240,7 +4240,7 @@ OP(asl_16_aw)
 	res = (uint32_t)(src << 1);
 	CPU->flag_V = ((uint32_t)src ^ res) >> 8;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4255,7 +4255,7 @@ OP(asl_16_al)
 	res = (uint32_t)(src << 1);
 	CPU->flag_V = ((uint32_t)src ^ res) >> 8;
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(20)
 }
@@ -4269,7 +4269,7 @@ OP(lsl_16_ai)
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	res = (uint32_t)(src << 1);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -4284,7 +4284,7 @@ OP(lsl_16_pi)
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	res = (uint32_t)(src << 1);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -4299,7 +4299,7 @@ OP(lsl_16_pd)
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	res = (uint32_t)(src << 1);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(14)
 }
@@ -4314,7 +4314,7 @@ OP(lsl_16_di)
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	res = (uint32_t)(src << 1);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4329,7 +4329,7 @@ OP(lsl_16_ix)
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	res = (uint32_t)(src << 1);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(18)
 }
@@ -4344,7 +4344,7 @@ OP(lsl_16_aw)
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	res = (uint32_t)(src << 1);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4359,7 +4359,7 @@ OP(lsl_16_al)
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	res = (uint32_t)(src << 1);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(20)
 }
@@ -4373,7 +4373,7 @@ OP(roxl_16_ai)
 	res = ((uint32_t)src << 1) | ((CPU->flag_X & C68K_SR_X) >> 8);
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -4388,7 +4388,7 @@ OP(roxl_16_pi)
 	res = ((uint32_t)src << 1) | ((CPU->flag_X & C68K_SR_X) >> 8);
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -4403,7 +4403,7 @@ OP(roxl_16_pd)
 	res = ((uint32_t)src << 1) | ((CPU->flag_X & C68K_SR_X) >> 8);
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(14)
 }
@@ -4418,7 +4418,7 @@ OP(roxl_16_di)
 	res = ((uint32_t)src << 1) | ((CPU->flag_X & C68K_SR_X) >> 8);
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4433,7 +4433,7 @@ OP(roxl_16_ix)
 	res = ((uint32_t)src << 1) | ((CPU->flag_X & C68K_SR_X) >> 8);
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(18)
 }
@@ -4448,7 +4448,7 @@ OP(roxl_16_aw)
 	res = ((uint32_t)src << 1) | ((CPU->flag_X & C68K_SR_X) >> 8);
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4463,7 +4463,7 @@ OP(roxl_16_al)
 	res = ((uint32_t)src << 1) | ((CPU->flag_X & C68K_SR_X) >> 8);
 	CPU->flag_X = CPU->flag_C = (uint32_t)(src >> 7);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(20)
 }
@@ -4477,7 +4477,7 @@ OP(rol_16_ai)
 	CPU->flag_C = (uint32_t)(src >> 7);
 	res = ((uint32_t)src << 1) | ((uint32_t)src >> 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -4492,7 +4492,7 @@ OP(rol_16_pi)
 	CPU->flag_C = (uint32_t)(src >> 7);
 	res = ((uint32_t)src << 1) | ((uint32_t)src >> 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(12)
 }
@@ -4507,7 +4507,7 @@ OP(rol_16_pd)
 	CPU->flag_C = (uint32_t)(src >> 7);
 	res = ((uint32_t)src << 1) | ((uint32_t)src >> 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(14)
 }
@@ -4522,7 +4522,7 @@ OP(rol_16_di)
 	CPU->flag_C = (uint32_t)(src >> 7);
 	res = ((uint32_t)src << 1) | ((uint32_t)src >> 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4537,7 +4537,7 @@ OP(rol_16_ix)
 	CPU->flag_C = (uint32_t)(src >> 7);
 	res = ((uint32_t)src << 1) | ((uint32_t)src >> 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(18)
 }
@@ -4552,7 +4552,7 @@ OP(rol_16_aw)
 	CPU->flag_C = (uint32_t)(src >> 7);
 	res = ((uint32_t)src << 1) | ((uint32_t)src >> 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(16)
 }
@@ -4567,7 +4567,7 @@ OP(rol_16_al)
 	CPU->flag_C = (uint32_t)(src >> 7);
 	res = ((uint32_t)src << 1) | ((uint32_t)src >> 15);
 	CPU->flag_N = res >> 8;
-	CPU->flag_Z = res & 0xffff;
+	CPU->flag_notZ = res & 0xffff;
 	WRITE_MEM_16(adr, res);
 	RET(20)
 }

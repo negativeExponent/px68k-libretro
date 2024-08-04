@@ -1,5 +1,5 @@
-#ifndef _WINX68K_WINDRAW_H
-#define _WINX68K_WINDRAW_H
+#ifndef _X68K_WINDRAW_H
+#define _X68K_WINDRAW_H
 
 #include "winui.h"
 
@@ -19,4 +19,4 @@ extern struct menu_flist mfl;
 void WinDraw_DrawMenufile(struct menu_flist *mfl);
 void WinDraw_ClearMenuBuffer(void);
 
-#endif /* _WINX68K_WINDRAW_H */
+#endif /* _X68K_WINDRAW_H */

@@ -9,6 +9,7 @@
 #include "mfp.h"
 #include "crtc.h"
 #include "irqh.h"
+#include "../x11/state.h"
 
 uint8_t MFP[24];
 uint8_t LastKey                     = 0;
@@ -18,7 +19,7 @@ static int32_t Timer_Tick[4]        = { 0, 0, 0, 0 };
 static const int Timer_Prescaler[8] = { 1, 10, 25, 40, 125, 160, 250, 500 };
 static const int TimerInt[4]        = { 2, 7, 10, 11 };
 
-/* 優先割り込みのチェックをし、該当ベクタを返す */
+/* Check for priority interrupt and return the corresponding vector */
 static int32_t FASTCALL MFP_IntCallback(int32_t irq)
 {
 	uint8_t flag;
@@ -70,7 +71,7 @@ static int32_t FASTCALL MFP_IntCallback(int32_t irq)
 	return vect;
 }
 
-/* 割り込みが取り消しになってないか調べます */
+/* Check if the interrupt has been cancelled */
 static void MFP_RecheckInt(void)
 {
 	uint8_t flag;
@@ -90,13 +91,13 @@ static void MFP_RecheckInt(void)
 	}
 }
 
-/* 割り込み発生 */
+/* Interrupt occurred */
 void MFP_Int(int irq)
 {
 	uint8_t flag = 0x80;
 
-	/* 'irq' は 0が最優先（HSYNC/GPIP7）、15が最下位（ALARM）*/
-	/* ベクタとは番号の振り方が逆になるので注意~ */
+	/* 'irq' has the highest priority of 0 (HSYNC/GPIP7) and the lowest priority of 15 (ALARM)*/
+	/* Note that the numbering is the opposite to that of vectors. */
 
 	if (irq < 8)
 	{
@@ -125,7 +126,6 @@ void MFP_Int(int irq)
 	}
 }
 
-/* 初期化 */
 void MFP_Init(void)
 {
 	static const uint8_t initregs[24] = {
@@ -155,7 +155,7 @@ static uint8_t GetGPIP(void)
 	}
 
 	if ((hpos >= ((int)CRTC_Regs[0x05] * HSYNC_CLK / CRTC_Regs[0x01])) &&
-	    (hpos < ((int)CRTC_Regs[0x07] * HSYNC_CLK / CRTC_Regs[0x01])))
+		(hpos < ((int)CRTC_Regs[0x07] * HSYNC_CLK / CRTC_Regs[0x01])))
 	{
 		ret &= 0x7f;
 	}
@@ -234,7 +234,7 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 		case MFP_IERA:
 		case MFP_IERB:
 			MFP[reg] = data;
-			MFP[reg + 2] &= data; /* 禁止されたものはIPRA/Bを落とす */
+			MFP[reg + 2] &= data; /* Prohibited items drop IPRA/B */
 			MFP_RecheckInt();
 			break;
 
@@ -285,7 +285,7 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 			break;
 
 		case MFP_TSR:
-			MFP[reg] = data | 0x80; /* Txは常にEnableに */
+			MFP[reg] = data | 0x80; /* Tx is always enabled */
 			break;
 
 		case MFP_UDR:
@@ -298,8 +298,8 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-/* たいまの時間を進める（も少し奇麗に書き直そう……） */
-void FASTCALL MFP_Timer(long clock)
+/* Advance the current time (let's rewrite it a bit more neatly...) */
+void FASTCALL MFP_Timer(int32_t clock)
 {
 	int chan;
 
@@ -316,7 +316,7 @@ void FASTCALL MFP_Timer(long clock)
 		case 3:
 			mode = MFP[MFP_TCDCR];
 			break;
-		
+
 		default:
 			mode = MFP[MFP_TACR + chan];
 			break;
@@ -344,19 +344,19 @@ void FASTCALL MFP_TimerA(void)
 {
 	if ((MFP[MFP_TACR] & 15) == 8)
 	{
-		/* いべんとかうんともーど（VDispでカウント） */
+		/* Event and count mode (counted by VDisp) */
 		if (MFP[MFP_AER] & 0x10)
 		{
-			/* VDisp割り込みとタイミングが違ってるのが気になるといえば気になる（ぉぃ */
+			/* If you're wondering about the difference in timing with the VDisp interrupt, that's a bit concerning (lol) */
 			if (vline == CRTC_VSTART)
-				MFP[MFP_TADR]--; /* 本来は同じだと思うんだけどなぁ……それじゃ動かんし（汗 */
+				MFP[MFP_TADR]--; /* I think it's the same thing but... it won't work (sweat */
 		}
 		else
 		{
 			if (CRTC_VEND >= VLINE_TOTAL)
 			{
 				if ((long)vline == (VLINE_TOTAL - 1))
-					MFP[MFP_TADR]--; /* 表示期間の終わりでカウントらしひ…（ろーどす） */
+					MFP[MFP_TADR]--; /* Counting at the end of the display period... (load) */
 			}
 			else
 			{
@@ -370,4 +370,14 @@ void FASTCALL MFP_TimerA(void)
 			MFP_Int(2);
 		}
 	}
+}
+
+int MFP_StateContext(void *f, int writing) {
+	state_context_f(MFP, sizeof(MFP));
+	state_context_f(&LastKey, sizeof(LastKey));
+	state_context_f(&Timer_TBO, sizeof(Timer_TBO));
+	state_context_f(Timer_Reload, sizeof(Timer_Reload));
+	state_context_f(Timer_Tick, sizeof(Timer_Tick));
+
+	return 1;
 }

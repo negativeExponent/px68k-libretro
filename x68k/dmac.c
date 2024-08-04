@@ -1,7 +1,6 @@
 /*
- *  DMAC.C - DMAコントローラ（HD63450）
- *  ToDo : もっと奇麗に ^^;
- */
+ *  DMAC.C - DMA Controller (HD63450)
+  */
 
 #include "../x11/common.h"
 
@@ -12,6 +11,8 @@
 #include "mercury.h"
 #include "sasi.h"
 #include "x68kmemory.h"
+
+#include "../x11/state.h"
 
 dmac_ch DMA[4];
 
@@ -104,7 +105,7 @@ static void FASTCALL SetCCR(int ch, uint8_t data)
 	uint8_t old = DMA[ch].CCR;
 
 	DMA[ch].CCR = (data & 0xef) |
-	              (DMA[ch].CCR & 0x80); /* CCRのSTRは書き込みでは落とせない */
+				  (DMA[ch].CCR & 0x80); /* CCR STR cannot be dropped by writing */
 
 	if ((data & 0x10) && (DMA[ch].CCR & 0x80))
 	{
@@ -115,17 +116,17 @@ static void FASTCALL SetCCR(int ch, uint8_t data)
 
 	if (data & 0x20) /* Halt */
 	{
-		/* 本来は落ちるはず。Nemesis'90で調子悪いので… */
+		/* Should be correct, but Nemesis'90 will not work properly with it so... */
 		/* DMA[ch].CSR &= 0xf7; */
 		return;
 	}
 
 	if (data & 0x80)
 	{
-		/* 動作開始 */
+		/* Start DMA */
 		if (old & 0x20)
 		{
-			/* Halt解除 */
+			/* Halt release */
 			DMA[ch].CSR |= 0x08;
 			DMA_Exec(ch);
 		}
@@ -133,26 +134,47 @@ static void FASTCALL SetCCR(int ch, uint8_t data)
 		{
 			if (DMA[ch].CSR & 0xf8)
 			{
-				/* タイミングエラー */
+				/* Timing errors */
 				DMAERR(ch, 0x02)
 				return;
 			}
 			DMA[ch].CSR |= 0x08;
 			if ((DMA[ch].OCR & 8) /*&&(!DMA[ch].MTC)*/)
 			{
-				/* アレイ／リンクアレイチェイン */
-				DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR) & 0xffffff;
-				DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4) & 0xffff;
+				/* Array/Link Array Chain */
+
+				/* Load MAR */
+				DMA[ch].BAR &= 0xfffffe;
+				DMA[ch].MAR = (dma_readmem24_word(DMA[ch].BAR) & 0x00ff);
+				DMA[ch].BAR += 2;
+				DMA[ch].MAR <<= 16;
+				DMA[ch].BAR &= 0xfffffe;
+				DMA[ch].MAR |= (dma_readmem24_word(DMA[ch].BAR) & 0xffff);
+				DMA[ch].BAR += 2;
+
+				/* Load MTC */
+				DMA[ch].BAR &= 0xfffffe;
+				DMA[ch].MTC = (dma_readmem24_word(DMA[ch].BAR) & 0xffff);
+				DMA[ch].BAR += 2;
+
 				if (DMA[ch].OCR & 4)
 				{
-					DMA[ch].BAR = dma_readmem24_dword(DMA[ch].BAR + 6);
+					uint32_t base;
+
+					/* Link array chain (loads the next link address into BAR */
+					DMA[ch].BAR &= 0xfffffe;
+					base = (dma_readmem24_word(DMA[ch].BAR) & 0x00ff);
+					DMA[ch].BAR += 2;
+					base <<= 16;
+					DMA[ch].BAR &= 0xfffffe;
+					base |= (dma_readmem24_word(DMA[ch].BAR) & 0xffff);
+					DMA[ch].BAR = base;
 				}
 				else
 				{
-					DMA[ch].BAR += 6;
 					if (!DMA[ch].BTC)
 					{
-						/* これもカウントエラー */
+						/* This is also a counting error */
 						DMAERR(ch, 0x0f)
 						return;
 					}
@@ -160,18 +182,18 @@ static void FASTCALL SetCCR(int ch, uint8_t data)
 			}
 			if (!DMA[ch].MTC)
 			{
-				/* カウントエラー */
+				/* Counting error */
 				DMAERR(ch, 0x0d)
 				return;
 			}
 			DMA[ch].CER = 0x00;
-			DMA_Exec(ch); /* 開始直後にカウンタを見て動作チェックする場合があるので、少しだけ実行しておく */
+			DMA_Exec(ch); /* Since you may need to check the counter immediately after starting, run it for a little while. */
 		}
 	}
 
 	if ((data & 0x40) && (!DMA[ch].MTC))
 	{
-		/* Continuous Op. */
+		/* Continuous DMA. */
 		if (DMA[ch].CCR & 0x80)
 		{
 			if (DMA[ch].CCR & 0x40)
@@ -180,7 +202,7 @@ static void FASTCALL SetCCR(int ch, uint8_t data)
 			}
 			else if (DMA[ch].OCR & 8)
 			{
-				/* アレイ／リンクアレイチェイン */
+				/* Array/Link Array Chain */
 				DMAERR(ch, 0x01)
 			}
 			else
@@ -192,8 +214,7 @@ static void FASTCALL SetCCR(int ch, uint8_t data)
 				DMA[ch].BTC = 0;
 				if (!DMA[ch].MAR)
 				{
-					DMA[ch].CSR |=
-					    0x40; /* ブロック転送終了ビット／割り込み ? */
+					DMA[ch].CSR |= 0x40; /* Block transfer end bit/interrupt? */
 					DMAINT(ch)
 					return;
 				}
@@ -208,7 +229,7 @@ static void FASTCALL SetCCR(int ch, uint8_t data)
 		}
 		else
 		{
-			/* 非Active時のCNTビットは動作タイミングエラー */
+			/* The CNT bit in non-active mode indicates an operation timing error */
 			DMAERR(ch, 0x02)
 		}
 	}
@@ -220,14 +241,14 @@ uint8_t FASTCALL DMA_Read(uint32_t adr)
 	int ch = (adr >> 6) & 0x03;
 
 	if (adr >= 0xe84100)
-		return 0; /* ばすえらー？ */
+		return 0; /* Bus error? */
 
 	switch (off)
 	{
 	case 0x00:
 		if ((ch == 2) && (off == 0))
 		{
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
 			DMA[ch].CSR = (DMA[ch].CSR & 0xfe) | (Mcry_LRTiming & 1);
 #else
 			DMA[ch].CSR = (DMA[ch].CSR & 0xfe);
@@ -320,7 +341,7 @@ void FASTCALL DMA_Write(uint32_t adr, uint8_t data)
 	int ch = (adr >> 6) & 0x03;
 
 	if (adr >= 0xe84100)
-		return; /* ばすえらー？ */
+		return; /* Bus error? */
 
 	switch (off)
 	{
@@ -441,11 +462,12 @@ void FASTCALL DMA_Write(uint32_t adr, uint8_t data)
 	}
 }
 
+/* Transfer DMA */
 int FASTCALL DMA_Exec(int ch)
 {
 	while ((DMA[ch].CSR & 0x08) && (!(DMA[ch].CCR & 0x20)) &&
-	       (!(DMA[ch].CSR & 0x80)) && (DMA[ch].MTC) &&
-	       (((DMA[ch].OCR & 3) != 2) || (IsReady[ch]())))
+		   (!(DMA[ch].CSR & 0x80)) && (DMA[ch].MTC) &&
+		   (((DMA[ch].OCR & 3) != 2) || (IsReady[ch]())))
 	{
 		uint32_t data     = 0;
 		uint32_t dma_type = ((DMA[ch].OCR >> 4) & 3) + ((DMA[ch].DCR >> 1) & 4);
@@ -533,13 +555,19 @@ int FASTCALL DMA_Exec(int ch)
 		case 6:
 			if (DMA[ch].OCR & 0x80)
 			{
-				data = dma_readmem24_dword(DMA[ch].DAR);
-				dma_writemem24_dword(DMA[ch].MAR, data);
+				data = dma_readmem24_word(DMA[ch].DAR);
+				data <<= 16;
+				data |= (uint16_t)(dma_readmem24_word(DMA[ch].DAR + 2));
+				dma_writemem24_word(DMA[ch].MAR, (uint16_t)(data >> 16));
+				dma_writemem24_word(DMA[ch].MAR + 2, (uint16_t)data);
 			}
 			else
 			{
-				data = dma_readmem24_dword(DMA[ch].MAR);
-				dma_writemem24_dword(DMA[ch].DAR, data);
+				data = dma_readmem24_word(DMA[ch].MAR);
+				data <<= 16;
+				data |= (uint16_t)dma_readmem24_word(DMA[ch].MAR + 2);
+				dma_writemem24_word(DMA[ch].DAR, (uint16_t)(data >> 16));
+				dma_writemem24_word(DMA[ch].DAR + 2, (uint16_t)data);
 			}
 			break;
 		}
@@ -589,18 +617,40 @@ int FASTCALL DMA_Exec(int ch)
 		DMA[ch].MTC--;
 		if (!DMA[ch].MTC)
 		{
-			/* 指定分のバイト数転送終了 */
+			/* Transfer of specified number of bytes completed */
 			if (DMA[ch].OCR & 8)
 			{
-				/* チェインモードで動いている場合 */
+				/* If running in chained mode */
 				if (DMA[ch].OCR & 4)
 				{
-					/* リンクアレイチェイン */
+					/* If running in chained mode */
 					if (DMA[ch].BAR)
 					{
-						DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR);
-						DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4) & 0xffff;
-						DMA[ch].BAR = dma_readmem24_dword(DMA[ch].BAR + 6);
+						uint32_t base;
+
+						/* Load MAR */
+						DMA[ch].BAR &= 0xfffffe;
+						DMA[ch].MAR = (dma_readmem24_word(DMA[ch].BAR) & 0x00ff);
+						DMA[ch].BAR += 2;
+						DMA[ch].MAR <<= 16;
+						DMA[ch].BAR &= 0xfffffe;
+						DMA[ch].MAR |= (dma_readmem24_word(DMA[ch].BAR) & 0xffff);
+						DMA[ch].BAR += 2;
+
+						/* Load MTC */
+						DMA[ch].BAR &= 0xfffffe;
+						DMA[ch].MTC = (dma_readmem24_word(DMA[ch].BAR) & 0xffff);
+						DMA[ch].BAR += 2;
+
+						/* Link array chain (loads the next link address into BAR */
+						DMA[ch].BAR &= 0xfffffe;
+						base = (dma_readmem24_word(DMA[ch].BAR) & 0x00ff);
+						DMA[ch].BAR += 2;
+						base <<= 16;
+						DMA[ch].BAR &= 0xfffffe;
+						base |= (dma_readmem24_word(DMA[ch].BAR) & 0xffff);
+						DMA[ch].BAR = base;
+
 						if (BusErrFlag)
 						{
 							if (BusErrFlag == 1)
@@ -619,14 +669,26 @@ int FASTCALL DMA_Exec(int ch)
 				}
 				else
 				{
-					/* アレイチェイン */
+					/* Array chain */
 					DMA[ch].BTC--;
 					if (DMA[ch].BTC)
 					{
-						/* 次のブロックがある */
-						DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR);
-						DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR + 4) & 0xffff;
-						DMA[ch].BAR += 6;
+						/* Next block exists */
+
+						/* Load MAR */
+						DMA[ch].BAR &= 0xfffffe;
+						DMA[ch].MAR = (dma_readmem24_word(DMA[ch].BAR) & 0x00ff);
+						DMA[ch].BAR += 2;
+						DMA[ch].MAR <<= 16;
+						DMA[ch].BAR &= 0xfffffe;
+						DMA[ch].MAR |= (dma_readmem24_word(DMA[ch].BAR) & 0xffff);
+						DMA[ch].BAR += 2;
+
+						/* Load MTC */
+						DMA[ch].BAR &= 0xfffffe;
+						DMA[ch].MTC = (dma_readmem24_word(DMA[ch].BAR) & 0xffff);
+						DMA[ch].BAR += 2;
+
 						if (BusErrFlag)
 						{
 							if (BusErrFlag == 1)
@@ -646,10 +708,11 @@ int FASTCALL DMA_Exec(int ch)
 			}
 			else
 			{
-				/* 通常モード（1ブロックのみ）終了 */
+				/* Normal mode (only one block) finished */
 				if (DMA[ch].CCR & 0x40)
-				{                        /* Countinuous動作中 */
-					DMA[ch].CSR |= 0x40; /* ブロック転送終了ビット／割り込み */
+				{
+					/* Countinuous action */
+					DMA[ch].CSR |= 0x40; /* Block transfer end bit/interrupt */
 					DMAINT(ch)
 					if (DMA[ch].BAR)
 					{
@@ -695,8 +758,16 @@ void DMA_Init(void)
 	}
 	DMA_SetReadyCB(0, FDC_IsDataReady);
 	DMA_SetReadyCB(1, SASI_IsReady);
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
 	DMA_SetReadyCB(2, Mcry_IsReady);
 #endif
 	DMA_SetReadyCB(3, ADPCM_IsReady);
+}
+
+int DMA_StateContext(void *f, int writing) {
+	state_context_f(DMA, sizeof(DMA));
+	state_context_f(&DMA_IntCH, sizeof(DMA_IntCH));
+	state_context_f(&DMA_LastInt, sizeof(DMA_LastInt));
+
+	return 1;
 }

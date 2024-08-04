@@ -29,6 +29,7 @@
 
 #include "../x68k/bg.h"
 #include "../x68k/crtc.h"
+#include "../x68k/vc.h"
 #include "../x68k/gvram.h"
 #include "../x68k/palette.h"
 #include "../x68k/tvram.h"
@@ -383,7 +384,7 @@ void WinDraw_DrawLine(void)
 			{
 				if ((VCReg2[0] & 0x10) && (VCReg2[1] & 1))
 				{
-					Grp_DrawLine4SP((VCReg1[1]) & 3 /*, 1*/); /* 半透明の下準備 */
+					Grp_DrawLine4SP((VCReg1[1]) & 3 /*, 1*/); /* Semi-transparent preparation */
 					pron = tron = 1;
 				}
 				opaq = 1;
@@ -430,11 +431,11 @@ void WinDraw_DrawLine(void)
 		case 1:
 		case 2:
 			opaq = 1;                                      /* 256 colors */
-			if ((VCReg1[1] & 3) <= ((VCReg1[1] >> 4) & 3)) /* 同じ値の時は、GRP0が優先（ドラスピ） */
+			if ((VCReg1[1] & 3) <= ((VCReg1[1] >> 4) & 3)) /* When the values ??are the same, GRP0 takes priority (Dragon Spirit) */
 			{
 				if ((VCReg2[0] & 0x10) && (VCReg2[1] & 1))
 				{
-					Grp_DrawLine8SP(0); /* 半透明の下準備 */
+					Grp_DrawLine8SP(0); /* Semi-transparent preparation */
 					tron = pron = 1;
 				}
 				if (VCReg2[1] & 4)
@@ -461,7 +462,7 @@ void WinDraw_DrawLine(void)
 			{
 				if ((VCReg2[0] & 0x10) && (VCReg2[1] & 1))
 				{
-					Grp_DrawLine8SP(1); /* 半透明の下準備 */
+					Grp_DrawLine8SP(1); /* Semi-transparent preparation */
 					tron = pron = 1;
 				}
 				if (VCReg2[1] & 4)
@@ -505,12 +506,12 @@ void WinDraw_DrawLine(void)
 
 #if 0
 	// if ( ( ((VCReg1[0]&0x30)>>4) < (VCReg1[0]&0x03) ) && (gon) )
-	//	gdrawed = 1;				// GrpよりBGの方が上
+	// gdrawed = 1; // BG is above Grp
 #endif
 
 	if (((VCReg1[0] & 0x30) >> 2) < (VCReg1[0] & 0x0c))
 	{
-		/* BGの方が上 */
+		/* BG is higher */
 		if ((VCReg2[1] & 0x20) && (Debug_Text))
 		{
 			Text_DrawLine(1);
@@ -535,7 +536,7 @@ void WinDraw_DrawLine(void)
 	}
 	else
 	{
-		/* Textの方が上 */
+		/* Text is on top */
 		if ((VCReg2[1] & 0x40) && (BG_Regs[8] & 2) && (!(BG_Regs[0x11] & 2)) && (Debug_Sp))
 		{
 			int s1 = (((BG_Regs[0x11] & 4) ? 2 : 1) - ((BG_Regs[0x11] & 16) ? 1 : 0));
@@ -560,7 +561,6 @@ void WinDraw_DrawLine(void)
 			}
 			else
 			{
-				/* 20010120 （琥珀色） */
 				memset(&BG_LineBuf[16], 0, TextDotX * 2);
 			}
 			memset(Text_TrFlag, 0, TextDotX + 16);
@@ -577,7 +577,7 @@ void WinDraw_DrawLine(void)
 	opaq = 1;
 
 #if 0
-					// Pri = 3（違反）に設定されている画面を表示
+					// Show screen where Pri = 3 (violation) is set
 		if ( ((VCReg1[0]&0x30)==0x30)&&(bgon) )
 		{
 			if ( ((VCReg2[0]&0x5d)==0x1d)&&((VCReg1[0]&0x03)!=0x03)&&(tron) )
@@ -606,14 +606,14 @@ void WinDraw_DrawLine(void)
 			tdrawed = 1;
 		}
 #endif
-	/* Pri = 2 or 3（最下位）に設定されている画面を表示
-	 * プライオリティが同じ場合は、GRP<SP<TEXT？（ドラスピ、桃伝、YsIII等）
+	/* Display screens with Pri = 2 or 3 (lowest)
+	 * If the priorities are the same, is GRP<SP<TEXT? (Dragon Spiral, Momoden, YsIII, etc.)
 
-	 * GrpよりTextが上にある場合にTextとの半透明を行うと、SPのプライオリティも
-	 * Textに引きずられる？（つまり、Grpより下にあってもSPが表示される？）
+	 * If Text is above Grp and you make it semi-transparent with Text, will the SP priority also
+	 * be dragged along by Text? (In other words, will SP be displayed even if it's below Grp?)
 
-	 * KnightArmsとかを見ると、半透明のベースプレーンは一番上になるみたい…。
-	 */
+	 * When looking at KnightArms, it seems like the semi-transparent base plane is at the top...
+	*/
 
 	if ((VCReg1[0] & 0x02))
 	{
@@ -656,7 +656,7 @@ void WinDraw_DrawLine(void)
 		tdrawed = 1;
 	}
 
-	/* Pri = 1（2番目）に設定されている画面を表示 */
+	/* Display the screen with Pri = 1 (second) */
 	if (((VCReg1[0] & 0x03) == 0x01) && (gon))
 	{
 		WinDraw_DrawGrpLine(opaq);
@@ -706,7 +706,7 @@ void WinDraw_DrawLine(void)
 		tdrawed = 1;
 	}
 
-	/* Pri = 0（最優先）に設定されている画面を表示 */
+	/* Display the screen with Pri = 0 (highest priority) */
 	if ((!(VCReg1[0] & 0x03)) && (gon))
 	{
 		WinDraw_DrawGrpLine(opaq);
@@ -741,13 +741,13 @@ void WinDraw_DrawLine(void)
 		opaq    = 0;
 	}
 
-	/* 特殊プライオリティ時のグラフィック */
-	if (((VCReg2[0] & 0x5c) == 0x14) && (pron)) /* 特殊Pri時は、対象プレーンビットは意味が無いらしい（ついんびー） */
+	/* Graphics at special priority */
+	if (((VCReg2[0] & 0x5c) == 0x14) && (pron)) /* When using special Pri, the target plane bit seems to have no meaning (twin bit) */
 	{
 		WinDraw_DrawPriLine();
 	}
-	else if (((VCReg2[0] & 0x5d) == 0x1c) && (tron)) /* 半透明時に全てが透明なドットをハーフカラーで埋める */
-	{                                                /* （AQUALES） */
+	else if (((VCReg2[0] & 0x5d) == 0x1c) && (tron)) /* When semi-transparent, fill all transparent dots with half color */
+	{                                                /* AQUALES */
 
 #define _DL_SUB()                                          \
 	{                                                      \
@@ -783,7 +783,7 @@ struct _px68k_menu
 	int mfs; /* menu font size; */
 } p6m;
 
-/* sjis→jisコード変換 */
+/* sjis to jis code conversion */
 static uint16_t sjis2jis(uint16_t w)
 {
 	uint8_t wh, wl;
@@ -805,8 +805,8 @@ static uint16_t sjis2jis(uint16_t w)
 	return (wh * 256 + wl);
 }
 
-/* JISコードから0 originのindexに変換する */
-/* ただし0x2921-0x2f7eはX68KのROM上にないので飛ばす */
+/* Convert from JIS code to index of 0 origin */
+/* However, 0x2921-0x2f7e is not in the X68K ROM, so it is skipped */
 static uint16_t jis2idx(uint16_t jc)
 {
 	if (jc >= 0x3000)
@@ -826,16 +826,16 @@ static uint16_t jis2idx(uint16_t jc)
 #define MENU_WIDTH   800
 
 /* fs : font size : 16 or 24
- * 半角文字の場合は16bitの上位8bitにデータを入れておくこと
- * (半角or全角の判断ができるように)
- */
+* For half-width characters, put the data in the top 8 bits of the 16 bits
+* (so that it can be determined whether it is half-width or full-width)
+*/
 static int32_t get_font_addr(uint16_t sjis, int fs)
 {
 	uint16_t jis, j_idx;
 	uint8_t jhi;
 	int fsb; /* file size in bytes */
 
-	/* 半角文字 */
+	/* Half-width character */
 	if (isHankaku(sjis >> 8))
 	{
 		switch (fs)
@@ -851,7 +851,7 @@ static int32_t get_font_addr(uint16_t sjis, int fs)
 		}
 	}
 
-	/* 全角文字 */
+	/* Double-byte character */
 	if (fs == 16)
 	{
 		fsb = 2 * 16;
@@ -871,17 +871,16 @@ static int32_t get_font_addr(uint16_t sjis, int fs)
 
 	if (jhi >= 0x21 && jhi <= 0x28)
 	{
-		/* 非漢字 */
+		/* Non-Chinese characters */
 		return ((fs == 16) ? 0x0 : 0x40000) + j_idx * fsb;
 	}
 	else if (jhi >= 0x30 && jhi <= 0x74)
 	{
-		/* 第一水準/第二水準 */
+		/* First level/Second level */
 		return ((fs == 16) ? 0x5e00 : 0x4d380) + j_idx * fsb;
 	}
 	else
 	{
-		/* ここにくることはないはず */
 		return -1;
 	}
 }
@@ -892,21 +891,22 @@ static void set_mcolor(uint16_t c)
 	p6m.mcolor = c;
 }
 
-/* mbcolor = 0 なら透明色とする */
+/* If mbcolor = 0, the color is transparent */
 static void set_mbcolor(uint16_t c)
 {
 	p6m.mbcolor = c;
 }
 
 #if 0 /* unused for now, so just silence this */
-/* グラフィック座標 */
+/* Graphic coordinates */
 static void set_mlocate(int x, int y)
 {
 	p6m.ml_x = x, p6m.ml_y = y;
 }
 #endif
 
-/* キャラクタ文字の座標 (横軸は1座標が半角文字幅になる) */
+/* Character coordinates (one coordinate on the horizontal axis is half-width
+ * character width) */
 static void set_mlocateC(int x, int y)
 {
 	p6m.ml_x = x * p6m.mfs / 2, p6m.ml_y = y * p6m.mfs;
@@ -927,10 +927,10 @@ static uint16_t *get_ml_ptr(void)
 	return p6m.mlp;
 }
 
-/* ・半角文字の場合は16bitの上位8bitにデータを入れておくこと
- *   (半角or全角の判断ができるように)
- * ・表示した分cursorは先に移動する
- */
+/* For half-width characters, put the data in the top 8 bits of the 16 bits
+* (so that it can be determined whether it is half-width or full-width)
+* The cursor moves forward by the displayed amount
+*/
 static void draw_char(uint16_t sjis)
 {
 	int32_t f;
@@ -948,7 +948,7 @@ static void draw_char(uint16_t sjis)
 	if (f < 0)
 		return;
 
-	/* h=8は半角のみ */
+	/* h=8 is only half-width */
 	w = (h == 8) ? 8 : (isHankaku(sjis >> 8) ? h / 2 : h);
 
 	for (i = 0; i < h; i++)
@@ -956,7 +956,8 @@ static void draw_char(uint16_t sjis)
 		wc = w;
 		for (j = 0; j < ((w % 8 == 0) ? w / 8 : w / 8 + 1); j++)
 		{
-			c = FONT[f++];
+			c = FONT[f ^ 1]; /* read from CGROM address */
+			f++;
 			for (k = 0; k < 8; k++)
 			{
 				bc = p6m.mbcolor ? p6m.mbcolor : *p;
@@ -987,8 +988,8 @@ static void draw_str(char *cp)
 	{
 		if (isHankaku(*s))
 		{
-			/* 最初の8bitで半全角を判断するので半角の場合は
-			 * あらかじめ8bit左シフトしておく
+			/* The first 8 bits are used to determine half-full-width, so if it
+			 * is half-width, shift left 8 bits in advance
 			 */
 			draw_char((uint16_t)*s << 8);
 			s++;
@@ -1000,7 +1001,8 @@ static void draw_str(char *cp)
 			s += 2;
 			i++;
 		}
-		/* 8x8描画(ソフトキーボードのFUNCキーは文字幅を縮める) */
+		/* 8x8 drawing (the FUNC key on the soft keyboard reduces the character
+		 * width) */
 		if (p6m.mfs == 8)
 		{
 			p6m.ml_x -= 3;
@@ -1033,7 +1035,7 @@ void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_
 	int i, drv;
 	char tmp[256];
 
-	/* ソフトウェアキーボード描画時にset_sbp(kbd_buffer)されているので戻す */
+	/* Set_sbp(kbd_buffer) is used when drawing the software keyboard, so it is restored. */
 
 	set_sbp(menu_buffer);
 	set_mfs(Config.menuSize ? 24 : 16);
@@ -1051,7 +1053,7 @@ void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_
 	sprintf(tmp, "%s%s", title_str, PX68K_VERSION);
 	draw_str(tmp);
 
-	/* 真ん中 */
+	/* middle */
 	set_mcolor(0xffff);
 #if 0
 	// set_mlocate(3 * p6m.mfs / 2, 3.5 * p6m.mfs);
@@ -1060,7 +1062,7 @@ void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_
 	// draw_str(waku_val_str[1]);
 #endif
 
-	/* 真ん中枠 */
+	/* Center frame */
 	set_mcolor(0xffe0); /* yellow */
 	set_mlocateC(1, 4);
 	draw_str(waku_str);
@@ -1072,7 +1074,7 @@ void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_
 	set_mlocateC(1, 10);
 	draw_str(waku3_str);
 
-	/* アイテム/キーワード */
+	/* item/keyword */
 	set_mcolor(0xffff);
 	for (i = 0; i < 5; i++)
 	{
@@ -1090,7 +1092,7 @@ void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_
 		draw_str(menu_item_key[i + mkey_pos]);
 	}
 
-	/* アイテム/現在値 */
+	/* item/current value */
 	set_mcolor(0xffff);
 	set_mbcolor(0x0);
 	for (i = 0; i < 5; i++)
@@ -1126,7 +1128,7 @@ void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_
 			}
 			else
 			{
-				/* 先頭のカレントディレクトリ名を表示しない */
+				/* Do not display the first current directory name */
 				char ptr[PATH_MAX];
 				if (!strncmp(cur_dir_str, p, cur_dir_slen))
 					strncpy(ptr, p + cur_dir_slen, sizeof(ptr));
@@ -1142,7 +1144,7 @@ void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_
 		}
 	}
 
-	/* 下枠 */
+	/* Bottom border */
 	set_mcolor(0x07ff); /* cyan */
 	set_mbcolor(0x0);
 	set_mlocateC(0, 11);
@@ -1156,7 +1158,7 @@ void WinDraw_DrawMenu(MenuState menu_state, int mkey_pos, int mkey_y, int *mval_
 	set_mlocateC(0, 13);
 	draw_str(swaku3_str);
 
-	/* キャプション */
+	/* Caption */
 	set_mcolor(0xffff);
 	set_mbcolor(0x0);
 	set_mlocateC(2, 12);

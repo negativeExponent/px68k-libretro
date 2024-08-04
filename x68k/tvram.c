@@ -1,7 +1,7 @@
 /*
- *  TVRAM.C - Text VRAM
- *  ToDo : 透明色処理とか色々
- */
+* TVRAM.C - Text VRAM
+* TODO: Transparent color processing and more
+*/
 
 #include "../x11/winx68k.h"
 
@@ -12,6 +12,9 @@
 #include "crtc.h"
 #include "palette.h"
 
+#include "../x11/state.h"
+#include "x68kmemory.h"
+
 uint8_t TVRAM[0x80000];
 static uint8_t TextDrawWork[1024 * 1024];
 uint8_t TextDirtyLine[1024];
@@ -20,13 +23,11 @@ uint8_t TextDrawPattern[2048 * 4];
 
 uint8_t Text_TrFlag[1024];
 
-/* 全部書き換え~ */
 void TVRAM_SetAllDirty(void)
 {
 	memset(TextDirtyLine, 1, 1024);
 }
 
-/* 初期化 */
 void TVRAM_Init(void)
 {
 	int i, j, bit;
@@ -35,7 +36,7 @@ void TVRAM_Init(void)
 	memset(TextDrawWork, 0, 1024 * 1024);
 	TVRAM_SetAllDirty();
 
-	memset(TextDrawPattern, 0, 2048 * 4); /* パターンテーブル初期化 */
+	memset(TextDrawPattern, 0, 2048 * 4);
 	for (i = 0; i < 256; i++)
 	{
 		for (j = 0, bit = 0x80; j < 8; j++, bit >>= 1)
@@ -51,10 +52,8 @@ void TVRAM_Init(void)
 	}
 }
 
-/* 撤収 */
 void TVRAM_Cleanup(void) { }
 
-/* 読むなり */
 uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 {
 	adr &= 0x7ffff;
@@ -62,7 +61,6 @@ uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 	return TVRAM[adr];
 }
 
-/* 1ばいと書くなり */
 static INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 {
 	if (TVRAM[adr] != data)
@@ -72,7 +70,6 @@ static INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 	}
 }
 
-/* ますく付きで書くなり */
 static INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data)
 {
 	data = (TVRAM[adr] & CRTC_Regs[0x2e + ((adr ^ 1) & 1)]) | (data & (~CRTC_Regs[0x2e + ((adr ^ 1) & 1)]));
@@ -83,12 +80,11 @@ static INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data)
 	}
 }
 
-/*  書くなり */
 void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 {
 	adr &= 0x7ffff;
 	adr ^= 1;
-	if (CRTC_Regs[0x2a] & 1) /* 同時アクセス */
+	if (CRTC_Regs[0x2a] & 1) /* Concurrent access */
 	{
 		adr &= 0x1ffff;
 		if (CRTC_Regs[0x2a] & 2) /* Text Mask */
@@ -114,7 +110,7 @@ void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 				TVRAM_WriteByte(adr + 0x60000, data);
 		}
 	}
-	else /* シングルアクセス */
+	else /* single access */
 	{
 		if (CRTC_Regs[0x2a] & 2) /* Text Mask */
 		{
@@ -154,7 +150,6 @@ void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 	}
 }
 
-/* らすたこぴー時のあっぷでーと */
 void FASTCALL TVRAM_RCUpdate(void)
 {
 	uint32_t adr = ((uint32_t)CRTC_Regs[0x2d] << 9);
@@ -192,7 +187,7 @@ void FASTCALL TVRAM_RCUpdate(void)
 	}
 }
 
-/* 1ライン描画 */
+/* Draw one line */
 void FASTCALL Text_DrawLine(int opaq)
 {
 	uint32_t addr;
@@ -239,4 +234,17 @@ void FASTCALL Text_DrawLine(int opaq)
 			}
 		}
 	}
+}
+
+int TVRAM_StateContext(void *f, int writing) {
+	state_context_f(TVRAM, sizeof(TVRAM));
+	state_context_f(TextDrawWork, sizeof(TextDrawWork));
+	state_context_f(TextDirtyLine, sizeof(TextDirtyLine));
+	state_context_f(Text_TrFlag, sizeof(Text_TrFlag));
+
+	if (!writing) {
+		TVRAM_SetAllDirty();
+	}
+
+	return 1;
 }

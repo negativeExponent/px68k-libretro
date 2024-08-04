@@ -1,4 +1,5 @@
-/* MERCURY.C - ま~きゅり~ゆにっと */
+/* MERCURY.C - Mercury Unit */
+
 #include <math.h>
 
 #include "../x11/common.h"
@@ -12,15 +13,15 @@
 #define MCRY_IRQ     4
 #define Mcry_BufSize 48000 * 2
 
-static long Mcry_WrPtr         = 0;
-static long Mcry_RdPtr         = 0;
-static long Mcry_SampleRate    = 44100;
-static long Mcry_ClockRate     = 44100;
-static long Mcry_Count         = 0;
+static int32_t Mcry_WrPtr      = 0;
+static int32_t Mcry_RdPtr      = 0;
+static int32_t Mcry_SampleRate = 44100;
+static int32_t Mcry_ClockRate  = 44100;
+static int32_t Mcry_Count      = 0;
 static uint8_t Mcry_Status     = 0;
 static int16_t Mcry_OutDataL   = 0;
 static int16_t Mcry_OutDataR   = 0;
-static long Mcry_PreCounter    = 0;
+static int32_t Mcry_PreCounter = 0;
 uint8_t Mcry_LRTiming          = 0;
 static double Mcry_VolumeShift = 65536;
 static int Mcry_SampleCnt      = 0;
@@ -47,10 +48,10 @@ void FASTCALL Mcry_Int(void)
 	IRQH_Int(MCRY_IRQ, &Mcry_IntCB);
 }
 
-/* 再生クロック設定 */
+/* Playback clock settings */
 static void Mcry_SetClock(void)
 {
-	static const long Mcry_Clocks[8] = { 22050, 16000, 22050, 24000 };
+	static const int32_t Mcry_Clocks[8] = { 22050, 16000, 22050, 24000 };
 
 	Mcry_ClockRate = Mcry_Clocks[(Mcry_Status >> 4) & 3];
 	if (Mcry_Status & 0x80)
@@ -68,7 +69,7 @@ int Mcry_IsReady(void)
 	return (Mcry_SampleCnt > 0);
 }
 
-/* MPU経過クロック時間分だけデータをバッファに溜める */
+/* Store data in the buffer for the amount of MPU clock time elapsed */
 void FASTCALL Mcry_PreUpdate(uint32_t clock)
 {
 	Mcry_PreCounter += (Mcry_ClockRate * clock);
@@ -80,7 +81,7 @@ void FASTCALL Mcry_PreUpdate(uint32_t clock)
 	M288_Timer(clock);
 }
 
-/* DSoundからの要求分だけバッファを埋める */
+/* Fill the buffer as requested by DSound */
 void FASTCALL Mcry_Update(int16_t *buffer, uint32_t length)
 {
 	int data;
@@ -127,7 +128,7 @@ void FASTCALL Mcry_Update(int16_t *buffer, uint32_t length)
 	}
 }
 
-/* 1回分（1Word x 2ch）のデータをバッファに書き出し */
+/* Write one chunk of data (1word x 2ch) to the buffer */
 static INLINE void Mcry_WriteOne(void)
 {
 	while (Mcry_Count < Mcry_SampleRate)
@@ -152,7 +153,7 @@ void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 			return;
 		if (Mcry_Status & 2) /* Stereo */
 		{
-			if (Mcry_LRTiming) /* 右 */
+			if (Mcry_LRTiming) /* Right */
 			{
 				if (!(Mcry_Status & 8))
 					data = 0; /* R Mute */
@@ -167,7 +168,7 @@ void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 					Mcry_OutDataR = (Mcry_OutDataR & 0x00ff) | ((uint16_t)data << 8);
 				}
 			}
-			else /* 左 */
+			else /* Left */
 			{
 				if (!(Mcry_Status & 4))
 					data = 0; /* L Mute */
@@ -209,7 +210,7 @@ void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 	{
 		Mcry_Vector = data;
 	}
-	else if ((adr >= 0xecc0c0) && (adr <= 0xecc0c7) && (adr & 1)) /* 満開版まーきゅりー OPN */
+	else if ((adr >= 0xecc0c0) && (adr <= 0xecc0c7) && (adr & 1)) /* Full-bloom version of Mercury OPN */
 	{
 		M288_Write((uint8_t)((adr >> 1) & 3), data);
 	}
@@ -241,7 +242,7 @@ uint8_t FASTCALL Mcry_Read(uint32_t adr)
 	{
 		ret = Mcry_Vector;
 	}
-	else if ((adr >= 0xecc0c0) && (adr <= 0xecc0c7) && (adr & 1)) /* 満開版まーきゅりー OPN */
+	else if ((adr >= 0xecc0c0) && (adr <= 0xecc0c7) && (adr & 1)) /* Full-bloom version of Mercury OPN */
 	{
 		ret = M288_Read((uint8_t)((adr >> 1) & 3));
 	}
@@ -255,8 +256,8 @@ uint8_t FASTCALL Mcry_Read(uint32_t adr)
 }
 
 /*
- *   ぼりゅーむ設定
- */
+* Volume setting
+*/
 void Mcry_SetVolume(uint8_t vol)
 {
 	if (vol > 16)
@@ -270,8 +271,8 @@ void Mcry_SetVolume(uint8_t vol)
 }
 
 /*
- *   初期化~
- */
+* Initialization~
+*/
 void Mcry_Init(uint32_t samplerate, const char *path)
 {
 	memset(Mcry_BufL, 0, Mcry_BufSize * 2);
@@ -282,7 +283,7 @@ void Mcry_Init(uint32_t samplerate, const char *path)
 	Mcry_OutDataL   = 0;
 	Mcry_OutDataR   = 0;
 	Mcry_Status     = 0;
-	Mcry_SampleRate = (long)samplerate;
+	Mcry_SampleRate = (int32_t)samplerate;
 	Mcry_LRTiming   = 0;
 	Mcry_PreCounter = 0;
 

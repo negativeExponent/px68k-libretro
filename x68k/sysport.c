@@ -9,7 +9,9 @@
 #include "sysport.h"
 #include "palette.h"
 
-uint8_t SysPort[7];
+#include "../x11/state.h"
+
+uint8_t SysPort[8];
 
 void SysPort_Init(void)
 {
@@ -61,7 +63,7 @@ uint8_t FASTCALL SysPort_Read(uint32_t adr)
 	case 0xe8e007:
 		return SysPort[4];
 	case 0xe8e00b:
-		/* 10MHz:0xff、16MHz:0xfe、030(25MHz):0xdcをそれぞれ返すらしい */
+		/* 10MHz: 0xff, 16MHz: 0xfe, 030(25MHz): 0xdc are returned respectively */
 		switch (Config.XVIMode)
 		{
 		case 1: /* x68030 */
@@ -80,4 +82,10 @@ uint8_t FASTCALL SysPort_Read(uint32_t adr)
 	}
 
 	return 0xff;
+}
+
+int SysPort_StateContext(void *f, int writing) {
+	state_context_f(SysPort, sizeof(SysPort));
+
+	return 1;
 }

@@ -136,7 +136,7 @@ static uint8_t KeyTable[KEYTABLE_MAX] = {
 	NC, NC, NC, NC, NC, NC, NC, NC,
 	/*	  BS, TAB,  LF, CLR,    , RET,    ,   		; 0x08 */
 	0x0f, 0x10, 0x1d, NC, NC, 0x1d, NC, NC,
-	/*	    ,  ¢¬,  ¢­,  ¢ª,  ¢«,SYSQ,    ,  		; 0x10 */
+	/*	    ,  ï¿½ï¿½,  ï¿½ï¿½,  ï¿½ï¿½,  ï¿½ï¿½,SYSQ,    ,  		; 0x10 */
 	NC, 0x3c, 0x3e, 0x3d, 0x3b, NC, NC, NC,
 	/*	    ,    ,    , ESC,    ,    ,    ,   		; 0x18 */
 	NC, NC, 0x63, 0x01, NC, NC, NC, NC,
@@ -152,7 +152,7 @@ static uint8_t KeyTable[KEYTABLE_MAX] = {
 	NC, NC, NC, NC, NC, NC, NC, NC,
 	/*	    ,    ,    ,    ,    ,    ,    ,   		; 0x48 */
 	NC, NC, NC, NC, NC, NC, NC, NC,
-	/*	HOME,  ¢«,  ¢¬,  ¢ª,  ¢­,RLDN,RLUP, END			; 0x50 */
+	/*	HOME,  ï¿½ï¿½,  ï¿½ï¿½,  ï¿½ï¿½,  ï¿½ï¿½,RLDN,RLUP, END			; 0x50 */
 	0x36, 0x3b, 0x3c, 0x3d, 0x3e, 0x39, 0x38, 0x3a,
 	/*	    ,    ,    ,    ,    ,    ,    ,   		; 0x58 */
 	NC, NC, NC, NC, NC, NC, NC, NC,
@@ -168,9 +168,9 @@ static uint8_t KeyTable[KEYTABLE_MAX] = {
 	NC, NC, NC, NC, NC, NC, NC, NC,
 	/*	    ,<TAB,    ,    ,    ,<ENT,    ,  		; 0x88 */
 	NC, NC, NC, NC, NC, NC, NC, NC,
-	/*	    ,    ,    ,    ,    ,<HOM,<¢«>,<¢¬>		; 0x90 */
+	/*	    ,    ,    ,    ,    ,<HOM,<ï¿½ï¿½>,<ï¿½ï¿½>		; 0x90 */
 	NC, NC, NC, NC, NC, 0x36, 0x3b, 0x3c,
-	/*	<¢ª>,<¢­>,<RDN,<RUP,<END,    ,<INS,<DEL		; 0x98 */
+	/*	<ï¿½ï¿½>,<ï¿½ï¿½>,<RDN,<RUP,<END,    ,<INS,<DEL		; 0x98 */
 	0x3d, 0x3e, 0x39, 0x38, 0x3a, NC, 0x5e, 0x37,
 	/*	    ,    ,    ,    ,    ,    ,    ,    		; 0xa0 */
 	NC, NC, NC, NC, NC, NC, NC, NC,
@@ -287,7 +287,7 @@ static uint8_t KeyTableMaster[KEYTABLE_MAX] = {
 	NC, NC, NC, NC, NC, NC, NC, NC,
 	/*	    ,    ,    ,    ,    ,    ,    ,   		; 0x48 */
 	NC, NC, NC, NC, NC, NC, NC, NC,
-	/*	HOME,  ¢«,  ¢¬,  ¢ª,  ¢­,RLDN,RLUP, END			; 0x50 */
+	/*	HOME,  ï¿½ï¿½,  ï¿½ï¿½,  ï¿½ï¿½,  ï¿½ï¿½,RLDN,RLUP, END			; 0x50 */
 	0x36, NC, NC, NC, NC, 0x39, 0x38, 0x3a,
 	/*	    ,    ,    ,    ,    ,    ,    ,   		; 0x58 */
 	NC, NC, NC, NC, NC, NC, NC, NC,
@@ -303,9 +303,9 @@ static uint8_t KeyTableMaster[KEYTABLE_MAX] = {
 	NC, NC, NC, NC, NC, NC, NC, NC,
 	/*	    ,<TAB,    ,    ,    ,<ENT,    ,  		; 0x88 */
 	NC, NC, NC, NC, NC, NC, NC, NC,
-	/*	    ,    ,    ,    ,    ,<HOM,<¢«>,<¢¬>		; 0x90 */
+	/*	    ,    ,    ,    ,    ,<HOM,<ï¿½ï¿½>,<ï¿½ï¿½>		; 0x90 */
 	NC, NC, NC, NC, NC, 0x36, NC, NC,
-	/*	<¢ª>,<¢­>,<RDN,<RUP,<END,    ,<INS,<DEL		; 0x98 */
+	/*	<ï¿½ï¿½>,<ï¿½ï¿½>,<RDN,<RUP,<END,    ,<INS,<DEL		; 0x98 */
 	NC, NC, 0x39, 0x38, 0x3a, NC, 0x5e, 0x37,
 	/*	    ,    ,    ,    ,    ,    ,    ,    		; 0xa0 */
 	NC, NC, NC, NC, NC, NC, NC, NC,
@@ -631,7 +631,7 @@ void Keyboard_KeyUp(uint32_t wp)
 
 /*
  *	Key Check
- *	Called 4 times in one frame¡Êassuming 2400bps/10bit/60fps) to send data to MFP
+ *	Called 4 times in one frame, assuming 2400bps/10bit/60fps) to send data to MFP
  */
 
 void Keyboard_Int(void)

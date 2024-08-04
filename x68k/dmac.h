@@ -1,5 +1,5 @@
-#ifndef _WINX68K_DMAC_H
-#define _WINX68K_DMAC_H
+#ifndef _X68K_DMAC_H
+#define _X68K_DMAC_H
 
 typedef struct
 {
@@ -44,4 +44,4 @@ int FASTCALL DMA_Exec(int ch);
 void DMA_Init(void);
 
 
-#endif /* _WINX68K_DMAC_H */
+#endif /* _X68K_DMAC_H */

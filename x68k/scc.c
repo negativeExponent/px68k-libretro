@@ -1,8 +1,9 @@
 /*
- *  SCC.C - Z8530 SCC（マウスのみ）
+ *  SCC.C - Z8530 SCC (mouse only)
  */
 
 #include "../x11/common.h"
+#include "../x11/state.h"
 
 #include "../x11/mouse.h"
 
@@ -25,7 +26,6 @@ static uint8_t SCC_Vector    = 0;
 static uint8_t SCC_Dat[3]    = { 0, 0, 0 };
 static uint8_t SCC_DatNum    = 0;
 
-/* わりこみ */
 static int32_t FASTCALL SCC_Int(int32_t irq)
 {
 	IRQH_IRQCallBack(irq);
@@ -47,7 +47,6 @@ static int32_t FASTCALL SCC_Int(int32_t irq)
 	return IRQ_DEFAULT_VECTOR;
 }
 
-/* 割り込みのチェック */
 void SCC_IntCheck(void)
 {
 	if ((SCC_DatNum) && ((SCC_RegsB[1] & 0x18) == 0x10) && (SCC_RegsB[9] & 0x08))
@@ -60,7 +59,6 @@ void SCC_IntCheck(void)
 	}
 }
 
-/* 初期化 */
 void SCC_Init(void)
 {
 	MouseX      = 0;
@@ -87,9 +85,9 @@ void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 			if (SCC_RegNumB == 5)
 			{
 				if ((!(SCC_RegsB[5] & 2)) && (data & 2) && (SCC_RegsB[3] & 1) &&
-				    (!SCC_DatNum)) /* データが無い時だけにしやう（闇の血族） */
+					(!SCC_DatNum)) /* Only do this when there is no data (Dark Bloodline) */
 				{
-					/* マウスデータ生成 */
+					/* Generate mouse data */
 					Mouse_SetData();
 					SCC_DatNum = 3;
 					SCC_Dat[2] = MouseSt;
@@ -187,7 +185,7 @@ uint8_t FASTCALL SCC_Read(uint32_t adr)
 		switch (SCC_RegNumA)
 		{
 		case 0:
-			ret = 4; /* 送信バッファ空（Xna） */
+			ret = 4; /* Send buffer empty (Xna) */
 			break;
 		case 3:
 			ret = ((SCC_DatNum) ? 4 : 0);
@@ -197,4 +195,21 @@ uint8_t FASTCALL SCC_Read(uint32_t adr)
 		SCC_RegSetA = 0;
 	}
 	return ret;
+}
+
+int SCC_StateContext(void *f, int writing) {
+	state_context_f(&MouseX, 1);
+	state_context_f(&MouseY, 1);
+	state_context_f(&MouseSt, 1);
+
+	state_context_f(&SCC_RegNumA, 1);
+	state_context_f(&SCC_RegSetA, 1);
+	state_context_f(SCC_RegsB, sizeof(SCC_RegsB));
+	state_context_f(&SCC_RegNumB, 1);
+	state_context_f(&SCC_RegSetB, 1);
+	state_context_f(&SCC_Vector, 1);
+	state_context_f(SCC_Dat, sizeof(SCC_RegsB));
+	state_context_f(&SCC_DatNum, 1);
+
+	return 1;
 }

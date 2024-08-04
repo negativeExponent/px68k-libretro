@@ -1,10 +1,11 @@
 /*
- *  BG.C - BGとスプライト
- *  ToDo：透明色の処理チェック（特に対Text間）
+ *  BG.C - BG and sprites
+ *  TODO: Check transparent color processing (especially with Text)
  */
 
 #include "../x11/common.h"
 #include "../x11/windraw.h"
+#include "../x11/state.h"
 
 #include "bg.h"
 #include "crtc.h"
@@ -30,8 +31,9 @@ static uint16_t BG_PriBuf[1600];
 uint8_t  BG_Regs[0x12];
 uint16_t BG_LineBuf[1600];
 
-long BG_HAdjust = 0;
-long BG_VLINE   = 0;
+/* NOTE: changed from long to int32_t */
+int32_t BG_HAdjust = 0;
+int32_t BG_VLINE   = 0;
 
 uint32_t VLINEBG = 0;
 
@@ -119,7 +121,7 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 	{
 		adr -= 0xeb0800;
 		if (BG_Regs[adr] == data)
-			return; /* データに変化が無ければ帰る */
+			return; /* return if no data is changed */
 		BG_Regs[adr] = data;
 		switch (adr)
 		{
@@ -149,13 +151,11 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 			break;
 
 		case 0x0d:
-			BG_HAdjust =
-			    ((long)BG_Regs[0x0d] - (CRTC_HSTART + 4)) * 8; /* 水平方向は解像度による1/2はいらない？（Tetris）*/
+			BG_HAdjust = ((int32_t)BG_Regs[0x0d] - (CRTC_HSTART + 4)) * 8; /* Isn't it necessary to divide the horizontal resolution by 1/2? (Tetris) */
 			TVRAM_SetAllDirty();
 			break;
 		case 0x0f:
-			BG_VLINE =
-			    ((long)BG_Regs[0x0f] - CRTC_VSTART) / ((BG_Regs[0x11] & 4) ? 1 : 2); /* BGとその他がずれてる時の差分 */
+			BG_VLINE = ((int32_t)BG_Regs[0x0f] - CRTC_VSTART) / ((BG_Regs[0x11] & 4) ? 1 : 2); /* Difference when BG and other elements are misaligned */
 			TVRAM_SetAllDirty();
 			break;
 
@@ -173,10 +173,8 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 				BG_CHREND = 0x2000;
 			BG_CHRSIZE = ((data & 3) ? 16 : 8);
 			BG_AdrMask = ((data & 3) ? 1023 : 511);
-			BG_HAdjust =
-			    ((long)BG_Regs[0x0d] - (CRTC_HSTART + 4)) * 8; /* 水平方向は解像度による1/2はいらない？（Tetris） */
-			BG_VLINE =
-			    ((long)BG_Regs[0x0f] - CRTC_VSTART) / ((BG_Regs[0x11] & 4) ? 1 : 2); /* BGとその他がずれてる時の差分 */
+			BG_HAdjust = ((int32_t)BG_Regs[0x0d] - (CRTC_HSTART + 4)) * 8; /*Isn't it necessary to divide the horizontal resolution by 1/2? (Tetris) */
+			BG_VLINE = ((int32_t)BG_Regs[0x0f] - CRTC_VSTART) / ((BG_Regs[0x11] & 4) ? 1 : 2); /* Difference when BG and other elements are misaligned */
 			break;
 		case 0x09: /* BG Plane Cfg Changed */
 			TVRAM_SetAllDirty();
@@ -228,7 +226,7 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 	{
 		adr -= 0xeb8000;
 		if (BG[adr] == data)
-			return; /* データに変化が無ければ帰る */
+			return; /* return if no data is changed */
 		BG[adr] = data;
 		if (adr < 0x2000)
 		{
@@ -239,15 +237,15 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 		BGCHR16[bg16chr]     = data >> 4;
 		BGCHR16[bg16chr + 1] = data & 15;
 
-		if (adr < BG_CHREND) /* パターンエリア */
+		if (adr < BG_CHREND) /* pattern area */
 		{
 			TVRAM_SetAllDirty();
 		}
-		if ((adr >= BG_BG1TOP) && (adr < BG_BG1END)) /* BG1 MAPエリア */
+		if ((adr >= BG_BG1TOP) && (adr < BG_BG1END)) /* BG1 MAP Area */
 		{
 			TVRAM_SetAllDirty();
 		}
-		if ((adr >= BG_BG0TOP) && (adr < BG_BG0END)) /* BG0 MAPエリア */
+		if ((adr >= BG_BG0TOP) && (adr < BG_BG0END)) /* BG0 MAP Area */
 		{
 			TVRAM_SetAllDirty();
 		}
@@ -263,7 +261,7 @@ struct SPRITECTRLTBL {
 } __attribute__((packed));
 typedef struct SPRITECTRLTBL SPRITECTRLTBL_T;
 
-/* 1ライン分の描画 */
+/* Drawing 1 line */
 static INLINE void Sprite_DrawLineMcr(int pri)
 {
 	SPRITECTRLTBL_T *sct = (SPRITECTRLTBL_T *)Sprite_Regs;
@@ -365,7 +363,7 @@ static INLINE void Sprite_DrawLineMcr(int pri)
 		}                                           \
 	}
 
-static void bg_drawline_loopx8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY, long adjust, int ng)
+static void bg_drawline_loopx8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY, int32_t adjust, int ng)
 {
 	uint8_t dat, bl;
 	int i, j, d;
@@ -416,7 +414,7 @@ static void bg_drawline_loopx8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGSc
 	}
 }
 
-static void bg_drawline_loopx16(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY, long adjust, int ng)
+static void bg_drawline_loopx16(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY, int32_t adjust, int ng)
 {
 	uint8_t dat, bl;
 	int i, j, d;
@@ -531,4 +529,32 @@ void FASTCALL BG_DrawLine(int opaq, int gd)
 		}
 	}
 	Sprite_DrawLineMcr(3);
+}
+
+int BG_StateContext(void *f, int writing) {
+	state_context_f(BG, sizeof(BG));
+	state_context_f(&BG_CHREND, sizeof(BG_CHREND));
+	state_context_f(&BG_BG0TOP, sizeof(BG_BG0TOP));
+	state_context_f(&BG_BG0END, sizeof(BG_BG0END));
+	state_context_f(&BG_BG1TOP, sizeof(BG_BG1TOP));
+	state_context_f(&BG_BG1END, sizeof(BG_BG1END));
+	state_context_f(&BG_CHRSIZE, sizeof(BG_CHRSIZE));
+	state_context_f(&BG_AdrMask, sizeof(BG_AdrMask));
+	state_context_f(&BG0ScrollX, sizeof(BG0ScrollX));
+	state_context_f(&BG0ScrollY, sizeof(BG0ScrollY));
+	state_context_f(&BG1ScrollX, sizeof(BG1ScrollX));
+	state_context_f(&BG1ScrollY, sizeof(BG1ScrollY));
+
+	state_context_f(BGCHR8, sizeof(BGCHR8));
+	state_context_f(BGCHR16, sizeof(BGCHR16));
+	state_context_f(BG_PriBuf, sizeof(BG_PriBuf));
+
+	state_context_f(BG_Regs, sizeof(BG_Regs));
+	state_context_f(BG_LineBuf, sizeof(BG_LineBuf));
+
+	state_context_f(&BG_HAdjust, sizeof(BG_HAdjust));
+	state_context_f(&BG_VLINE, sizeof(BG_VLINE));
+	state_context_f(&VLINEBG, sizeof(VLINEBG));
+
+	return 1;
 }

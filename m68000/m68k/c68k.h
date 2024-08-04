@@ -110,7 +110,7 @@ typedef struct c68k_t
 
 	uint32_t flag_C;
 	uint32_t flag_V;
-	uint32_t flag_Z;
+	uint32_t flag_notZ;
 	uint32_t flag_N;
 
 	uint32_t flag_X;

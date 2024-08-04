@@ -1,5 +1,5 @@
-#ifndef _WINX68K_MIDI_H
-#define _WINX68K_MIDI_H
+#ifndef _X68K_MIDI_H
+#define _X68K_MIDI_H
 
 void MIDI_Init(void);
 void MIDI_Cleanup(void);
@@ -15,4 +15,4 @@ void MIDI_DelayOut(uint32_t delay);
 int MIDI_SetMimpiMap(char *filename);
 int MIDI_EnableMimpiDef(int enable);
 
-#endif /* _WINX68K_MIDI_H */
+#endif /* _X68K_MIDI_H */

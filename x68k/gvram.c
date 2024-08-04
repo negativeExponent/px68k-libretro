@@ -1,6 +1,7 @@
 /* GVRAM.C - Graphic VRAM */
 
 #include "../x11/winx68k.h"
+#include "../x11/state.h"
 
 #include "gvram.h"
 #include "crtc.h"
@@ -9,17 +10,17 @@
 
 uint8_t GVRAM[0x80000];
 uint16_t Grp_LineBuf[1024];
-uint16_t Grp_LineBufSP[1024];  /* 特殊プライオリティ／半透明用バッファ */
-uint16_t Grp_LineBufSP2[1024]; /* 半透明ベースプレーン用バッファ（非半透明ビット格納）*/
+uint16_t Grp_LineBufSP[1024];		/* Special priority/semi-transparent buffer */
+uint16_t Grp_LineBufSP2[1024];		/* Buffer for semi-transparent base plane (stores non-semi-transparent bits) */
 uint16_t Grp_LineBufSP_Tr[1024];
-uint16_t Pal16Adr[256];        /* 16bit color パレットアドレス計算用 */
+uint16_t Pal16Adr[256];				/* For 16bit color palette address calculation */
 
 void GVRAM_Init(void)
 {
 	int i;
 
 	memset(GVRAM, 0, 0x80000);
-	for (i = 0; i < 128; i++) /* 16bit color パレットアドレス計算用 */
+	for (i = 0; i < 128; i++) /* For 16bit color palette address calculation */
 	{
 		Pal16Adr[i * 2]     = i * 4;
 		Pal16Adr[i * 2 + 1] = i * 4 + 1;
@@ -34,7 +35,7 @@ void FASTCALL GVRAM_FastClear(void)
 	uint32_t h    = ((CRTC_Regs[0x29] & 3) ? 512 : 256);
 	uint32_t offy = (GrphScrollY[0] & 0x1ff) << 10;
 
-	/* やっぱちゃんと範囲指定しないと変になるものもある（ダイナマイトデュークとか） */
+	/* If you don't specify the range properly, some things will look weird (like Dynamite Duke) */
 	for (y = 0; y < v; ++y)
 	{
 		uint32_t offx = GrphScrollX[0] & 0x1ff;
@@ -58,7 +59,7 @@ uint8_t FASTCALL GVRAM_Read(uint32_t adr)
 
 	if (CRTC_Regs[0x28] & 8)
 	{
-		/* 読み込み側も65536モードのVRAM配置（苦胃頭捕物帳） */
+		/* The read side also has a 65536 mode VRAM layout (a pain in the ass) */
 		if (adr < 0x80000)
 			return GVRAM[adr];
 	}
@@ -121,7 +122,7 @@ void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 	adr ^= 1;
 	adr -= 0xc00000;
 
-	if (CRTC_Regs[0x28] & 8) /* 65536モードのVRAM配置？（Nemesis） */
+	if (CRTC_Regs[0x28] & 8) /* VRAM layout in 65536 mode? (Nemesis) */
 	{
 		if (adr < 0x80000)
 		{
@@ -177,7 +178,7 @@ void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 					scr  = GrphScrollY[(adr >> 18) & 2];
 					line = (((adr & 0x7ffff) >> 10) - scr) & 511;
 
-					TextDirtyLine[line] = 1; /* 32色4面みたいな使用方法時 */
+					TextDirtyLine[line] = 1; /* When used like 32 colors, 4 sides */
 
 					scr  = GrphScrollY[((adr >> 18) & 2) + 1];
 					line = (((adr & 0x7ffff) >> 10) - scr) & 511;
@@ -372,7 +373,7 @@ void FASTCALL Grp_DrawLine8(int page, int opaq)
 	}
 }
 
-/* Manhattan Requiem Opening 7.0→7.5MHz */
+/* Manhattan Requiem Opening 7.0 - 7.5MHz */
 void FASTCALL Grp_DrawLine4(uint32_t page, int opaq)
 {
 	uint16_t *destp; /* XXX: ALIGN */
@@ -500,7 +501,7 @@ void FASTCALL Grp_DrawLine4(uint32_t page, int opaq)
 	}
 }
 
-/* この画面モードは勘弁して下さい… */
+/* Please spare me this screen mode... */
 void FASTCALL Grp_DrawLine4h(void)
 {
 	uint16_t *srcp, *destp;
@@ -545,7 +546,7 @@ void FASTCALL Grp_DrawLine4h(void)
 	}
 }
 
-/* 半透明／特殊Priのベースとなるページの描画  */
+/* Drawing of the page that is the base for semi-transparent/special Pri */
 void FASTCALL Grp_DrawLine16SP(void)
 {
 	uint32_t x, y;
@@ -777,16 +778,16 @@ void FASTCALL Grp_DrawLine4hSP(void)
 }
 
 /*
- * --- 半透明の対象となるページの描画 --------------
- * 2ページ以上あるグラフィックモードのみなので、
- * 256色2面 or 16色4面のモードのみ。
- * 256色時は、Opaqueでない方のモードはいらないかも…
- * （必ずOpaqueモードの筈）
+ * --- Drawing of pages that are semi-transparent --------------
+ * Only graphic modes with 2 or more pages,
+ * Only 256 color 2-plane or 16 color 4-plane modes.
+ * When using 256 colors, you may not need the non-opaque mode...
+ * (Must always be opaque mode)
  *
- * ここはまだ32色x4面モードの実装をしてないれす…
- * （れじすた足りないよぅ…）
+ * I haven't implemented the 32 color x 4-plane mode here yet...
+ * (Not enough registers...)
  *
- * やけにすっきり
+ * Awfully neat
  */
 void FASTCALL Grp_DrawLine8TR(int page, int opaq)
 {
@@ -1001,4 +1002,15 @@ void FASTCALL Grp_DrawLine4TR(uint32_t page, int opaq)
 			}
 		}
 	}
+}
+
+int GVRAM_StateContext(void *f, int writing) {
+	state_context_f(GVRAM, sizeof(GVRAM));
+	state_context_f(Grp_LineBuf, sizeof(Grp_LineBuf));
+	state_context_f(Grp_LineBufSP, sizeof(Grp_LineBufSP));
+	state_context_f(Grp_LineBufSP2, sizeof(Grp_LineBufSP2));
+	state_context_f(Grp_LineBufSP_Tr, sizeof(Grp_LineBufSP_Tr));
+	state_context_f(Pal16Adr, sizeof(Pal16Adr));
+
+	return 1;
 }

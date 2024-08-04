@@ -1,5 +1,5 @@
-#ifndef _WINX68K_JOY_H
-#define _WINX68K_JOY_H
+#ifndef _X68K_JOY_H
+#define _X68K_JOY_H
 
 #define JOY_UP    0x01
 #define JOY_DOWN  0x02
@@ -29,4 +29,4 @@ void reset_joy_upstate(void);
 
 extern uint8_t JoyKeyState;
 
-#endif /* _WINX68K_JOY_H */
+#endif /* _X68K_JOY_H */

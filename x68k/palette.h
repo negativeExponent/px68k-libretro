@@ -1,5 +1,5 @@
-#ifndef _WINX68K_PAL_H
-#define _WINX68K_PAL_H
+#ifndef _X68K_PAL_H
+#define _X68K_PAL_H
 
 extern uint8_t Pal_Regs[1024];
 extern uint16_t TextPal[256];
@@ -14,4 +14,4 @@ void Pal_ChangeContrast(int num);
 
 extern uint16_t Ibit, Pal_HalfMask, Pal_Ix2;
 
-#endif /* _WINX68K_PAL_H */
+#endif /* _X68K_PAL_H */

@@ -1,8 +1,9 @@
 /* ---------------------------------------------------------------------------------------
- *  FDD.C - 内蔵FDD Unit（イメージファイルの管理とFD挿抜割り込みの発生）
+ *  FDD.C - Built-in FDD Unit (manages image files and generates floppy disk insertion/removal interrupts)
  */
 
 #include "../x11/common.h"
+#include "../x11/state.h"
 
 #include "fdd.h"
 #include "disk_d88.h"
@@ -33,7 +34,7 @@ static int (*WriteID[4])(int, int, uint8_t *, int)          = { 0, XDF_WriteID, 
 static int (*Read[4])(int, FDCID *, uint8_t *)              = { 0, XDF_Read, D88_Read, DIM_Read };
 static int (*ReadDiag[4])(int, FDCID *, FDCID *, uint8_t *) = { 0, XDF_ReadDiag, D88_ReadDiag, DIM_ReadDiag };
 static int (*Write[4])(int, FDCID *, uint8_t *, int)        = { 0, XDF_Write, D88_Write, DIM_Write };
-static int (*GetCurrentID[4])(int, FDCID *) = { 0, XDF_GetCurrentID, D88_GetCurrentID, DIM_GetCurrentID };
+static int (*GetCurrentID[4])(int, FDCID *)                 = { 0, XDF_GetCurrentID, D88_GetCurrentID, DIM_GetCurrentID };
 
 static void ConvertCapital(unsigned char *buf)
 {
@@ -74,7 +75,7 @@ static int32_t FASTCALL FDD_Int(int32_t irq)
 	return IRQ_DEFAULT_VECTOR;
 }
 
-/* FDせっと - すぐには割り込み上げないです */
+/* FD set - do not raise interrupt immediately */
 void FDD_SetFD(int drive, char *filename, int readonly)
 {
 	int type = GetDiskType(filename);
@@ -93,8 +94,8 @@ void FDD_SetFD(int drive, char *filename, int readonly)
 			fdd.Blink[drive]    = 0;
 			StatBar_SetFDD(drive, filename);
 			StatBar_ParamFDD(drive,
-			    (fdd.Types[drive] != FD_Non) ? ((fdd.Access == drive) ? 2 : 1) : 0,
-			    ((fdd.Types[drive] != FD_Non) && (!fdd.EMask[drive])) ? 1 : 0, (fdd.Blink[drive]) ? 1 : 0);
+				(fdd.Types[drive] != FD_Non) ? ((fdd.Access == drive) ? 2 : 1) : 0,
+				((fdd.Types[drive] != FD_Non) && (!fdd.EMask[drive])) ? 1 : 0, (fdd.Blink[drive]) ? 1 : 0);
 		}
 	}
 }
@@ -118,7 +119,7 @@ void FDD_EjectFD(int drive)
 	fdd.Blink[drive] = 0;
 	StatBar_SetFDD(drive, "");
 	StatBar_ParamFDD(drive, (fdd.Types[drive] != FD_Non) ? ((fdd.Access == drive) ? 2 : 1) : 0,
-	    ((fdd.Types[drive] != FD_Non) && (!fdd.EMask[drive])) ? 1 : 0, (fdd.Blink[drive]) ? 1 : 0);
+		((fdd.Types[drive] != FD_Non) && (!fdd.EMask[drive])) ? 1 : 0, (fdd.Blink[drive]) ? 1 : 0);
 }
 
 /* Eject Mask / Blink / AccessDrive */
@@ -130,7 +131,7 @@ void FDD_SetEMask(int drive, int emask)
 		return;
 	fdd.EMask[drive] = emask;
 	StatBar_ParamFDD(drive, (fdd.Types[drive] != FD_Non) ? ((fdd.Access == drive) ? 2 : 1) : 0,
-	    ((fdd.Types[drive] != FD_Non) && (!fdd.EMask[drive])) ? 1 : 0, (fdd.Blink[drive]) ? 1 : 0);
+		((fdd.Types[drive] != FD_Non) && (!fdd.EMask[drive])) ? 1 : 0, (fdd.Blink[drive]) ? 1 : 0);
 }
 
 void FDD_SetAccess(int drive)
@@ -139,9 +140,9 @@ void FDD_SetAccess(int drive)
 		return;
 	fdd.Access = drive;
 	StatBar_ParamFDD(0, (fdd.Types[0] != FD_Non) ? ((fdd.Access == 0) ? 2 : 1) : 0,
-	    ((fdd.Types[0] != FD_Non) && (!fdd.EMask[0])) ? 1 : 0, (fdd.Blink[0]) ? 1 : 0);
+		((fdd.Types[0] != FD_Non) && (!fdd.EMask[0])) ? 1 : 0, (fdd.Blink[0]) ? 1 : 0);
 	StatBar_ParamFDD(1, (fdd.Types[1] != FD_Non) ? ((fdd.Access == 1) ? 2 : 1) : 0,
-	    ((fdd.Types[1] != FD_Non) && (!fdd.EMask[1])) ? 1 : 0, (fdd.Blink[1]) ? 1 : 0);
+		((fdd.Types[1] != FD_Non) && (!fdd.EMask[1])) ? 1 : 0, (fdd.Blink[1]) ? 1 : 0);
 }
 
 void FDD_SetBlink(int drive, int blink)
@@ -152,7 +153,7 @@ void FDD_SetBlink(int drive, int blink)
 		return;
 	fdd.Blink[drive] = blink;
 	StatBar_ParamFDD(drive, (fdd.Types[drive] != FD_Non) ? ((fdd.Access == drive) ? 2 : 1) : 0,
-	    ((fdd.Types[drive] != FD_Non) && (!fdd.EMask[drive])) ? 1 : 0, (fdd.Blink[drive]) ? 1 : 0);
+		((fdd.Types[drive] != FD_Non) && (!fdd.EMask[drive])) ? 1 : 0, (fdd.Blink[drive]) ? 1 : 0);
 }
 
 void FDD_Init(void)
@@ -183,7 +184,7 @@ void FDD_Reset(void)
 	}
 }
 
-/* FD入れ替えが起こっていたら割り込み発生 */
+/* An interrupt occurs if FD swapping has occurred */
 void FDD_SetFDInt(void)
 {
 	int i;
@@ -306,4 +307,10 @@ int FDD_IsReadOnly(int drv)
 void FDD_SetReadOnly(int drv)
 {
 	fdd.ROnly[drv] |= 1;
+}
+
+int FDD_StateContext(void *f, int writing) {
+	state_context_f(&fdd, sizeof(fdd));
+
+	return 1;
 }

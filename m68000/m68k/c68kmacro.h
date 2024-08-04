@@ -20,7 +20,7 @@
 #define FLAG_C					CPU->flag_C
 #define FLAG_V					CPU->flag_V
 #define FLAG_N					CPU->flag_N
-#define FLAG_Z					CPU->flag_Z
+#define FLAG_Z					CPU->flag_notZ
 
 #define FLAG_S					CPU->flag_S
 #define FLAG_I					CPU->flag_I
@@ -147,7 +147,7 @@
 #define GET_CCR()															\
 	(((CPU->flag_C >> (C68K_SR_C_SFT - 0)) & 1) | 							\
 	 ((CPU->flag_V >> (C68K_SR_V_SFT - 1)) & 2) | 							\
-	 (((!CPU->flag_Z) & 1) << 2) | 											\
+	 (((!CPU->flag_notZ) & 1) << 2) | 											\
 	 ((CPU->flag_N >> (C68K_SR_N_SFT - 3)) & 8) | 							\
 	 ((CPU->flag_X >> (C68K_SR_X_SFT - 4)) & 0x10))
 
@@ -159,7 +159,7 @@
 #define SET_CCR(A)															\
 	CPU->flag_C = (A) << (C68K_SR_C_SFT - 0);								\
 	CPU->flag_V = (A) << (C68K_SR_V_SFT - 1);								\
-	CPU->flag_Z = ~(A) & 4;													\
+	CPU->flag_notZ = ~(A) & 4;													\
 	CPU->flag_N = (A) << (C68K_SR_N_SFT - 3);								\
 	CPU->flag_X = (A) << (C68K_SR_X_SFT - 4);
 

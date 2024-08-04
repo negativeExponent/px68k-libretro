@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 CORE_DIR := $(LOCAL_PATH)/../..
 
 C68K := 1
-NO_MERCURY := 1
+MERCURY := 0
 
 include $(CORE_DIR)/Makefile.common
 

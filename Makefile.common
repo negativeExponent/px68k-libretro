@@ -11,25 +11,29 @@ SOURCES_CXX 	:=
 ifeq ($(CYCLONE),1)
 FLAGS 			+= -DHAVE_CYCLONE
 SOURCES_S 		+= \
+				$(CORE_DIR)/m68000/m68000_cyclone.c \
 				$(CORE_DIR)/m68000/cyclone.s
 else
 ifeq ($(C68K),1)
 FLAGS 			+= -DHAVE_C68K -DC68K_CONST_JUMP_TABLE
 SOURCES_C 		+= \
+				$(CORE_DIR)/m68000/m68000_c68k.c \
 				$(CORE_DIR)/m68000/c68k/c68k.c \
 				$(CORE_DIR)/m68000/c68k/c68kexec.c
 else
 ifeq ($(MUSASHI),1)
 FLAGS 			+= -DHAVE_MUSASHI
 SOURCES_C 		+= \
+				$(CORE_DIR)/m68000/m68000_musashi.c \
 				$(CORE_DIR)/m68000/musashi/m68kcpu.c \
 				$(CORE_DIR)/m68000/musashi/m68kops.c \
 				$(CORE_DIR)/m68000/musashi/softfloat/softfloat.c
 else
 FLAGS 			+= -DHAVE_M68000
 SOURCES_C 		+= \
-				$(CORE_DIR)/m68000/c68k.c \
-				$(CORE_DIR)/m68000/c68kexec.c
+				$(CORE_DIR)/m68000/m68000_m68k.c \
+				$(CORE_DIR)/m68000/m68k/c68k.c \
+				$(CORE_DIR)/m68000/m68k/c68kexec.c
 endif
 endif
 endif
@@ -52,6 +56,7 @@ SOURCES_C 		+= \
 				$(CORE_DIR)/x68k/mfp.c \
 				$(CORE_DIR)/x68k/palette.c \
 				$(CORE_DIR)/x68k/midi.c \
+				$(CORE_DIR)/x68k/opm.c \
 				$(CORE_DIR)/x68k/pia.c \
 				$(CORE_DIR)/x68k/rtc.c \
 				$(CORE_DIR)/x68k/sasi.c \
@@ -60,6 +65,7 @@ SOURCES_C 		+= \
 				$(CORE_DIR)/x68k/sram.c \
 				$(CORE_DIR)/x68k/sysport.c \
 				$(CORE_DIR)/x68k/tvram.c \
+				$(CORE_DIR)/x68k/vc.c \
 				$(CORE_DIR)/x11/joystick.c \
 				$(CORE_DIR)/x11/keyboard.c \
 				$(CORE_DIR)/x11/mouse.c \
@@ -69,10 +75,7 @@ SOURCES_C 		+= \
 				$(CORE_DIR)/x11/windraw.c \
 				$(CORE_DIR)/x11/winui.c \
 				$(CORE_DIR)/x11/winx68k.c \
-				$(LIBRETRO_DIR)/config.c \
-				$(LIBRETRO_DIR)/dosio.c \
-				$(LIBRETRO_DIR)/peace.c \
-				$(LIBRETRO_DIR)/libretro.c
+				$(CORE_DIR)/x11/state.c \
 
 SOURCES_CXX 	+= \
 				$(CORE_DIR)/fmgen/fmg_wrap.cpp \
@@ -80,9 +83,8 @@ SOURCES_CXX 	+= \
 				$(CORE_DIR)/fmgen/fmtimer.cpp \
 				$(CORE_DIR)/fmgen/opm.cpp
 
-ifeq ($(NO_MERCURY),1)
-FLAGS 			+= -DNO_MERCURY
-else
+ifeq ($(MERCURY),1)
+FLAGS 			+= -DHAVE_MERCURY
 SOURCES_C 		+= \
 				$(CORE_DIR)/x68k/mercury.c
 
@@ -91,19 +93,29 @@ SOURCES_CXX 	+= \
 				$(CORE_DIR)/fmgen/psg.cpp
 endif
 
-ifneq ($(STATIC_LINKING),1)
-SOURCES_C 		+= \
-				$(LIBRETRO_COMM_DIR)/compat/compat_posix_string.c \
-				$(LIBRETRO_COMM_DIR)/compat/compat_strcasestr.c \
-				$(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
-				$(LIBRETRO_COMM_DIR)/compat/fopen_utf8.c \
-				$(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c \
-				$(LIBRETRO_COMM_DIR)/file/file_path.c \
-				$(LIBRETRO_COMM_DIR)/file/file_path_io.c \
-				$(LIBRETRO_COMM_DIR)/file/retro_dirent.c \
-				$(LIBRETRO_COMM_DIR)/streams/file_stream.c \
-				$(LIBRETRO_COMM_DIR)/streams/file_stream_transforms.c \
-				$(LIBRETRO_COMM_DIR)/string/stdstring.c \
-				$(LIBRETRO_COMM_DIR)/time/rtime.c \
-				$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c
+ifneq ($(STATIC_LINKING), 1)
+SOURCES_C += \
+	$(LIBRETRO_COMM_DIR)/compat/compat_posix_string.c \
+	$(LIBRETRO_COMM_DIR)/compat/compat_strcasestr.c \
+	$(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
+	$(LIBRETRO_COMM_DIR)/compat/fopen_utf8.c \
+	$(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c \
+	$(LIBRETRO_COMM_DIR)/file/file_path.c \
+	$(LIBRETRO_COMM_DIR)/file/file_path_io.c \
+	$(LIBRETRO_COMM_DIR)/file/retro_dirent.c \
+	$(LIBRETRO_COMM_DIR)/streams/file_stream.c \
+	$(LIBRETRO_COMM_DIR)/streams/file_stream_transforms.c \
+	$(LIBRETRO_COMM_DIR)/string/stdstring.c \
+	$(LIBRETRO_COMM_DIR)/time/rtime.c \
+	$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c
+ifdef _MSC_VER
+SOURCES_C += \
+		$(LIBRETRO_COMM_DIR)/compat/compat_snprintf.c
 endif
+endif
+
+SOURCES_C += \
+	$(LIBRETRO_DIR)/config.c \
+	$(LIBRETRO_DIR)/dosio.c \
+	$(LIBRETRO_DIR)/peace.c \
+	$(LIBRETRO_DIR)/libretro.c

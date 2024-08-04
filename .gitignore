@@ -14,3 +14,4 @@ px68k-ios/px68k-ios.xcodeproj/xcuserdata
 libretro/libs
 libretro/obj
 win32api_original
+.vscode

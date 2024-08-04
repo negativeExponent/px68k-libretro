@@ -3,6 +3,7 @@
  */
 
 #include "../x11/common.h"
+#include "../x11/state.h"
 
 #include "dosio.h"
 
@@ -37,7 +38,6 @@ int SASI_IsReady(void)
 		return 0;
 }
 
-/* わりこみ~ */
 static int32_t FASTCALL SASI_Int(int32_t irq)
 {
 	IRQH_IRQCallBack(irq);
@@ -48,7 +48,6 @@ static int32_t FASTCALL SASI_Int(int32_t irq)
 	return IRQ_DEFAULT_VECTOR;
 }
 
-/* 初期化 */
 void SASI_Init(void)
 {
 	SASI_Phase        = 0;
@@ -68,7 +67,6 @@ void SASI_Init(void)
 		SRAM_SetMem(0x5a, 0x01);
 }
 
-/* し−く（リード時）*/
 static int SASI_Seek(void)
 {
 	FILEH *fp;
@@ -95,9 +93,6 @@ static int SASI_Seek(void)
 	return 1;
 }
 
-/*
- *   しーく（ライト時）
- */
 static int SASI_Flush(void)
 {
 	FILEH *fp;
@@ -120,9 +115,6 @@ static int SASI_Flush(void)
 	return 1;
 }
 
-/*
- *   I/O Read
- */
 uint8_t FASTCALL SASI_Read(uint32_t adr)
 {
 	uint8_t ret = 0;
@@ -138,7 +130,7 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 			ret |= 8;                       /* C/D */
 		if ((SASI_Phase == 3) && (SASI_RW)) /* SASI_RW=1:Read */
 			ret |= 4;                       /* I/O */
-		if (SASI_Phase == 9)                /* Phase=9:SenseStatus中 */
+		if (SASI_Phase == 9)                /* Phase=9:SenseStatus鐃緒申 */
 			ret |= 4;                       /* I/O */
 		if ((SASI_Phase == 4) || (SASI_Phase == 5))
 			ret |= 0x0c;                    /* I/O & C/D */
@@ -147,25 +139,25 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 	}
 	else if (adr == 0xe96001)
 	{
-		if ((SASI_Phase == 3) && (SASI_RW)) /* データリード中~ */
+		if ((SASI_Phase == 3) && (SASI_RW)) /* Reading data ~ */
 		{
 			ret = SASI_Buf[SASI_BufPtr++];
 			if (SASI_BufPtr == 256)
 			{
 				SASI_Blocks--;
-				if (SASI_Blocks)             /* まだ読むブロックがある？ */
+				if (SASI_Blocks)             /* More blocks to read? */
 				{
 					SASI_Sector++;
 					SASI_BufPtr = 0;
-					result      = SASI_Seek(); /* 次のセクタをバッファに読む */
-					if (!result)               /* result=0：イメージの最後（＝無効なセクタ）なら */
+					result      = SASI_Seek(); /* Read next sector into buffer */
+					if (!result)               /* result=0: if it is the end of the image (= invalid sector) */
 					{
 						SASI_Error = 0x0f;
 						SASI_Phase++;
 					}
 				}
 				else
-					SASI_Phase++; /* 指定ブロックのリード完了 */
+					SASI_Phase++; /* Specified block read complete */
 			}
 		}
 		else if (SASI_Phase == 4) /* Status Phase */
@@ -178,15 +170,15 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 		}
 		else if (SASI_Phase == 5) /* MessagePhase */
 		{
-			SASI_Phase = 0; /* 0を返すだけ~。BusFreeに帰ります */
+			SASI_Phase = 0; /* Just return 0. Return to BusFree */
 		}
-		else if (SASI_Phase == 9) /* DataPhase(SenseStat専用) */
+		else if (SASI_Phase == 9) /* DataPhase(SenseStat鐃緒申鐃緒申) */
 		{
 			ret = SASI_SenseStatBuf[SASI_SenseStatPtr++];
 			if (SASI_SenseStatPtr == 4)
 			{
 				SASI_Error = 0;
-				SASI_Phase = 4; /* StatusPhaseへ */
+				SASI_Phase = 4; /* StatusPhase鐃緒申 */
 			}
 		}
 		if (SASI_Phase == 4)
@@ -202,16 +194,16 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 	return ret;
 }
 
-/* コマンドのチェック。正直、InsideX68k内の記述ではちと足りない ^^;。
- * 未記述のものとして、
- *   - C2h（初期化系？）。Unit以外のパラメータは無し。DataPhaseで10個のデータを書きこむ。
- *   - 06h（フォーマット？）。論理ブロック指定あり（21hおきに指定している）。ブロック数のとこは6が指定されている。
- */
+/* Check the command. To be honest, the description in InsideX68k is not enough ^^;.
+* As for what is not described,
+* - C2h (initialization?). No parameters other than Unit. Write 10 pieces of data in DataPhase.
+* - 06h (format?). Logical block specified (specified every 21h). 6 is specified for the number of blocks.
+*/
 static void SASI_CheckCmd(void)
 {
 	int result;
 
-	SASI_Unit = (SASI_Cmd[1] >> 5) & 1; /* X68kでは、ユニット番号は0か1しか取れない */
+	SASI_Unit = (SASI_Cmd[1] >> 5) & 1; /* On X68k, unit numbers can only be 0 or 1 */
 	switch (SASI_Cmd[0])
 	{
 	case 0x00: /* Test Drive Ready */
@@ -368,7 +360,7 @@ void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 		if (SASI_Phase == 2)
 		{
 			SASI_Cmd[SASI_CmdPtr++] = data;
-			if (SASI_CmdPtr == 6) /* コマンド発行終了 */
+			if (SASI_CmdPtr == 6) /* Command completed */
 			{
 #if 0
 				//SASI_Phase++;
@@ -376,32 +368,32 @@ void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 				SASI_CheckCmd();
 			}
 		}
-		else if ((SASI_Phase == 3) && (!SASI_RW)) /* データライト中~ */
+		else if ((SASI_Phase == 3) && (!SASI_RW)) /* Data writing in progress */
 		{
 			SASI_Buf[SASI_BufPtr++] = data;
 			if (SASI_BufPtr == 256)
 			{
-				result = SASI_Flush(); /* 現在のバッファを書き出す */
+				result = SASI_Flush(); /* Write the current buffer */
 				SASI_Blocks--;
-				if (SASI_Blocks) /* まだ書くブロックがある？ */
+				if (SASI_Blocks) /* More blocks to write? */
 				{
 					SASI_Sector++;
 					SASI_BufPtr = 0;
-					result      = SASI_Seek(); /* 次のセクタをバッファに読む */
-					if (!result)               /* result=0：イメージの最後（＝無効なセクタ）なら */
+					result      = SASI_Seek(); /* Read next sector into buffer */
+					if (!result)               /* result=0: if it is the end of the image (= invalid sector) */
 					{
 						SASI_Error = 0x0f;
 						SASI_Phase++;
 					}
 				}
 				else
-					SASI_Phase++; /* 指定ブロックのライト完了 */
+					SASI_Phase++; /* Specified block write complete */
 			}
 		}
 		else if (SASI_Phase == 10)
 		{
 			SASI_SenseStatPtr++;
-			if (SASI_SenseStatPtr == 10) /* コマンド発行終了 */
+			if (SASI_SenseStatPtr == 10) /* Command issuance completed */
 			{
 				SASI_Phase = 4;
 			}
@@ -414,4 +406,24 @@ void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 		}
 	}
 	StatBar_HDD((SASI_Phase) ? 2 : 0);
+}
+
+int SASI_StateContext(void *f, int writing) {
+	state_context_f(SASI_Cmd, sizeof(SASI_Cmd));
+	state_context_f(SASI_Buf, sizeof(SASI_Buf));
+	state_context_f(&SASI_Phase, sizeof(SASI_Phase));
+	state_context_f(&SASI_Sector, sizeof(SASI_Sector));
+	state_context_f(&SASI_Blocks, sizeof(SASI_Blocks));
+	state_context_f(&SASI_CmdPtr, sizeof(SASI_CmdPtr));
+	state_context_f(&SASI_Device, sizeof(SASI_Device));
+	state_context_f(&SASI_Unit, sizeof(SASI_Unit));
+	state_context_f(&SASI_BufPtr, sizeof(SASI_BufPtr));
+	state_context_f(&SASI_RW, sizeof(SASI_RW));
+	state_context_f(&SASI_Stat, sizeof(SASI_Stat));
+	state_context_f(&SASI_Error, sizeof(SASI_Error));
+	state_context_f(SASI_SenseStatBuf, sizeof(SASI_SenseStatBuf));
+	state_context_f(&SASI_SenseStatPtr, sizeof(SASI_SenseStatPtr));
+
+	return 1;
+
 }

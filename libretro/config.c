@@ -38,7 +38,7 @@
  * XXX: REWRITE ME!!!
  */
 static int _WritePrivateProfileString_subr(
-        FILEH **fp, long pos, long nowpos,
+        FILEH **fp, int64_t pos, int64_t nowpos,
         const char *buf, const char *file)
 {
 	char *p         = NULL;
@@ -62,7 +62,7 @@ static int _WritePrivateProfileString_subr(
 		goto out;
 	if (file_write(*fp, (char *)buf, strlen(buf)) < 1)
 		goto out;
-	if (((long)st_size - nowpos) > 0)
+	if (((int64_t)st_size - nowpos) > 0)
 	{
 		if (file_write(*fp, p + nowpos, st_size - nowpos) < 1)
 			goto out;
@@ -83,7 +83,7 @@ BOOL WritePrivateProfileString(
 	char newbuf[256];
 
 	FILEH *fp     = NULL;
-	long pos     = 0;
+	int64_t pos   = 0;
 	int found    = 0;
 	int notfound = 0;
 	int delta    = 0;
@@ -114,10 +114,10 @@ BOOL WritePrivateProfileString(
 		 * Now create new section and key.
 		 */
 		file_rewind(fp);
-		snprintf(newbuf, sizeof(newbuf), "[%s]\n", sect);
+		sprintf(newbuf, "[%s]\n", sect);
 		if (file_write(fp, newbuf, strlen(newbuf)) < 1)
 			goto writefail;
-		snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+		sprintf(newbuf, "%s=%s\n", key, str);
 		if (file_write(fp, newbuf, strlen(newbuf)) < 1)
 			goto writefail;
 		file_close(fp);
@@ -140,7 +140,7 @@ BOOL WritePrivateProfileString(
 			&& lbuf[strlen(key)] == '=')
 		{
 			found = 1;
-			snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+			sprintf(newbuf, "%s=%s\n", key, str);
 			delta = strlen(newbuf) - strlen(lbuf);
 			if (delta == 0)
 			{
@@ -170,13 +170,13 @@ BOOL WritePrivateProfileString(
 	{
 		/* Now create new key. */
 		file_seek(fp, 0L, FSEEK_END);
-		snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+		sprintf(newbuf, "%s=%s\n", key, str);
 		if (file_write(fp, newbuf, strlen(newbuf)) < 1)
 			goto writefail;
 	}
 	else if (notfound)
 	{
-		snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
+		sprintf(newbuf, "%s=%s\n", key, str);
 		if (!_WritePrivateProfileString_subr(&fp, pos,
 			file_tell(fp), newbuf, inifile))
 			goto writefail;

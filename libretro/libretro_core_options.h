@@ -282,7 +282,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       },
       "12"
    },
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
    {
       "px68k_mercury_vol",
       "Mercury Volume",

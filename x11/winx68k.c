@@ -1,7 +1,10 @@
+#include <stdio.h>
+
 #include "common.h"
 #include "dosio.h"
 
-#include "../fmgen/fmg_wrap.h"
+#include "../m68000/m68000.h"
+
 #include "../x11/common.h"
 #include "../x11/dswin.h"
 #include "../x11/joystick.h"
@@ -12,7 +15,6 @@
 #include "../x11/timer.h"
 #include "../x11/windraw.h"
 #include "../x11/winui.h"
-#include "../m68000/m68000.h"
 #include "../x68k/adpcm.h"
 #include "../x68k/bg.h"
 #include "../x68k/crtc.h"
@@ -25,6 +27,7 @@
 #include "../x68k/mercury.h"
 #include "../x68k/mfp.h"
 #include "../x68k/midi.h"
+#include "../x68k/opm.h"
 #include "../x68k/palette.h"
 #include "../x68k/pia.h"
 #include "../x68k/rtc.h"
@@ -35,6 +38,8 @@
 #include "../x68k/sysport.h"
 #include "../x68k/tvram.h"
 #include "../x68k/x68kmemory.h"
+
+#include "../x11/state.h"
 
 #include "winx68k.h"
 
@@ -65,7 +70,6 @@ static int oldrw = 0, oldrh = 0;
 
 enum { menu_out, menu_enter, menu_in };
 static int menu_mode = menu_out;
-static int ram_size_override = 0;
 
 static void WinX68k_SCSICheck(void)
 {
@@ -170,17 +174,19 @@ static int WinX68k_LoadROMs(void)
 	file_read(fp, FONT, 0xc0000);
 	file_close(fp);
 
+	for (i = 0; i < 0xc0000; i += 2)
+	{
+		tmp         = FONT[i];
+		FONT[i]     = FONT[i + 1];
+		FONT[i + 1] = tmp;
+	}
+
 	return TRUE;
 }
 
 void WinX68k_Reset(int softReset)
 {
 	m68000_reset();
-	m68000_set_reg(M68K_A7, (IPL[0x30001] << 24) | (IPL[0x30000] << 16) | (IPL[0x30003] << 8) | IPL[0x30002]);
-	m68000_set_reg(M68K_PC, (IPL[0x30005] << 24) | (IPL[0x30004] << 16) | (IPL[0x30007] << 8) | IPL[0x30006]);
-
-	if (ram_size_override)
-		Config.ramSize = ram_size_override;
 
 	OPM_Reset();
 	Memory_Init();
@@ -203,8 +209,6 @@ void WinX68k_Reset(int softReset)
 	MIDI_Init();
 	Keyboard_Init();
 
-	ICount = 0;
-
 	DSound_Stop();
 	DSound_Play();
 
@@ -217,62 +221,16 @@ void WinX68k_Reset(int softReset)
 	}
 }
 
-static int WinX68k_Init(void)
-{
-	int MEM_SIZE = 0xc00000;
-
-	ram_size_override = 0;
-
-	IPL  = (uint8_t *)malloc(0x40000);
-	FONT = (uint8_t *)malloc(0xc0000);
-	MEM  = (uint8_t *)malloc(MEM_SIZE);
-
-	if (!MEM)
-	{
-		/* try to provide a minimum ram size (2MB) */
-		ram_size_override = 2;
-		MEM_SIZE = ram_size_override * 0x100000;
-		MEM      = (uint8_t *)malloc(MEM_SIZE);
-	}
-
-	if (MEM)
-		memset(MEM, 0, MEM_SIZE);
-
-	if (MEM && FONT && IPL)
-	{
-		m68000_init();
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
 static void WinX68k_Cleanup(void)
 {
-	if (IPL)
-	{
-		free(IPL);
-		IPL = 0;
-	}
-
-	if (MEM)
-	{
-		free(MEM);
-		MEM = 0;
-	}
-
-	if (FONT)
-	{
-		free(FONT);
-		FONT = 0;
-	}
 }
 
+#include "../m68000/m68k/c68k.h"
 #define CLOCK_SLICE 200
 static void WinX68k_Exec(void)
 {
-	int clk_total, clkdiv, usedclk, hsync, clk_next, clk_count, clk_line;
-	int KeyIntCnt, MouseIntCnt;
+	int32_t clk_total, clkdiv, usedclk, hsync, clk_next, clk_count, clk_line;
+	int32_t KeyIntCnt, MouseIntCnt;
 	uint32_t t_start, t_end;
 
 	clk_line = 0;
@@ -417,7 +375,7 @@ static void WinX68k_Exec(void)
 			ADPCM_PreUpdate(clk_line);
 			OPM_Timer(clk_line);
 			MIDI_Timer(clk_line);
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
 			Mcry_PreUpdate(clk_line);
 #endif
 
@@ -513,12 +471,7 @@ int pmain(int argc, char *argv[])
 
 	WinUI_Init();
 
-	if (!WinX68k_Init())
-	{
-		WinX68k_Cleanup();
-		WinDraw_Cleanup();
-		return 0;
-	}
+	m68000_init();
 
 	if (!WinX68k_LoadROMs())
 	{
@@ -540,7 +493,7 @@ int pmain(int argc, char *argv[])
 	{
 		ADPCM_Init(Config.SampleRate);
 		OPM_Init(4000000 /*3579545*/, Config.SampleRate);
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
 		Mcry_Init(Config.SampleRate, winx68k_dir);
 #endif
 	}
@@ -548,7 +501,7 @@ int pmain(int argc, char *argv[])
 	{
 		ADPCM_Init(100);
 		OPM_Init(4000000 /*3579545*/, 100);
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
 		Mcry_Init(100, winx68k_dir);
 #endif
 	}
@@ -570,7 +523,7 @@ int pmain(int argc, char *argv[])
 
 	ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
 	OPM_SetVolume((uint8_t)Config.OPM_VOL);
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
 	Mcry_SetVolume((uint8_t)Config.MCR_VOL);
 #endif
 	DSound_Play(); /* Set PCM and OPM volumes */
@@ -854,7 +807,7 @@ void end_loop_retro(void)
 	SRAM_UpdateBoot();
 
 	OPM_Cleanup();
-#ifndef NO_MERCURY
+#ifdef HAVE_MERCURY
 	Mcry_Cleanup();
 #endif
 
@@ -868,4 +821,18 @@ void end_loop_retro(void)
 	WinDraw_Cleanup();
 
 	SaveConfig();
+}
+
+int winx68k_StateContext(void *f, int writing) {
+	state_context_f(MEM, sizeof(MEM));
+	state_context_f(SRAM, sizeof(SRAM));
+	state_context_f(&ICount, sizeof(ICount));
+	state_context_f(&ClkUsed, sizeof(ClkUsed));
+	state_context_f(&VLINE, sizeof(VLINE));
+	state_context_f(&VLINE_TOTAL, sizeof(VLINE_TOTAL));
+
+	state_context_f(&tick, sizeof(tick));
+	state_context_f(&timercnt, sizeof(timercnt));
+
+	return 1;
 }

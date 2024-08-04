@@ -1,5 +1,5 @@
-#ifndef _WINX68K_FDD_H
-#define _WINX68K_FDD_H
+#ifndef _X68K_FDD_H
+#define _X68K_FDD_H
 
 typedef struct {
 	uint8_t c;
@@ -28,4 +28,4 @@ void FDD_SetEMask(int drive, int emask);
 void FDD_SetAccess(int drive);
 void FDD_SetBlink(int drive, int blink);
 
-#endif /* _WINX68K_FDD_H */
+#endif /* _X68K_FDD_H */

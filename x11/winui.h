@@ -1,5 +1,5 @@
-#ifndef _WINX68K_WINUI_H
-#define _WINX68K_WINUI_H
+#ifndef _X68K_WINUI_H
+#define _X68K_WINUI_H
 
 extern uint8_t Debug_Text, Debug_Grp, Debug_Sp;
 
@@ -41,4 +41,4 @@ extern char menu_items[][15][30];
 
 int WinUI_get_drv_num(int key);
 
-#endif /* _WINX68K_WINUI_H */
+#endif /* _X68K_WINUI_H */

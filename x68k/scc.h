@@ -1,5 +1,5 @@
-#ifndef _WINX68K_SCC_H
-#define _WINX68K_SCC_H
+#ifndef _X68K_SCC_H
+#define _X68K_SCC_H
 
 void SCC_IntCheck(void);
 void SCC_Init(void);
@@ -10,4 +10,4 @@ extern int8_t MouseX;
 extern int8_t MouseY;
 extern uint8_t MouseSt;
 
-#endif /* _WINX68K_SCC_H */
+#endif /* _X68K_SCC_H */

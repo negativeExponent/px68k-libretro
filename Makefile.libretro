@@ -1,6 +1,6 @@
 
 DEBUG = 0
-NO_MERCURY = 1
+MERCURY = 0
 
 GIT_VERSION := " $(shell git rev-parse --short HEAD)"
 
@@ -406,7 +406,7 @@ ifeq ($(DEBUG), 1)
 else ifneq (,$(findstring msvc,$(platform)))
    FLAGS +=
 else
-   FLAGS += -O2
+   FLAGS += -O2 -funroll-all-loops -fomit-frame-pointer -ffast-math
 endif
 
 ifneq ($(SANITIZER),)
@@ -418,15 +418,16 @@ endif
 LDFLAGS +=  $(fpic) $(SHARED) $(EXTRA_LDF)
 FLAGS   += $(INCFLAGS)
 
-WARNINGS := -Wall -Wextra -Wno-strict-aliasing
+WARNINGS := -Wall -Wno-strict-aliasing
+WARNINGS += -Wno-unused-parameter
 
 FLAGS    += -D__LIBRETRO__ $(ENDIANNESS_DEFINES) $(WARNINGS) $(fpic)
 
 CXXFLAGS += $(FLAGS) $(CPU_FLAGS)
 CFLAGS   += $(FLAGS) $(CPU_FLAGS)
-CFLAGS   += -ansi -Wno-long-long -Werror=declaration-after-statement -Werror-implicit-function-declaration
-CFLAGS   += -std=c89
-CFLAGS   += -D_GNU_SOURCE
+# CFLAGS   += -Wextra -Wno-long-long -Werror=declaration-after-statement -Werror-implicit-function-declaration -Wuninitialized -Wunused
+# CFLAGS   += -std=c89 -ansi
+# CFLAGS   += -D_GNU_SOURCE
 
 ifeq ($(MUSASHI),1)
 CFLAGS   += -pedantic -Werror=pedantic

@@ -1,5 +1,5 @@
-#ifndef _WINX68K_TVRAM_H
-#define _WINX68K_TVRAM_H
+#ifndef _X68K_TVRAM_H
+#define _X68K_TVRAM_H
 
 extern uint8_t TVRAM[0x80000];
 extern uint8_t TextDirtyLine[1024];
@@ -14,4 +14,4 @@ void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data);
 void FASTCALL TVRAM_RCUpdate(void);
 void FASTCALL Text_DrawLine(int opaq);
 
-#endif /* _WINX68K_TVRAM_H */
+#endif /* _X68K_TVRAM_H */
