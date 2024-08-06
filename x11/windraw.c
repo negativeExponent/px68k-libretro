@@ -520,7 +520,7 @@ void WinDraw_DrawLine(void)
 		else
 			memset(Text_TrFlag, 0, TextDotX + 16);
 
-		if ((VCReg2[1] & 0x40) && (BG_Regs[8] & 2) && (!(BG_Regs[0x11] & 2)) && (Debug_Sp))
+		if ((VCReg2[1] & 0x40) && (BG_Regs[0x08] & 2) && (!(BG_Regs[0x11] & 2)) && (Debug_Sp))
 		{
 			int s1 = (((BG_Regs[0x11] & 4) ? 2 : 1) - ((BG_Regs[0x11] & 16) ? 1 : 0));
 			int s2 = (((CRTC_Regs[0x29] & 4) ? 2 : 1) - ((CRTC_Regs[0x29] & 16) ? 1 : 0));
@@ -537,7 +537,7 @@ void WinDraw_DrawLine(void)
 	else
 	{
 		/* Text is on top */
-		if ((VCReg2[1] & 0x40) && (BG_Regs[8] & 2) && (!(BG_Regs[0x11] & 2)) && (Debug_Sp))
+		if ((VCReg2[1] & 0x40) && (BG_Regs[0x08] & 2) && (!(BG_Regs[0x11] & 2)) && (Debug_Sp))
 		{
 			int s1 = (((BG_Regs[0x11] & 4) ? 2 : 1) - ((BG_Regs[0x11] & 16) ? 1 : 0));
 			int s2 = (((CRTC_Regs[0x29] & 4) ? 2 : 1) - ((CRTC_Regs[0x29] & 16) ? 1 : 0));
