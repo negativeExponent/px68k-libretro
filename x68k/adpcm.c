@@ -14,7 +14,7 @@
 #include "dmac.h"
 #include "pia.h"
 
-#define ADPCM_BufSize 96000
+#define ADPCM_BufSize 48000 * 2
 #define ADPCMMAX      2047
 #define ADPCMMIN      -2048
 #define FM_IPSCALE    256L
@@ -273,30 +273,35 @@ static INLINE void ADPCM_WriteOne(uint8_t val)
 
 void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 {
-	if (adr == 0xe92001)
+	if (adr & 1)
 	{
-		if (data & 1)
+		adr &= 3;
+
+		if (adr == 1)
 		{
-			ADPCM_Playing = 0;
-		}
-		else if (data & 2)
-		{
-			if (!ADPCM_Playing)
+			if (data & 1)
 			{
-				ADPCM_Step = 0;
-				ADPCM_Out  = 0;
-				OldL = OldR   = -2;
-				ADPCM_Playing = 1;
+				ADPCM_Playing = 0;
 			}
-			OutsIp[0] = OutsIp[1] = OutsIp[2] = OutsIp[3] = -1;
+			else if (data & 2)
+			{
+				if (!ADPCM_Playing)
+				{
+					ADPCM_Step = 0;
+					ADPCM_Out = 0;
+					OldL = OldR = -2;
+					ADPCM_Playing = 1;
+				}
+				OutsIp[0] = OutsIp[1] = OutsIp[2] = OutsIp[3] = -1;
+			}
 		}
-	}
-	else if (adr == 0xe92003)
-	{
-		if (ADPCM_Playing)
+		else if (adr == 3)
 		{
-			ADPCM_WriteOne((uint8_t)(data & 15));
-			ADPCM_WriteOne((uint8_t)((data >> 4) & 15));
+			if (ADPCM_Playing)
+			{
+				ADPCM_WriteOne((uint8_t)(data & 15));
+				ADPCM_WriteOne((uint8_t)((data >> 4) & 15));
+			}
 		}
 	}
 }
