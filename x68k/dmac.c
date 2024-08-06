@@ -240,8 +240,10 @@ uint8_t FASTCALL DMA_Read(uint32_t adr)
 	int off = adr & 0x3f;
 	int ch = (adr >> 6) & 0x03;
 
+#if 0
 	if (adr >= 0xe84100)
 		return 0; /* Bus error? */
+#endif
 
 	switch (off)
 	{
@@ -340,8 +342,10 @@ void FASTCALL DMA_Write(uint32_t adr, uint8_t data)
 	int off = adr & 0x3f;
 	int ch = (adr >> 6) & 0x03;
 
+#if 0
 	if (adr >= 0xe84100)
 		return; /* Bus error? */
+#endif
 
 	switch (off)
 	{
