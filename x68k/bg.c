@@ -12,8 +12,7 @@
 #include "palette.h"
 #include "tvram.h"
 
-static uint8_t  BG[0x8000];
-static uint8_t  Sprite_Regs[0x800];
+static uint8_t Sprite[0x10000];
 static uint16_t BG_CHREND  = 0;
 static uint16_t BG_BG0TOP  = 0;
 static uint16_t BG_BG0END  = 0;
@@ -28,7 +27,10 @@ static uint8_t  BGCHR8[8 * 8 * 256];
 static uint8_t  BGCHR16[16 * 16 * 256];
 static uint16_t BG_PriBuf[1600];
 
-uint8_t  BG_Regs[0x12];
+static uint8_t *Sprite_Regs;	/* 0xeb0000 - 0xeb0400 */
+uint8_t *BG_Regs;				/* 0xeb0800 - 0xeb0812 */				
+static uint8_t *BG;				/* 0xeb8000 - 0xebffff */
+
 uint16_t BG_LineBuf[1600];
 
 /* NOTE: changed from long to int32_t */
@@ -39,36 +41,32 @@ uint32_t VLINEBG = 0;
 
 void BG_Init(void)
 {
-	int i;
-
-	memset(Sprite_Regs, 0, 0x800);
-	memset(BG, 0, 0x8000);
+	/* EB0400 - EB07FF, EB0812 - EB7FFF - Reserved(FF) */
+	memset(Sprite, 0, 0x10000);
+	memset(&Sprite[0x400], 0xff, 0x400);
+	memset(&Sprite[0x812], 0xff, 0x77ee);
 	memset(BGCHR8, 0, 8 * 8 * 256);
 	memset(BGCHR16, 0, 16 * 16 * 256);
 	memset(BG_LineBuf, 0, 1600 * 2);
-	for (i = 0; i < 0x12; i++)
-		BG_Write(0xeb0800 + i, 0);
 	BG_CHREND = 0x8000;
+
+	Sprite_Regs = &Sprite[0];
+	BG_Regs = &Sprite[0x800];
+	BG = &Sprite[0x8000];
 }
 
 uint8_t FASTCALL BG_Read(uint32_t adr)
 {
-	if ((adr >= 0xeb0000) && (adr < 0xeb0400))
+	adr &= 0xffff;
+
+	if (adr < 0x400)
 	{
-		adr -= 0xeb0000;
+		adr &= 0x3ff;
 		adr ^= 1;
-		return Sprite_Regs[adr];
-	}
-	else if ((adr >= 0xeb0800) && (adr < 0xeb0812))
-	{
-		return BG_Regs[adr - 0xeb0800];
-	}
-	else if ((adr >= 0xeb8000) && (adr < 0xec0000))
-	{
-		return BG[adr - 0xeb8000];
+		return Sprite[adr];
 	}
 
-	return 0xff;
+	return Sprite[adr];
 }
 
 #define UPDATE_TDL(t)                               \
@@ -93,22 +91,26 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 	{
 		v = ((BG_Regs[0x0f] >> s1) - (CRTC_Regs[0x0d] >> s2));
 	}
-	if ((adr >= 0xeb0000) && (adr < 0xeb0400))
-	{
+
+	adr &= 0xffff;
+
+	if (adr < 0x400) /* sprite mem */
+	{	
 		adr &= 0x3ff;
 		adr ^= 1;
-		if (Sprite_Regs[adr] != data)
+
+		if (Sprite[adr] != data)
 		{
 			uint16_t t0, t, *pw;
 
 			v = BG_VLINE - 16 - v;
 			/* get YPOS pointer (Sprite_Regs[] is little endian) */
-			pw = (uint16_t *)(Sprite_Regs + (adr & 0x3f8) + 2);
+			pw = (uint16_t *)(Sprite + (adr & 0x3f8) + 2);
 
 			t = t0 = (*pw + v) & 0x3ff;
 			UPDATE_TDL(t);
 
-			Sprite_Regs[adr] = data;
+			Sprite[adr] = data;
 
 			t = (*pw + v) & 0x3ff;
 			if (t != t0)
@@ -117,12 +119,13 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 			}
 		}
 	}
-	else if ((adr >= 0xeb0800) && (adr < 0xeb0812))
+	else if ((adr >= 0x800) && (adr < 0x812)) /* BG regs */
 	{
-		adr -= 0xeb0800;
-		if (BG_Regs[adr] == data)
+		if (Sprite[adr] == data)
 			return; /* return if no data is changed */
-		BG_Regs[adr] = data;
+
+		Sprite[adr] = data;
+		adr -= 0x800;
 		switch (adr)
 		{
 		case 0x00:
@@ -222,12 +225,13 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 			break;
 		}
 	}
-	else if ((adr >= 0xeb8000) && (adr < 0xec0000))
+	else if (adr >= 0x8000) /* BG*/
 	{
-		adr -= 0xeb8000;
-		if (BG[adr] == data)
+		if (Sprite[adr] == data)
 			return; /* return if no data is changed */
-		BG[adr] = data;
+
+		Sprite[adr] = data;
+		adr -= 0x8000;
 		if (adr < 0x2000)
 		{
 			BGCHR8[adr * 2]     = data >> 4;
@@ -237,15 +241,9 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 		BGCHR16[bg16chr]     = data >> 4;
 		BGCHR16[bg16chr + 1] = data & 15;
 
-		if (adr < BG_CHREND) /* pattern area */
-		{
-			TVRAM_SetAllDirty();
-		}
-		if ((adr >= BG_BG1TOP) && (adr < BG_BG1END)) /* BG1 MAP Area */
-		{
-			TVRAM_SetAllDirty();
-		}
-		if ((adr >= BG_BG0TOP) && (adr < BG_BG0END)) /* BG0 MAP Area */
+		if ((adr < BG_CHREND) ||							/* pattern area */
+			((adr >= BG_BG1TOP) && (adr < BG_BG1END)) ||	/* BG1 MAP Area */
+			((adr >= BG_BG0TOP) && (adr < BG_BG0END)))		/* BG0 MAP Area */
 		{
 			TVRAM_SetAllDirty();
 		}
@@ -510,13 +508,13 @@ void FASTCALL BG_DrawLine(int opaq, int gd)
 	func16 = (gd) ? BG_DrawLineMcr16 : BG_DrawLineMcr16_ng;
 
 	Sprite_DrawLineMcr(1);
-	if ((BG_Regs[9] & 8) && (BG_CHRSIZE == 8))
+	if ((BG_Regs[0x09] & 8) && (BG_CHRSIZE == 8))
 	{
 		/* BG1 on */
 		(*func8)(BG_BG1TOP, BG1ScrollX, BG1ScrollY);
 	}
 	Sprite_DrawLineMcr(2);
-	if (BG_Regs[9] & 1)
+	if (BG_Regs[0x09] & 1)
 	{
 		/* BG0 on */
 		if (BG_CHRSIZE == 8)
@@ -532,7 +530,8 @@ void FASTCALL BG_DrawLine(int opaq, int gd)
 }
 
 int BG_StateContext(void *f, int writing) {
-	state_context_f(BG, sizeof(BG));
+	state_context_f(Sprite, sizeof(Sprite));
+
 	state_context_f(&BG_CHREND, sizeof(BG_CHREND));
 	state_context_f(&BG_BG0TOP, sizeof(BG_BG0TOP));
 	state_context_f(&BG_BG0END, sizeof(BG_BG0END));
@@ -549,7 +548,6 @@ int BG_StateContext(void *f, int writing) {
 	state_context_f(BGCHR16, sizeof(BGCHR16));
 	state_context_f(BG_PriBuf, sizeof(BG_PriBuf));
 
-	state_context_f(BG_Regs, sizeof(BG_Regs));
 	state_context_f(BG_LineBuf, sizeof(BG_LineBuf));
 
 	state_context_f(&BG_HAdjust, sizeof(BG_HAdjust));

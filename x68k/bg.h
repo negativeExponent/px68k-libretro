@@ -1,7 +1,7 @@
 #ifndef _X68K_BG_H
 #define _X68K_BG_H
 
-extern uint8_t  BG_Regs[0x12];
+extern uint8_t  *BG_Regs;
 extern uint32_t VLINEBG;
 extern uint16_t BG_LineBuf[1600];
 
