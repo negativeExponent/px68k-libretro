@@ -513,16 +513,24 @@ uint8_t FASTCALL FDC_Read(uint32_t adr)
 {
 	uint8_t ret = 0x00;
 
-	if (adr == 0xe94001)
+	if ((adr & 1) == 0)
 	{
+		return 0xff;
+	}
+
+	adr &= 0x07;
+
+	switch (adr)
+	{
+	case 1:
 		/* FDC Status */
 		ret = 0x80;
 		ret |= ((fdc.rdnum) && (!fdc.wexec)) ? 0x40 : 0;
 		ret |= ((fdc.wrnum) || (fdc.rdnum)) ? 0x10 : 0;
 		ret &= ((fdc.rdnum == 1) && (fdc.cmd == 8)) ? 0xaf : 0xff;
-	}
-	else if (adr == 0xe94003)
-	{
+		return ret;
+
+	case 3:
 		/* Read data */
 		if (fdc.bufnum)
 		{
@@ -538,21 +546,35 @@ uint8_t FASTCALL FDC_Read(uint32_t adr)
 			ret = fdc.RspBuf[fdc.rdptr++];
 			fdc.rdnum--;
 		}
-	}
-	else if (adr == 0xe94005)
-	{
+		return ret;
+
+	case 5:
+		/* Drive Select Register */
 		if ((fdc.ctrl & 1) && (FDD_IsReady(0)))
-			ret = 0x80;
+			return 0x80;
 		if ((fdc.ctrl & 2) && (FDD_IsReady(1)))
-			ret = 0x80;
+			return 0x80;
+		return 0xff;
 	}
-	return ret;
+
+	return 0xff;
 }
 
 void FASTCALL FDC_Write(uint32_t adr, uint8_t data)
 {
-	if (adr == 0xe94003)
+	if ((adr & 1) == 0)
 	{
+		return;
+	}
+
+	adr &= 0x07;
+
+	switch (adr)
+	{
+	case 1:
+		break;
+
+	case 3:
 		if (fdc.bufnum)
 		{
 			/* WriteData */
@@ -592,9 +614,9 @@ void FASTCALL FDC_Write(uint32_t adr, uint8_t data)
 				FDC_ExecCmd();
 			}
 		}
-	}
-	else if (adr == 0xe94005)
-	{
+		break;
+
+	case 5:
 		if ((fdc.ctrl & 0x01) && (!(data & 0x01)))
 		{
 			/* Drive0 control (Down edge) */
@@ -612,11 +634,12 @@ void FASTCALL FDC_Write(uint32_t adr, uint8_t data)
 			FDD_SetBlink(1, (fdc.ctrl & 0x80) ? 1 : 0);
 		}
 		fdc.ctrl = data;
-	}
-	else if (adr == 0xe94007)
-	{
+		break;
+
+	case 7:
 		fdc.drv = (data & 0x80) ? (data & 3) : (-1);
 		FDD_SetAccess(fdc.drv);
+		break;
 	}
 }
 
