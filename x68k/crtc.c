@@ -67,9 +67,25 @@ static void CRTC_RasterCopy(void)
 
 void CRTC_Init(void)
 {
-	memset(CRTC_Regs, 0, 48);
+	const uint8_t ResetTable[] = {
+		0x00, 0x89, 0x00, 0x0e, 0x00, 0x1c, 0x00, 0x7c,
+		0x02, 0x37, 0x00, 0x05, 0x00, 0x28, 0x02, 0x28,
+		0x00, 0x1b,
+		0x0b, 0x16, 0x00, 0x33, 0x7a, 0x7b, 0x00, 0x00
+	};
+	int i;
+
 	memset(GrphScrollX, 0, sizeof(GrphScrollX));
 	memset(GrphScrollY, 0, sizeof(GrphScrollY));
+	memset(CRTC_Regs, 0, sizeof(CRTC_Regs));
+	for (i = 0; i < 18; i++)
+	{
+		CRTC_Regs[i] = ResetTable[i];
+	}
+	for (i = 0; i < 8; i++)
+	{
+		CRTC_Regs[i + 0x28] = ResetTable[i + 18];
+	}
 
 	CRTC_HSTART = 28;
 	CRTC_HEND   = 124;
@@ -78,6 +94,9 @@ void CRTC_Init(void)
 
 	TextScrollX = 0;
 	TextScrollY = 0;
+
+	TextDotX    = 768;
+	TextDotY    = 512;
 }
 
 static void CRTC_ScreenChanged(void)
@@ -97,33 +116,38 @@ static void CRTC_ScreenChanged(void)
 }
 
 uint8_t FASTCALL CRTC_Read(uint32_t adr)
-{
-	if (adr < 0xe80400)
-	{
-		int reg = adr & 0x3f;
+{	
+	adr &= 0x7ff;
 
-		if (reg >= 0x30)
+	if (adr < 0x400)
+	{
+		adr &= 0x3f;
+
+		if (adr >= 0x30)
 		{
 			return 0xff;
 		}
 
-		if ((reg >= 0x28) && (reg <= 0x2b))
+		if ((adr >= 0x28) && (adr <= 0x2b))
 		{
-			return CRTC_Regs[reg];
+			return CRTC_Regs[adr];
 		}
 
 		return 0;
 	}
-	else if (adr == 0xe80480)
+
+	if ((adr >= 0x480) && (adr <= 0x4ff))
 	{
-		return 0;
-	}
-	else if (adr == 0xe80481)
-	{
+		if ((adr & 1) == 0)
+		{
+			return 0;
+		}
 		/* Notes on FastClear:
-		 * When you write a 1 to the FastClr bit, the 1 will not be visible even if you read it back at that point.
-		 * The bit will become 1 during the first vertical blanking period after writing the 1, and erasure will begin.
-		 * The erasure will end during one vertical sync period, and the bit will return to 0... PITAPAT.
+		 * When you write a 1 to the FastClr bit, the 1 will not be visible
+		 * even if you read it back at that point. The bit will become 1
+		 * during the first vertical blanking period after writing the 1,
+		 * and erasure will begin. The erasure will end during one vertical
+		 * sync period, and the bit will return to 0... PITAPAT.
 		 */
 		if (CRTC_FastClr)
 			return CRTC_Mode | 0x02;
@@ -136,24 +160,26 @@ uint8_t FASTCALL CRTC_Read(uint32_t adr)
 
 void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 {
-	if (adr < 0xe80400)
+	adr &= 0x7ff;
+
+	if (adr < 0x400)
 	{
-		int reg = adr & 0x3f;
+		adr &= 0x3f;
 
-		if (reg >= 0x30)
+		if (adr >= 0x30)
 		{
 			return;
 		}
 
-		if (CRTC_Regs[reg] == data)
+		if (CRTC_Regs[adr] == data)
 		{
 			return;
 		}
 
-		CRTC_Regs[reg] = data;
+		CRTC_Regs[adr] = data;
 		TVRAM_SetAllDirty();
 
-		switch (reg)
+		switch (adr)
 		{
 		case 0x00:
 		case 0x01:
@@ -263,7 +289,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			break;
 		case 0x2c: /* Turn on the raster copy of the CRTC operation port (and leave it on), */
 		case 0x2d: /* Apparently it's also permissible to change only the Src/Dst (like Dracula) */
-			CRTC_RCFlag[reg - 0x2c] = 1; /* Is it executed after changing Dst? */
+			CRTC_RCFlag[adr & 1] = 1; /* Is it executed after changing Dst? */
 
 			if ((CRTC_Mode & 8) && /*(CRTC_RCFlag[0])&&*/ (CRTC_RCFlag[1]))
 			{
@@ -275,8 +301,13 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			break;
 		}
 	}
-	else if (adr == 0xe80481)
+	else if ((adr >= 0x480) && (adr <= 0x4ff))
 	{
+		if ((adr & 1) == 0)
+		{
+			return;
+		}
+
 		CRTC_Mode = (data | (CRTC_Mode & 2));
 
 		/* Raster Copy */
