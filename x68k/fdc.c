@@ -554,7 +554,7 @@ uint8_t FASTCALL FDC_Read(uint32_t adr)
 			return 0x80;
 		if ((fdc.ctrl & 2) && (FDD_IsReady(1)))
 			return 0x80;
-		return 0xff;
+		return 0;
 	}
 
 	return 0xff;
