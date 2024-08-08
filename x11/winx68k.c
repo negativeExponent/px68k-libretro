@@ -759,6 +759,9 @@ void exec_app_retro(void)
 	if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2)) /* Joypad Key for Menu */
 		Core_Key_State[RETROK_F12] = 0x80;
 
+	if (input_state_cb(0, RETRO_DEVICE_JOYPAD,0, RETRO_DEVICE_ID_JOYPAD_R2))  /*Joypad key for touroku key in order to enable MIDI when preseed on start up in Wolfteam games*/
+      Core_Key_State[RETROK_SCROLLOCK] = 0x80;
+
 	if (Config.P1SelectMap)
 		if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT)) /* Joypad Key for Mapping */
 			Core_Key_State[RETROK_XFX] = 0x80;
