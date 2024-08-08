@@ -29,191 +29,326 @@ void GVRAM_Init(void)
 
 void FASTCALL GVRAM_FastClear(void)
 {
-	uint16_t *p;
-	uint32_t x, y;
-	uint32_t v    = ((CRTC_Regs[0x29] & 4) ? 512 : 256);
-	uint32_t h    = ((CRTC_Regs[0x29] & 3) ? 512 : 256);
-	uint32_t offy = (GrphScrollY[0] & 0x1ff) << 10;
+	uint32_t v = ((CRTC_Regs[0x29]&4)?512:256);
+	uint32_t h = ((CRTC_Regs[0x29]&3)?512:256);
 
-	/* If you don't specify the range properly, some things will look weird (like Dynamite Duke) */
-	for (y = 0; y < v; ++y)
-	{
-		uint32_t offx = GrphScrollX[0] & 0x1ff;
-		for (x = 0; x < h; ++x)
-		{
-			p = (uint16_t *)&GVRAM[offy + (offx * 2)];
-			*p &= CRTC_FastClrMask;
-			offx = (offx + 1) & 0x1ff;
+	uint16_t *p;
+	uint32_t x, y, off;
+
+	uint32_t w[2];
+
+	w[0] = h;
+	w[1] = 0;
+
+	if (((GrphScrollX[0] & 0x1ff) + w[0]) > 512) {
+		w[1] = (GrphScrollX[0] & 0x1ff) + w[0] - 512;
+		w[0] = 512 - (GrphScrollX[0] & 0x1ff);
+	}
+
+	for (y = 0; y < v; y++) {
+		off = ((y + GrphScrollY[0]) & 0x1ff) << 10;
+		p = (uint16_t *)(GVRAM + off + ((GrphScrollX[0] & 0x1ff) * 2));
+
+		for (x = 0; x < w[0]; x++) {
+			*p++ &= CRTC_FastClrMask;
 		}
-		offy = (offy + 0x400) & 0x7fc00;
+
+		if (w[1] > 0) {
+			p = (uint16_t *)(GVRAM + off);
+			for (x = 0; x < w[1]; x++) {
+				*p++ &= CRTC_FastClrMask;
+			}
+		}
 	}
 }
 
 uint8_t FASTCALL GVRAM_Read(uint32_t adr)
 {
-	uint8_t page;
-	uint16_t *ram = (uint16_t *)(&GVRAM[adr & 0x7fffe]);
+	int type;
 
-	adr ^= 1;
-	adr -= 0xc00000;
+	adr &= 0x1fffff;
 
 	if (CRTC_Regs[0x28] & 8)
-	{
-		/* The read side also has a 65536 mode VRAM layout (a pain in the ass) */
-		if (adr < 0x80000)
-			return GVRAM[adr];
-	}
+		type = 4;
+	else if (CRTC_Regs[0x28] & 4)
+		type = 0;
 	else
+		type = (CRTC_Regs[0x28] & 3) + 1;
+
+	switch (type)
 	{
-		switch (CRTC_Regs[0x28] & 3)
+	case 0: /* 1024 dot, 16 colors */
+		if ((adr & 1) == 0)
+			return 0;
+
+		if (adr & 0x100000)
 		{
-		case 0: /* 16 colors */
-			if (!(adr & 1))
+			if (adr & 0x400)
 			{
-				if (CRTC_Regs[0x28] & 4) /* 1024dot */
-				{
-					ram  = (uint16_t *)(&GVRAM[((adr & 0xff800) >> 1) + (adr & 0x3fe)]);
-					page = (uint8_t)((adr >> 17) & 0x08);
-					page += (uint8_t)((adr >> 8) & 4);
-					return (((*ram) >> page) & 15);
-				}
-				else
-				{
-					page = (uint8_t)((adr >> 17) & 0x0c);
-					return (((*ram) >> page) & 15);
-				}
+				/* page 3 */
+				adr = ((adr >> 1) & 0x7fc00) | (adr & 0x3ff);
+				return (GVRAM[adr] >> 4);
 			}
-			break;
-		case 1: /* 256 */
-		case 2: /* Unknown */
-			if (adr < 0x100000)
+			else
 			{
-				if (!(adr & 1))
-				{
-					page = (uint8_t)((adr >> 16) & 0x08);
-					return (uint8_t)((*ram) >> page);
-				}
+				/* page 2 */
+				adr = ((adr >> 1) & 0x7fc00) | (adr & 0x3ff);
+				return (GVRAM[adr] & 0x0f);
 			}
-#if 0
-			else
-				BusErrFlag = 1;
-#endif
-			break;
-		case 3: /* 65536 */
-			if (adr < 0x80000)
-				return GVRAM[adr];
-#if 0
-			else
-				BusErrFlag = 1;
-#endif
-			break;
 		}
+		else
+		{
+			if (adr & 0x400)
+			{
+				/* page 1 */
+				adr = ((adr >> 1) & 0x7fc00) | (adr & 0x3ff);
+				return (GVRAM[adr ^ 1] >> 4);
+			}
+			else
+			{
+				/* page 0 */
+				adr = ((adr >> 1) & 0x7fc00) | (adr & 0x3ff);
+				return (GVRAM[adr ^ 1] & 0x0f);
+			}
+		}
+		break;
+
+	case 1: /* 512 dot, 16 colors */
+		if ((adr & 1) == 0)
+			return 0;
+
+		if (adr < 0x80000)
+		{
+			/* page 0: Low byte of word b0-b3 */
+			return (GVRAM[adr ^ 1] & 0x0f);
+		}
+
+		if (adr < 0x100000)
+		{
+			/* page 1: Low byte of word b4-b7 */
+			adr &= 0x7ffff;
+			return (GVRAM[adr ^ 1] >> 4);
+		}
+
+		if (adr < 0x180000)
+		{
+			/* page 2: High byte of word b0-b3 */
+			adr &= 0x7ffff;
+			return (GVRAM[adr] & 0x0f);
+		}
+
+		/* page 3: High byte of word b4-b7 */
+		adr &= 0x7ffff;
+		return (GVRAM[adr] >> 4);
+
+	case 2: /* 512 dot, 256 colors */
+	case 3: /* unknown */
+	    /* page 0 */
+		if (adr < 0x80000)
+		{
+			if (adr & 1)
+			{
+				/* Low byte of word */
+				return GVRAM[adr ^ 1];
+			}
+			return 0;
+		}
+
+		/* page 1 */
+		if (adr < 0x100000)
+		{
+			adr &= 0x7ffff;
+			if (adr & 1)
+			{
+				/* High byte of word */
+				return GVRAM[adr];
+			}
+			return 0;
+		}
+#if 0
+		else
+		{
+			/* bus error */
+			BusErrFlag = 1;
+			return 0xff;
+		}
+#endif
+		break;
+		
+
+	case 4: /* 65536 */
+		if (adr < 0x80000) {
+			return GVRAM[adr ^ 1];
+		}
+#if 0
+		else
+		{
+			/* bus error */
+			BusErrFlag = 1;
+			return 0xff;
+		}
+#endif
+		break;
+		
 	}
+
 	return 0;
 }
 
 void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 {
-	uint8_t page;
 	int line = 1023, scr = 0;
-	uint16_t *ram = (uint16_t *)(&GVRAM[adr & 0x7fffe]);
-	uint16_t temp;
+	uint32_t temp;
+	int type;
 
-	adr ^= 1;
-	adr -= 0xc00000;
+	adr &= 0x1fffff;
 
-	if (CRTC_Regs[0x28] & 8) /* VRAM layout in 65536 mode? (Nemesis) */
+	if (CRTC_Regs[0x28] & 8)
+		type = 4;
+	else if (CRTC_Regs[0x28] & 4)
+		type = 0;
+	else
+		type = (CRTC_Regs[0x28] & 3) + 1;
+
+	switch (type)
 	{
+	case 0: /* 1024 dot, 16 colors */
+		if ((adr & 1) == 0)
+			break;
+
+		line = ((adr / 2048) - GrphScrollY[0]) & 1023;
+
+		if (adr & 0x100000)
+		{
+			if (adr & 0x400)
+			{
+				adr = ((adr & 0xff800) >> 1) + (adr & 0x3ff);
+				temp = GVRAM[adr] & 0x0f;
+				temp |= (data & 0x0f) << 4;
+				GVRAM[adr] = (uint8_t)temp;
+			}
+			else
+			{
+				adr = ((adr & 0xff800) >> 1) + (adr & 0x3ff);
+				temp = GVRAM[adr] & 0xf0;
+				temp |= data & 0x0f;
+				GVRAM[adr] = (uint8_t)temp;
+			}
+		}
+		else
+		{
+			if (adr & 0x400)
+			{
+				adr = ((adr & 0xff800) >> 1) + (adr & 0x3ff);
+				temp = GVRAM[adr ^ 1] & 0x0f;
+				temp |= (data & 0x0f) << 4;
+				GVRAM[adr ^ 1] = (uint8_t)temp;
+			}
+			else
+			{
+				adr = ((adr & 0xff800) >> 1) + (adr & 0x3ff);
+				temp = GVRAM[adr ^ 1] & 0xf0;
+				temp |= data & 0x0f;
+				GVRAM[adr ^ 1] = (uint8_t)temp;
+			}
+		}
+		break;
+
+	case 1: /* 16 colors */
+		if ((adr & 1) == 0)
+			break;
+
+		scr = GrphScrollY[(adr >> 19) & 3];
+		line = (((adr & 0x7ffff) >> 10) - scr) & 511;
+
 		if (adr < 0x80000)
 		{
-			GVRAM[adr] = data;
-			line       = (((adr & 0x7ffff) / 1024) - GrphScrollY[0]) & 511;
+			/* page 0: low byte of word b0-b3 */
+			temp = (GVRAM[adr ^ 1] & 0xf0);
+			temp |= (data & 0x0f);
+			GVRAM[adr ^ 1] = (uint8_t)temp;
 		}
-	}
-	else
-	{
-		switch (CRTC_Regs[0x28] & 3)
+		else if (adr < 0x100000)
 		{
-		case 0: /* 16 colors */
-			if (adr & 1)
-				break;
-			if (CRTC_Regs[0x28] & 4) /* 1024dot */
-			{
-				ram  = (uint16_t *)(&GVRAM[((adr & 0xff800) >> 1) + (adr & 0x3fe)]);
-				page = (uint8_t)((adr >> 17) & 0x08);
-				page += (uint8_t)((adr >> 8) & 4);
-				temp = ((uint16_t)data & 15) << page;
-				*ram = ((*ram) & (~(0xf << page))) | temp;
-				line = ((adr / 2048) - GrphScrollY[0]) & 1023;
-			}
-			else
-			{
-				page = (uint8_t)((adr >> 17) & 0x0c);
-				temp = ((uint16_t)data & 15) << page;
-				*ram = ((*ram) & (~(0xf << page))) | temp;
-				switch (adr / 0x80000)
-				{
-				case 0:
-					scr = GrphScrollY[0];
-					break;
-				case 1:
-					scr = GrphScrollY[1];
-					break;
-				case 2:
-					scr = GrphScrollY[2];
-					break;
-				case 3:
-					scr = GrphScrollY[3];
-					break;
-				}
-				line = (((adr & 0x7ffff) / 1024) - scr) & 511;
-			}
+			/* page 1: low byte of word b4-b7 */
+			adr &= 0x7ffff;
+			temp = (GVRAM[adr ^ 1] & 0x0f);
+			temp |= (data << 4);
+			GVRAM[adr ^ 1] = (uint8_t)temp;
+		}
+		else if (adr < 0x180000)
+		{
+			/* page 2: high byte of word b0-b3 */
+			adr &= 0x7ffff;
+			temp = (GVRAM[adr] & 0xf0);
+			temp |= (data & 0x0f);
+			GVRAM[adr] = (uint8_t)temp;
+		}
+		else
+		{
+			/* page 3: high byte of word b4-b7 */
+			adr &= 0x7ffff;
+			temp = (GVRAM[adr] & 0x0f);
+			temp |= (data << 4);
+			GVRAM[adr] = (uint8_t)temp;
+		}
+		break;
+
+	case 2: /* 256 colors */
+	case 3: /* unknown */
+		if ((adr & 1) == 0)
 			break;
-		case 1: /* 256 colors */
-		case 2: /* Unknown */
-			if (adr < 0x100000)
-			{
-				if (!(adr & 1))
-				{
-					scr  = GrphScrollY[(adr >> 18) & 2];
-					line = (((adr & 0x7ffff) >> 10) - scr) & 511;
 
-					TextDirtyLine[line] = 1; /* When used like 32 colors, 4 sides */
+		if (adr < 0x100000)
+		{
+			scr = GrphScrollY[(adr >> 18) & 2];
+			line = (((adr & 0x7ffff) >> 10) - scr) & 511;
 
-					scr  = GrphScrollY[((adr >> 18) & 2) + 1];
-					line = (((adr & 0x7ffff) >> 10) - scr) & 511;
+			TextDirtyLine[line] = 1; /* When used like 32 colors, 4 sides */
 
-					if (adr & 0x80000)
-						adr += 1;
-					adr &= 0x7ffff;
-					GVRAM[adr] = data;
-				}
-			}
-#if 0
-			else
-			{
-				BusErrFlag = 1;
-				return;
-			}
-#endif
-			break;
-		case 3: /* 65536 colors */
+			scr = GrphScrollY[((adr >> 18) & 2) + 1];
+			line = (((adr & 0x7ffff) >> 10) - scr) & 511;
+
+			/* page 0 */
 			if (adr < 0x80000)
 			{
-				GVRAM[adr] = data;
-				line       = (((adr & 0x7ffff) >> 10) - GrphScrollY[0]) & 511;
+				/* low byte of word */
+				GVRAM[adr ^ 1] = (uint8_t)data;
 			}
-#if 0
+			/* page 1 */
 			else
 			{
-				BusErrFlag = 1;
-				return;
+				/* high byte of word */
+				adr &= 0x7ffff;
+				GVRAM[adr] = (uint8_t)data;
 			}
-#endif
-			break;
 		}
-		TextDirtyLine[line] = 1;
+#if 0
+		else
+		{
+			BusErrFlag = 1;
+			return;
+		}
+#endif
+		break;
+
+	case 4: /* 65536 */
+		if (adr < 0x80000)
+		{
+			line = (((adr & 0x7ffff) >> 10) - GrphScrollY[0]) & 511;
+			GVRAM[adr ^ 1] = (uint8_t)data;
+		}
+#if 0
+		else
+		{
+			BusErrFlag = 1;
+			return;
+		}
+#endif
+		break;
 	}
+
+	TextDirtyLine[line] = 1;
 }
 
 void Grp_DrawLine16(void)
