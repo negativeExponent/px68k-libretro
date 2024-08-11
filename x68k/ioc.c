@@ -16,27 +16,42 @@ void IOC_Init(void)
 
 uint8_t FASTCALL IOC_Read(uint32_t adr)
 {
-	if (adr == 0xe9c001)
+	adr &= 0x0f;
+
+	if (adr & 1)
 	{
-		return IOC_IntStat;
-	}
-	if (adr == 0xe9c001)
-	{
+		if (adr == 1)
+		{
+			return IOC_IntStat;
+		}
+		
+		/* $e9c003: interrupt vector, write only */
+		if (adr == 3)
+		{
+			return 0xff;
+		}
+
 		return 0xff;
 	}
+
 	return 0xff;
 }
 
 void FASTCALL IOC_Write(uint32_t adr, uint8_t data)
 {
-	if (adr == 0xe9c001)
-	{
-		IOC_IntStat &= 0xf0;
-		IOC_IntStat |= data & 0x0f;
-	}
-	else if (adr == 0xe9c003)
-	{
-		IOC_IntVect = (data & 0xfc);
+	adr &= 0x0f;
+
+	if (adr & 1)
+	{	
+		if (adr == 1)
+		{
+			IOC_IntStat &= 0xf0;
+			IOC_IntStat |= data & 0x0f;
+		}
+		else if (adr == 3)
+		{
+			IOC_IntVect = (data & 0xfc);
+		}
 	}
 }
 
