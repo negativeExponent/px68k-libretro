@@ -31,6 +31,7 @@ uint8_t FASTCALL IOC_Read(uint32_t adr)
 			return 0xff;
 		}
 
+		p6logd(" Read unimplemented register $%06x\n", 0xe9c000 + adr);
 		return 0xff;
 	}
 
@@ -52,6 +53,8 @@ void FASTCALL IOC_Write(uint32_t adr, uint8_t data)
 		{
 			IOC_IntVect = (data & 0xfc);
 		}
+		else
+			p6logd(" Write unimplemented register $%06x <- $%02x\n", 0xe9c000 + adr, data);
 	}
 }
 
