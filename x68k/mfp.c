@@ -189,11 +189,6 @@ static uint8_t GetUDR(void)
 /* I/O Read */
 uint8_t FASTCALL MFP_Read(uint32_t adr)
 {
-	if (adr > 0xe8802f)
-	{
-		return 0xff;
-	}
-
 	if ((adr & 1) != 0)
 	{
 		uint8_t reg = (adr & 0x3f) >> 1;
@@ -210,7 +205,13 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 			return GetUDR();
 
 		default:
-			return MFP[reg];
+			if (reg <= MFP_UDR)
+			{
+				return MFP[reg];
+			}
+
+			p6logd(" Read unimplemented register $%06x\n", adr);
+			return 0xff;
 		}
 	}
 
@@ -220,82 +221,85 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 /* I/O Write */
 void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 {
-	if (adr > 0xe8802f)
-	{
+	uint8_t reg;
+
+	if ((adr & 1) == 0)
 		return;
-	}
 
-	if ((adr & 1) != 0)
+	reg = (adr & 0x3f) >> 1;
+
+	switch (reg)
 	{
-		uint8_t reg = (adr & 0x3f) >> 1;
+	case MFP_IERA:
+	case MFP_IERB:
+		MFP[reg] = data;
+		MFP[reg + 2] &= data; /* Prohibited items drop IPRA/B */
+		MFP_RecheckInt();
+		return;
 
-		switch (reg)
-		{
-		case MFP_IERA:
-		case MFP_IERB:
-			MFP[reg] = data;
-			MFP[reg + 2] &= data; /* Prohibited items drop IPRA/B */
-			MFP_RecheckInt();
-			break;
+	case MFP_IPRA:
+	case MFP_IPRB:
+	case MFP_ISRA:
+	case MFP_ISRB:
+		MFP[reg] &= data;
+		MFP_RecheckInt();
+		return;
 
-		case MFP_IPRA:
-		case MFP_IPRB:
-		case MFP_ISRA:
-		case MFP_ISRB:
-			MFP[reg] &= data;
-			MFP_RecheckInt();
-			break;
+	case MFP_IMRA:
+	case MFP_IMRB:
+		MFP[reg] = data;
+		MFP_RecheckInt();
+		return;
 
-		case MFP_IMRA:
-		case MFP_IMRB:
-			MFP[reg] = data;
-			MFP_RecheckInt();
-			break;
+	case MFP_TACR:
+		MFP[reg] = data;
+		return;
 
-		case MFP_TACR:
-			MFP[reg] = data;
-			break;
-
-		case MFP_TBCR:
-			MFP[reg] = data;
+	case MFP_TBCR:
+		MFP[reg] = data;
 #if 0
 			if (MFP[reg] & 0x10)
 				Timer_TBO = 0; /* then what? */
 #endif
-			break;
+		return;
 
-		case MFP_TCDCR:
+	case MFP_TCDCR:
+		MFP[reg] = data;
+		return;
+
+	case MFP_TADR:
+		Timer_Reload[0] = MFP[reg] = data;
+		return;
+
+	case MFP_TBDR:
+		Timer_Reload[1] = MFP[reg] = data;
+		return;
+
+	case MFP_TCDR:
+		Timer_Reload[2] = MFP[reg] = data;
+		return;
+
+	case MFP_TDDR:
+		Timer_Reload[3] = MFP[reg] = data;
+		return;
+
+	case MFP_TSR:
+		MFP[reg] = data | 0x80; /* Tx is always enabled */
+		return;
+
+	case MFP_UDR:
+		return;
+
+	default:
+		if (reg <= MFP_UDR)
+		{
 			MFP[reg] = data;
-			break;
-
-		case MFP_TADR:
-			Timer_Reload[0] = MFP[reg] = data;
-			break;
-
-		case MFP_TBDR:
-			Timer_Reload[1] = MFP[reg] = data;
-			break;
-
-		case MFP_TCDR:
-			Timer_Reload[2] = MFP[reg] = data;
-			break;
-
-		case MFP_TDDR:
-			Timer_Reload[3] = MFP[reg] = data;
-			break;
-
-		case MFP_TSR:
-			MFP[reg] = data | 0x80; /* Tx is always enabled */
-			break;
-
-		case MFP_UDR:
-			break;
-
-		default:
-			MFP[reg] = data;
-			break;
+			return;
 		}
+		break;
 	}
+
+	p6logd(" Write unimplemented register $%06x <- $%02x\n", adr, data);
 }
 
 /* Advance the current time (let's rewrite it a bit more neatly...) */
