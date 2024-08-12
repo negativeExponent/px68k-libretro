@@ -26,59 +26,75 @@ void PIA_Init(void)
 	pia.Ctrl  = 0;
 }
 
-void FASTCALL PIA_Write(uint32_t adr, uint8_t data)
+static void PIA_SetPortC(uint32_t data)
 {
-	uint8_t mask, bit, portc = pia.PortC;
+	uint8_t portc;
 
-	if (adr == 0xe9a005)
-	{
-		portc     = pia.PortC;
-		pia.PortC = data;
-		if ((portc & 0x0f) != (pia.PortC & 0x0f))
-			ADPCM_SetPan(pia.PortC & 0x0f);
-		if ((portc & 0x10) != (pia.PortC & 0x10))
-			Joystick_Write(0, (uint8_t)((data & 0x10) ? 0xff : 0x00));
-		if ((portc & 0x20) != (pia.PortC & 0x20))
-			Joystick_Write(1, (uint8_t)((data & 0x20) ? 0xff : 0x00));
-	}
-	else if (adr == 0xe9a007)
-	{
-		if (!(data & 0x80))
-		{
-			portc = pia.PortC;
-			bit   = (data >> 1) & 7;
-			mask  = 1 << bit;
-			if (data & 1)
-				pia.PortC |= mask;
-			else
-				pia.PortC &= ~mask;
-			if ((portc & 0x0f) != (pia.PortC & 0x0f))
-				ADPCM_SetPan(pia.PortC & 0x0f);
-			if ((portc & 0x10) != (pia.PortC & 0x10))
-				Joystick_Write(0, (uint8_t)((data & 1) ? 0xff : 0x00));
-			if ((portc & 0x20) != (pia.PortC & 0x20))
-				Joystick_Write(1, (uint8_t)((data & 1) ? 0xff : 0x00));
-		}
-	}
-	else if (adr == 0xe9a001)
-	{
-		Joystick_Write(0, data);
-	}
-	else if (adr == 0xe9a003)
-	{
-		Joystick_Write(1, data);
-	}
+	portc = pia.PortC;
+	pia.PortC = data;
+
+	if ((portc & 0x0f) != (pia.PortC & 0x0f))
+		ADPCM_SetPan(pia.PortC & 0x0f);
+
+	if ((portc & 0x10) != (pia.PortC & 0x10))
+		Joystick_Write(0, (uint8_t)((data & 0x10) ? 0xff : 0x00));
+
+	if ((portc & 0x20) != (pia.PortC & 0x20))
+		Joystick_Write(1, (uint8_t)((data & 0x20) ? 0xff : 0x00));
+
 }
 
 uint8_t FASTCALL PIA_Read(uint32_t adr)
 {
-	if (adr == 0xe9a001)
+	if ((adr & 1) == 0)
+		return 0xff;
+
+	adr &= 7;
+
+	switch (adr)
+	{
+	case 1:
 		return Joystick_Read(0);
-	if (adr == 0xe9a003)
+
+	case 3:
 		return Joystick_Read(1);
-	if (adr == 0xe9a005)
+
+	case 5:
 		return pia.PortC;
+	}
+	
+	p6logd(" PIA: Read unimplemented register $%06x\n", adr);
 	return 0xff;
+}
+
+void FASTCALL PIA_Write(uint32_t adr, uint8_t data)
+{
+	if ((adr & 1) == 0)
+		return;
+	
+	adr &= 7;
+
+	switch (adr)
+	{
+	case 5:
+		PIA_SetPortC(data);
+		return;
+	
+	case 7:
+		if (data < 0x80)
+		{
+			uint8_t bit = (data >> 1) & 7;
+			uint8_t mask = 1 << bit;
+
+			if (data & 1)
+				PIA_SetPortC(pia.PortC | mask);
+			else
+				PIA_SetPortC(pia.PortC & ~mask);
+		}
+		return;
+	}
+
+	p6logd(" PIA: Write unimplemented register $%06x <- $%02x\n", adr, data);
 }
 
 int PIA_StateContext(void *f, int writing) {
