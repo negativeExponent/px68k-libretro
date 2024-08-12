@@ -135,48 +135,6 @@ void Pal_Init(void)
 	Pal_SetColor();
 }
 
-uint8_t FASTCALL Pal_Read(uint32_t adr)
-{
-	if (adr < 0xe82400)
-		return Pal_Regs[adr - 0xe82000];
-	return 0xff;
-}
-
-void FASTCALL Pal_Write(uint32_t adr, uint8_t data)
-{
-	uint16_t pal;
-
-	if (adr >= 0xe82400)
-		return;
-
-	adr -= 0xe82000;
-	if (Pal_Regs[adr] == data)
-		return;
-
-	if (adr < 0x200)
-	{
-		Pal_Regs[adr] = data;
-		TVRAM_SetAllDirty();
-
-		pal = Pal_Regs[adr & 0xfffe];
-		pal = (pal << 8) + Pal_Regs[adr | 1];
-
-		GrphPal[adr / 2] = Pal16[pal];
-	}
-	else if (adr < 0x400)
-	{
-		/* TODO: verify:
-		 * It seems that TextPal does not allow byte access (Kobe Love Story)> */
-		Pal_Regs[adr] = data;
-		TVRAM_SetAllDirty();
-
-		pal = Pal_Regs[adr & 0xfffe];
-		pal = (pal << 8) + Pal_Regs[adr | 1];
-
-		TextPal[(adr - 0x200) / 2] = Pal16[pal];
-	}
-}
-
 /* Changed the color of the palette */
 void Pal_ChangeContrast(int num)
 {

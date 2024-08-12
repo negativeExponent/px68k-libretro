@@ -38,7 +38,7 @@ uint8_t FASTCALL VCtrl_Read(uint32_t adr)
 
 	if (adr < 0x400)
 	{
-		return Pal_Read(0xe82000 + adr);
+		return Pal_Regs[adr];
 	}
 
 	if (adr < 0x500)
@@ -65,7 +65,28 @@ void FASTCALL VCtrl_Write(uint32_t adr, uint8_t data)
 
 	if (adr < 0x400)
 	{
-		Pal_Write(0xe82000 + adr, data);
+		uint16_t pal;
+
+		if (Pal_Regs[adr] == data)
+			return;
+
+		Pal_Regs[adr] = data;
+		TVRAM_SetAllDirty();
+
+		pal = Pal_Regs[adr & 0x3fe];
+		pal = (pal << 8) + Pal_Regs[(adr & 0x3fe) + 1];
+
+		if (adr < 0x200)
+		{
+			GrphPal[adr / 2] = Pal16[pal];
+		}
+		else if (adr < 0x400)
+		{
+			/* TODO: verify:
+			 * It seems that TextPal does not allow byte access (Kobe Love
+			 * Story)> */
+			TextPal[(adr - 0x200) / 2] = Pal16[pal];
+		}
 	}
 	else if (adr < 0x500)
 	{
