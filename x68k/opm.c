@@ -12,52 +12,117 @@
 
 #include "../x11/state.h"
 
-static int32_t CurReg;
-static uint32_t CurCount;
+typedef struct 
+{
+	uint32_t adr;
+	uint32_t count;
+	uint8_t reg1b;
+	uint8_t busy;
+	uint16_t reserve16;
+	uint32_t reserve32;
+} opmif_t;
 
-static void *opm = NULL;
+static opmif_t opm;
+static void *myOPM;
+
+static void Reset(void)
+{
+	int i;
+
+	memset(&opm, 0, sizeof(opm));
+
+	if (myOPM)
+	{
+		for (i = 0; i < 0x100; i++)
+		{
+			if (i == 8)
+			{
+				continue;
+			}
+			if ((i >= 0x60) && (i <= 0x7f))
+			{
+				opm_setreg(myOPM, i, 0x7f);
+				continue;
+			}
+			if ((i >= 0xe0) && (i <= 0xff))
+			{
+				opm_setreg(myOPM, i, 0xff);
+				continue;
+			}
+			opm_setreg(myOPM, i, 0);
+		}
+		opm_setreg(myOPM, 0x19, 0x80);
+		for (i = 0; i < 8; i++)
+		{
+			opm_setreg(myOPM, 8, i);
+		}
+	}
+}
 
 int OPM_Init(int32_t clock, int32_t rate)
 {
-	if (!(opm = opm_new(clock, rate)))
+	myOPM = opm_new(clock, rate);
+
+	if (!myOPM)
 	{
-		return FALSE;
+		return 0;
 	}
 
-	return TRUE;
+	Reset();
+	return 1;
 }
 
 void OPM_SetRate(int32_t clock, int32_t rate)
 {
-	opm_setrate(opm, clock, rate);
+	if (myOPM)
+	{
+		opm_setrate(myOPM, clock, rate);
+	}
 }
 
 void OPM_Cleanup(void)
 {
-	opm_delete(opm);
-	opm = NULL;
+	if (myOPM)
+	{
+		opm_delete(myOPM);
+		myOPM = NULL;
+	}
 }
 
 void OPM_Reset(void)
 {
-	if (!opm)
+	if (myOPM)
 	{
-		return;
+		opm_reset(myOPM);
+		Reset();
 	}
-
-	opm_reset(opm);
 }
 
 uint8_t FASTCALL OPM_Read(uint32_t adr)
 {
-	if (!opm)
+	if ((adr & 1) != 0)
 	{
-		return 0xff;
-	}
+		adr &= 3;
 
-	if ((adr & 3) == 3)
-	{
-		return opm_readstatus(opm);
+		if (adr != 1)
+		{
+			uint8_t ret = 0;
+
+			if (opm.busy)
+			{
+				ret |= 0x80;
+				opm.busy = 0;
+			}
+			
+			if (myOPM)
+			{
+				ret = opm_readstatus(myOPM) & 3;
+			}
+
+			return ret;
+		}
+
+		return 0xff;
 	}
 
 	return 0xff;
@@ -65,76 +130,97 @@ uint8_t FASTCALL OPM_Read(uint32_t adr)
 
 void FASTCALL OPM_Write(uint32_t adr, uint8_t data)
 {
-	if (!opm) {
-		return;
-	}
-
-	if (adr & 1)
+	if ((adr & 1) != 0)
 	{
-		if ((adr & 3) == 3)
+		adr &= 3;
+
+		if (adr == 1)
 		{
-			if (CurReg == 0x1b)
-			{
-				ADPCM_SetClock((data >> 5) & 4);
-				FDC_SetForceReady((data >> 6) & 1);
-			}
-			opm_setreg(opm, (int32_t)CurReg, (int32_t)data);
+			opm.adr = data;
+			opm.busy = 0;
 		}
 		else
 		{
-			CurReg = (int32_t)data;
+			if (opm.adr == 0x1b)
+			{
+				if ((data & 0xc0) != (opm.reg1b & 0xc0))
+				{
+					uint32_t ct = opm.reg1b & 0xc0;
+
+					if ((data & 0x80) != (ct & 0x80))
+					{
+						ADPCM_SetClock((data >> 5) & 4);
+					}
+				
+					if ((data & 0x40) != (ct & 0x40))
+					{
+						FDC_SetForceReady((data >> 6) & 1);
+					}
+				}
+
+				opm.reg1b = data; /* cache addr 0x1b data */
+			}
+
+			if (myOPM)
+			{
+				opm_setreg(myOPM, opm.adr, data);
+			}
+			
+			opm.busy = 1;
 		}
 	}
 }
 
 void OPM_Update(int16_t *buffer, int32_t length, int16_t *pbsp, int16_t *pbep)
 {
-	if (!opm)
+	if (myOPM)
 	{
-		return;
+		opm_mix(myOPM, buffer, length, pbsp, pbep);
 	}
-
-	opm_mix(opm, buffer, length, pbsp, pbep);
 }
 
 void FASTCALL OPM_Timer(uint32_t step)
 {
-	if (!opm)
+	opm.count += step;
+
+	if (myOPM)
 	{
-		return;
+		opm_count(myOPM, opm.count / 10);
 	}
 
-	CurCount += step;
-	opm_count(opm, CurCount / 10);
-	CurCount %= 10;
+	opm.count %= 10;
 }
 
 void OPM_SetVolume(uint8_t vol)
 {
-	int32_t v = (vol) ? ((16 - vol) * 4) : 192; /* このくらいかなぁ */
-
-	if (!opm)
+	if (myOPM)
 	{
-		return;
+		int32_t v = (vol) ? ((16 - vol) * 4) : 192;
+		opm_setvolume(myOPM, -v);
 	}
-
-	opm_setvolume(opm, -v);
 }
 
 void OPM_SetChannelMask(uint32_t mask)
 {
-	opm_setchannelmask(opm, mask);
+	if (myOPM)
+	{
+		opm_setchannelmask(myOPM, mask);
+	}
 }
 
 void OPM_RomeoOut(uint32_t delay) { }
 
 int OPM_StateContext(void *f, int writing)
 {
-	state_context_f(&CurReg, 4);
-	state_context_f(&CurCount, 4);
+	state_context_f(&opm.adr, sizeof(opm.adr));
+	state_context_f(&opm.count, sizeof(opm.count));
+	state_context_f(&opm.reg1b, sizeof(opm.reg1b));
+	state_context_f(&opm.busy, sizeof(opm.busy));
+	state_context_f(&opm.reserve16, sizeof(opm.reserve16));
+	state_context_f(&opm.reserve32, sizeof(opm.reserve32));
 
-	if (opm) {
-		opm_statecontext(opm, f, writing);
+	if (myOPM) {
+		opm_statecontext(myOPM, f, writing);
 	}
 
 	return 1;
