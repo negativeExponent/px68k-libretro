@@ -1,0 +1,19 @@
+name: PX68K Linux x86_64
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build libretro core
+      run: |
+       make -f Makefile.libretro clean
+       make -f Makefile.libretro
