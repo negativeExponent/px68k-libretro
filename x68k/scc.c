@@ -75,85 +75,87 @@ void SCC_Init(void)
 /* I/O Write */
 void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 {
-	if (adr >= 0xe98008)
-		return;
-
-	if ((adr & 7) == 1)
+	if ((adr & 1) != 0)
 	{
-		if (SCC_RegSetB)
+		adr &= 7;
+
+		switch (adr)
 		{
-			if (SCC_RegNumB == 5)
+		case 1: /* Channel B CMD Port */
+			if (SCC_RegSetB)
 			{
-				if ((!(SCC_RegsB[5] & 2)) && (data & 2) && (SCC_RegsB[3] & 1) &&
-					(!SCC_DatNum)) /* Only do this when there is no data (Dark Bloodline) */
+				if (SCC_RegNumB == 5)
 				{
-					/* Generate mouse data */
-					Mouse_SetData();
-					SCC_DatNum = 3;
-					SCC_Dat[2] = MouseSt;
-					SCC_Dat[1] = MouseX;
-					SCC_Dat[0] = MouseY;
+					if ((!(SCC_RegsB[5] & 2)) && (data & 2) &&
+					    (SCC_RegsB[3] & 1) &&
+					    (!SCC_DatNum)) /* Only do this when there is no data (Dark Bloodline) */
+					{
+						/* Generate mouse data */
+						Mouse_SetData();
+						SCC_DatNum = 3;
+						SCC_Dat[2] = MouseSt;
+						SCC_Dat[1] = MouseX;
+						SCC_Dat[0] = MouseY;
+					}
+				}
+				else if (SCC_RegNumB == 2)
+					SCC_Vector = data;
+				SCC_RegSetB            = 0;
+				SCC_RegsB[SCC_RegNumB] = data;
+				SCC_RegNumB            = 0;
+			}
+			else
+			{
+				if (!(data & 0xf0))
+				{
+					data &= 15;
+					SCC_RegSetB = 1;
+					SCC_RegNumB = data;
+				}
+				else
+				{
+					SCC_RegSetB = 0;
+					SCC_RegNumB = 0;
 				}
 			}
-			else if (SCC_RegNumB == 2)
-				SCC_Vector = data;
-			SCC_RegSetB            = 0;
-			SCC_RegsB[SCC_RegNumB] = data;
-			SCC_RegNumB            = 0;
-		}
-		else
-		{
-			if (!(data & 0xf0))
-			{
-				data &= 15;
-				SCC_RegSetB = 1;
-				SCC_RegNumB = data;
-			}
-			else
-			{
-				SCC_RegSetB = 0;
-				SCC_RegNumB = 0;
-			}
-		}
-	}
-	else if ((adr & 7) == 5)
-	{
-		if (SCC_RegSetA)
-		{
-			SCC_RegSetA = 0;
-			switch (SCC_RegNumA)
-			{
-			case 2:
-				SCC_RegsB[2] = data;
-				SCC_Vector   = data;
-				break;
-			case 9:
-				SCC_RegsB[9] = data;
-				break;
-			}
-		}
-		else
-		{
-			data &= 15;
-			if (data)
-			{
-				SCC_RegSetA = 1;
-				SCC_RegNumA = data;
-			}
-			else
+			return;
+		
+		case 5: /* Channel A CMD Port */
+			if (SCC_RegSetA)
 			{
 				SCC_RegSetA = 0;
-				SCC_RegNumA = 0;
+				switch (SCC_RegNumA)
+				{
+				case 2:
+					SCC_RegsB[2] = data;
+					SCC_Vector   = data;
+					break;
+				case 9:
+					SCC_RegsB[9] = data;
+					break;
+				}
 			}
+			else
+			{
+				data &= 15;
+				if (data)
+				{
+					SCC_RegSetA = 1;
+					SCC_RegNumA = data;
+				}
+				else
+				{
+					SCC_RegSetA = 0;
+					SCC_RegNumA = 0;
+				}
+			}
+			return;
+		
+		case 3: /* Channel B Data Port */
+		case 7: /* Channel A Data Port */
+			p6logd(" SCC unimplemented write regs $%02x <- $%02x\n", adr, data);
+			break;
 		}
-	}
-	else if ((adr & 7) == 3)
-	{
-		/* nothing to do */
-	}
-	else if ((adr & 7) == 7)
-	{
-		/* nothing to do */
 	}
 }
 
@@ -162,39 +164,49 @@ uint8_t FASTCALL SCC_Read(uint32_t adr)
 {
 	uint8_t ret = 0;
 
-	if (adr >= 0xe98008)
-		return ret;
+	if ((adr & 1) != 0)
+	{
+		adr &= 7;
 
-	if ((adr & 7) == 1)
-	{
-		if (!SCC_RegNumB)
-			ret = ((SCC_DatNum) ? 1 : 0);
-		SCC_RegNumB = 0;
-		SCC_RegSetB = 0;
-	}
-	else if ((adr & 7) == 3)
-	{
-		if (SCC_DatNum)
+		switch (adr)
 		{
-			SCC_DatNum--;
-			ret = SCC_Dat[SCC_DatNum];
-		}
-	}
-	else if ((adr & 7) == 5)
-	{
-		switch (SCC_RegNumA)
-		{
-		case 0:
-			ret = 4; /* Send buffer empty (Xna) */
-			break;
+		case 1:
+			if (!SCC_RegNumB)
+				ret = ((SCC_DatNum) ? 1 : 0);
+			SCC_RegNumB = 0;
+			SCC_RegSetB = 0;
+			return ret;
+		
 		case 3:
-			ret = ((SCC_DatNum) ? 4 : 0);
-			break;
+			if (SCC_DatNum)
+			{
+				SCC_DatNum--;
+				ret = SCC_Dat[SCC_DatNum];
+			}
+			return ret;
+		
+		case 5:
+			switch (SCC_RegNumA)
+			{
+			case 0:
+				ret = 4; /* Send buffer empty (Xna) */
+				break;
+
+			case 3:
+				ret = ((SCC_DatNum) ? 4 : 0);
+				break;
+			}
+			SCC_RegNumA = 0;
+			SCC_RegSetA = 0;
+			return ret;
+		
+		case 7:
+			p6logd(" SCC read unimplemented register $%06x\n", adr);
+			return 0;
 		}
-		SCC_RegNumA = 0;
-		SCC_RegSetA = 0;
 	}
-	return ret;
+
+	return 0xff;
 }
 
 int SCC_StateContext(void *f, int writing) {
