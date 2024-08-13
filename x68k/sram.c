@@ -3,6 +3,7 @@
  */
 
 #include "../x11/common.h"
+#include "../x11/state.h"
 
 #include "../x11/prop.h"
 #include "dosio.h"
@@ -13,6 +14,7 @@
 
 uint8_t SRAM[0x4000];
 static char SRAMFILE[] = "sram.dat";
+static int sram_write_enable = 0;
 
 void SRAM_SetMem(uint16_t adr, uint8_t val)
 {
@@ -77,6 +79,7 @@ void SRAM_Init(void)
 	void *fp;
 
 	SRAM_Clear();
+	sram_write_enable = 0;
 
 	fp = file_open_rb_c(SRAMFILE);
 	if (fp)
@@ -115,6 +118,21 @@ void SRAM_Cleanup(void)
 	}
 }
 
+void SRAM_WriteEnable(int enable)
+{
+	sram_write_enable = enable;
+
+	if (enable)
+	{
+		p6logd("SRAM write enable.\n");
+	}
+	else
+	{
+		p6logd("SRAM write disable.\n");
+	}
+
+}
+
 uint8_t FASTCALL SRAM_Read(uint32_t adr)
 {
 	adr &= 0xffff;
@@ -126,8 +144,11 @@ uint8_t FASTCALL SRAM_Read(uint32_t adr)
 
 void FASTCALL SRAM_Write(uint32_t adr, uint8_t data)
 {
-	if (SysPort[5] != 0x31) /* write enabled? */
+	if (!sram_write_enable)
+	{
+		p6logd("SRAM is write protected! %06x\n", adr);
 		return;
+	}
 
 	if (adr < 0xed4000)
 	{
@@ -135,4 +156,11 @@ void FASTCALL SRAM_Write(uint32_t adr, uint8_t data)
 		adr ^= 1;
 		SRAM[adr] = data;
 	}
+}
+
+int SRAM_StateContext(void *f, int writing)
+{
+	state_context_f(&sram_write_enable, sizeof(sram_write_enable));
+
+	return 1;
 }
