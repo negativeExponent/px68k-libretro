@@ -13,8 +13,11 @@ void SRAM_SetMem(uint16_t adr, uint8_t val);
 /* Sets the system RAM size (MiB) */
 void SRAM_SetRAMSize(int);
 void SRAM_UpdateBoot(void);
+void SRAM_WriteEnable(int enable);
 
 uint8_t FASTCALL SRAM_Read(uint32_t adr);
 void FASTCALL SRAM_Write(uint32_t adr, uint8_t data);
+
+int SRAM_StateContext(void *f, int writing);
 
 #endif /* _X68K_SRAM_H */

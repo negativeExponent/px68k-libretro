@@ -127,6 +127,7 @@ int PIA_StateContext(void *f, int writing);
 int SASI_StateContext(void *f, int writing);
 int SCC_StateContext(void *f, int writing);
 int FDD_StateContext(void *f, int writing);
+int SRAM_StateContext(void *f, int writing);
 
 int DSWIN_StateContext(void *f, int writing);
 int ADPCM_StateContext(void *f, int writing);
@@ -172,6 +173,8 @@ int PX68K_SaveStateMem(const char *file)
 	SASI_StateContext(f, 1);
 	SCC_StateContext(f, 1);
 	FDD_StateContext(f, 1);
+
+	SRAM_StateContext(f, 1);
 
 	DSWIN_StateContext(f, 1);
 	ADPCM_StateContext(f, 1);
@@ -228,6 +231,8 @@ int PX68K_LoadStateMem(const char *file)
 	SASI_StateContext(f, 0);
 	SCC_StateContext(f, 0);
 	FDD_StateContext(f, 0);
+
+	SRAM_StateContext(f, 0);
 
 	DSWIN_StateContext(f, 0);
 	ADPCM_StateContext(f, 0);
