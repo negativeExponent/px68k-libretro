@@ -411,9 +411,6 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 /* I/O Write */
 void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 {
-	int result, i;
-	uint8_t bit;
-
 	if ((adr & 1) != 0)
 	{
 		adr &= 7;
