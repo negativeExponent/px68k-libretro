@@ -1,0 +1,29 @@
+name: PX68K Linux x86_64
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install needed packages
+      run: sudo apt install wget git build-essential
+    - name: Checkout source
+      run: git clone https://github.com/negativeExponent/px68k-libretro.git && cd px68k-libretro && git submodule update --init
+    - name: Check gcc version
+      run: |
+        gcc --version
+        g++ --version
+    - name: Build libretro core
+      working-directory: px68k-libretro
+      run: |
+        make -j8
+        wget https://raw.githubusercontent.com/libretro/libretro-super/master/retrolink.sh && chmod +x retrolink.sh && ./retrolink.sh px68k_libretro.so
+        zip -9 ../px68k_libretro.so.zip px68k_libretro.so
