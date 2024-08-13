@@ -7,13 +7,29 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
-
+  build-px68k:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-    - name: Build libretro core
+    - name: Build libretro core with default CPU core
       run: |
        make -f Makefile.libretro clean
        make -f Makefile.libretro
+
+  build-px68k-cpu-c68k:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build libretro core with updated C68K CPU core
+      run: |
+       make -f Makefile.libretro clean
+       make -f Makefile.libretro C68K=1
+
+  build-px68k-cpu-musashi:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build libretro core Musashi CPU core
+      run: |
+       make -f Makefile.libretro clean
+       make -f Makefile.libretro MUSASHI=1
