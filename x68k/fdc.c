@@ -550,11 +550,12 @@ uint8_t FASTCALL FDC_Read(uint32_t adr)
 
 	case 5:
 		/* Drive Select Register */
+		ret = 0;
 		if ((fdc.ctrl & 1) && (FDD_IsReady(0)))
-			return 0x80;
+			ret |= 0x80;
 		if ((fdc.ctrl & 2) && (FDD_IsReady(1)))
-			return 0x80;
-		return 0;
+			ret |= 0x80;
+		return ret;
 	}
 
 	return 0xff;
