@@ -33,8 +33,9 @@ static void PIA_SetPortC(uint32_t data)
 	portc = pia.PortC;
 	pia.PortC = data;
 
-	if ((portc & 0x0f) != (pia.PortC & 0x0f))
-		ADPCM_SetPan(pia.PortC & 0x0f);
+	ADPCM_SetPan(data & 3);
+
+	ADPCM_SetRatio((data >> 2) & 3);
 
 	if ((portc & 0x10) != (pia.PortC & 0x10))
 		Joystick_Write(0, (uint8_t)((data & 0x10) ? 0xff : 0x00));

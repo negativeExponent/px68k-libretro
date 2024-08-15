@@ -61,8 +61,9 @@ static uint8_t ADPCM_Playing     = 0;
 static uint8_t ADPCM_Clock       = 0;
 static int32_t ADPCM_PreCounter  = 0;
 static int32_t ADPCM_DifBuf      = 0;
+static uint8_t ADPCM_Ratio       = 0;
+static uint8_t ADPCM_Pan         = 0;
 
-static int32_t ADPCM_Pan = 0x00;
 static int32_t OldR = 0, OldL = 0;
 static int32_t Outs[8];
 static int32_t OutsIp[4];
@@ -332,26 +333,28 @@ void ADPCM_SetVolume(uint8_t vol)
 		ADPCM_VolumeShift = 0;
 }
 
-void ADPCM_SetPan(int n)
+void ADPCM_SetClock(uint8_t clock)
 {
-	if ((ADPCM_Pan & 0x0c) != (n & 0x0c))
-	{
-		ADPCM_Count     = 0;
-		ADPCM_Clock     = (ADPCM_Clock & 4) | ((n >> 2) & 3);
-		ADPCM_ClockRate = ADPCM_Clocks[ADPCM_Clock];
-	}
-
-	ADPCM_Pan = n;
+	ADPCM_Count     = 0;
+	ADPCM_Clock     = clock | (ADPCM_Ratio & 3);
+	ADPCM_ClockRate = ADPCM_Clocks[ADPCM_Clock];
 }
 
-void ADPCM_SetClock(int n)
+void ADPCM_SetRatio(uint8_t ratio)
 {
-	if ((ADPCM_Clock & 4) != n)
+	if (ADPCM_Ratio != ratio)
 	{
+		ADPCM_Ratio     = ratio;
+
 		ADPCM_Count     = 0;
-		ADPCM_Clock     = n | ((ADPCM_Pan >> 2) & 3);
+		ADPCM_Clock     = (ADPCM_Clock & 4) | ratio;
 		ADPCM_ClockRate = ADPCM_Clocks[ADPCM_Clock];
 	}
+}
+
+void ADPCM_SetPan(uint8_t pan)
+{
+	ADPCM_Pan = 0;
 }
 
 void ADPCM_Init(uint32_t samplerate)
@@ -373,7 +376,9 @@ void ADPCM_Init(uint32_t samplerate)
 
 	OldL = OldR = 0;
 
-	ADPCM_SetPan(0x0b);
+	ADPCM_SetPan(0x03);
+	ADPCM_SetRatio(0x02);
+
 	ADPCM_InitTable();
 }
 
@@ -396,6 +401,7 @@ int ADPCM_StateContext(void *f, int writing) {
 	state_context_f(&ADPCM_DifBuf, sizeof(ADPCM_DifBuf));
 
 	state_context_f(&ADPCM_Pan, sizeof(ADPCM_Pan));
+	state_context_f(&ADPCM_Ratio, sizeof(ADPCM_Ratio));
 	state_context_f(&OldR, sizeof(OldR));
 	state_context_f(&OldL, sizeof(OldL));
 	state_context_f(Outs, sizeof(Outs));
