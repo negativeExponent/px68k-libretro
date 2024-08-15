@@ -354,7 +354,7 @@ void ADPCM_SetRatio(uint8_t ratio)
 
 void ADPCM_SetPan(uint8_t pan)
 {
-	ADPCM_Pan = 0;
+	ADPCM_Pan = pan;
 }
 
 void ADPCM_Init(uint32_t samplerate)
