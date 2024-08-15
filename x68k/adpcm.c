@@ -333,22 +333,25 @@ void ADPCM_SetVolume(uint8_t vol)
 		ADPCM_VolumeShift = 0;
 }
 
+static void ADPCM_CalcClockRate(void)
+{
+	int lut = (ADPCM_Clock & 4) | (ADPCM_Ratio & 3);
+	ADPCM_Count     = 0;
+	ADPCM_ClockRate = ADPCM_Clocks[lut];
+}
+
 void ADPCM_SetClock(uint8_t clock)
 {
-	ADPCM_Count     = 0;
-	ADPCM_Clock     = clock | (ADPCM_Ratio & 3);
-	ADPCM_ClockRate = ADPCM_Clocks[ADPCM_Clock];
+	ADPCM_Clock = clock;
+	ADPCM_CalcClockRate();
 }
 
 void ADPCM_SetRatio(uint8_t ratio)
 {
 	if (ADPCM_Ratio != ratio)
 	{
-		ADPCM_Ratio     = ratio;
-
-		ADPCM_Count     = 0;
-		ADPCM_Clock     = (ADPCM_Clock & 4) | ratio;
-		ADPCM_ClockRate = ADPCM_Clocks[ADPCM_Clock];
+		ADPCM_Ratio = ratio;
+		ADPCM_CalcClockRate();
 	}
 }
 
@@ -376,8 +379,11 @@ void ADPCM_Init(uint32_t samplerate)
 
 	OldL = OldR = 0;
 
-	ADPCM_SetPan(0x03);
-	ADPCM_SetRatio(0x02);
+	ADPCM_Clock = 0;
+	ADPCM_Pan = 3;
+	ADPCM_Ratio = 2;
+
+	ADPCM_CalcClockRate();
 
 	ADPCM_InitTable();
 }
