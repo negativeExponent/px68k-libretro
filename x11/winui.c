@@ -402,8 +402,6 @@ static void shortcut_dir(int drv)
 	}
 }
 
-int speedup_joy[0xff] = { 0 };
-
 int WinUI_Menu(int first)
 {
 	int cursor0;
@@ -428,15 +426,6 @@ int WinUI_Menu(int first)
 	cursor0 = mkey_y;
 	joy     = get_joy_downstate();
 	reset_joy_downstate();
-
-	if (speedup_joy[JOY_RIGHT])
-		joy &= ~JOY_RIGHT;
-	if (speedup_joy[JOY_LEFT])
-		joy &= ~JOY_LEFT;
-	if (speedup_joy[JOY_UP])
-		joy &= ~JOY_UP;
-	if (speedup_joy[JOY_DOWN])
-		joy &= ~JOY_DOWN;
 
 	if (!(joy & JOY_UP))
 	{

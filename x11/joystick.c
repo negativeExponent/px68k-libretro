@@ -98,101 +98,117 @@ static int get_px68k_input(int port)
 	return res;
 }
 
-#define PAD_2BUTTON  0
-#define PAD_CPSF_MD  1
-#define PAD_CPSF_SFC 2
-
 void FASTCALL Joystick_Update(int is_menu, int key, int port)
 {
 	static uint8_t pre_ret0 = 0xff;
 
 	uint8_t ret0 = 0xff;
 	uint8_t ret1 = 0xff;
-	uint8_t temp = 0;
-	int res      = 0;
+	int input    = 0;
 
 	if (libretro_supports_input_bitmasks)
-		res = get_px68k_input_bitmasks(port);
+		input = get_px68k_input_bitmasks(port);
 	else
-		res = get_px68k_input(port);
+		input = get_px68k_input(port);
 
 	/* D-Pad */
-	if (res & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
-		temp |= JOY_RIGHT;
-	if (res & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
-		temp |= JOY_LEFT;
-	if (res & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
-		temp |= JOY_UP;
-	if (res & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
-		temp |= JOY_DOWN;
+	if (input & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
+		ret0 &= ~JOY_RIGHT;
 
-	/* disallow invalid input */
-	if ((temp & (JOY_LEFT | JOY_RIGHT)) == (JOY_LEFT | JOY_RIGHT))
-		temp &= ~(JOY_LEFT | JOY_RIGHT);
-	if ((temp & (JOY_UP | JOY_DOWN)) == (JOY_UP | JOY_DOWN))
-		temp &= ~(JOY_UP | JOY_DOWN);
+	if (input & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
+		ret0 &= ~JOY_LEFT;
 
-	ret0 ^= temp;
+	if (input & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
+		ret0 &= ~JOY_UP;
+
+	if (input & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
+		ret0 &= ~JOY_DOWN;
+
+	/* disallow invalid button combinations */
+	{
+		uint8_t mask = (JOY_LEFT | JOY_RIGHT);
+		if ((ret0 & ~mask) == mask)
+			ret0 &= ~mask;
+		mask = (JOY_UP | JOY_DOWN);
+		if ((ret0 & ~mask) == mask)
+			ret0 &= ~mask;
+	}
 
 	/* Buttons */
 	switch (Config.joyType[port])
 	{
 	case PAD_2BUTTON:
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_A))
-			ret0 ^= (Config.VbtnSwap ? JOY_TRG1 : JOY_TRG2);
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_B))
-			ret0 ^= (Config.VbtnSwap ? JOY_TRG2 : JOY_TRG1);
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_X))
-			ret0 ^= (Config.VbtnSwap ? JOY_TRG2 : JOY_TRG1);
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
-			ret0 ^= (Config.VbtnSwap ? JOY_TRG1 : JOY_TRG2);
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_A))
+			ret0 &= ~(Config.VbtnSwap ? JOY_TRG1 : JOY_TRG2);
 
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_START))
-			ret0 &= ~(JOY_UP | JOY_DOWN);
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_B))
+			ret0 &= ~(Config.VbtnSwap ? JOY_TRG2 : JOY_TRG1);
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_X))
+			ret0 &= ~(Config.VbtnSwap ? JOY_TRG2 : JOY_TRG1);
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
+			ret0 &= ~(Config.VbtnSwap ? JOY_TRG1 : JOY_TRG2);
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_START))
+			ret0 &= ~JOY_START;
+
 		if (!Config.P1SelectMap)
-			if (res & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
-				ret0 &= ~(JOY_LEFT | JOY_RIGHT);
+			if (input & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
+				ret0 &= ~JOY_SELECT;
 		break;
 
 	case PAD_CPSF_MD:
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_A))
-			ret0 ^= JOY_TRG1;
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_B))
-			ret0 ^= JOY_TRG2;
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_X))
-			ret1 ^= JOY_TRG4;
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
-			ret1 ^= JOY_TRG3;
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_L))
-			ret1 ^= JOY_TRG5;
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_R))
-			ret1 ^= JOY_TRG8;
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_A))
+			ret0 &= ~JOY_TRG1;
 
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_START))
-			ret1 ^= JOY_TRG6;
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_B))
+			ret0 &= ~JOY_TRG2;
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_X))
+			ret1 &= ~JOY_TRG4;
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
+			ret1 &= ~JOY_TRG3;
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+			ret1 &= ~JOY_TRG5;
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+			ret1 &= ~JOY_TRG8;
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_START))
+			ret1 &= ~JOY_TRG6;
+
 		if (!Config.P1SelectMap)
-			if (res & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
-				ret1 ^= JOY_TRG7;
+			if (input & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
+				ret1 &= ~JOY_TRG7;
 		break;
 
 	case PAD_CPSF_SFC:
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_A))
-			ret0 ^= JOY_TRG2;
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_B))
-			ret0 ^= JOY_TRG1;
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_X))
-			ret1 ^= JOY_TRG3;
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
-			ret1 ^= JOY_TRG4;
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_L))
-			ret1 ^= JOY_TRG8;
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_R))
-			ret1 ^= JOY_TRG5;
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_A))
+			ret0 &= ~JOY_TRG2;
 
-		if (res & (1 << RETRO_DEVICE_ID_JOYPAD_START))
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_B))
+			ret0 &= ~JOY_TRG1;
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_X))
+			ret1 &= ~JOY_TRG3;
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
+			ret1 &= ~JOY_TRG4;
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+			ret1 &= ~JOY_TRG8;
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+			ret1 &= ~JOY_TRG5;
+
+		if (input & (1 << RETRO_DEVICE_ID_JOYPAD_START))
 			ret1 ^= JOY_TRG6;
+
 		if (!Config.P1SelectMap)
-			if (res & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
+			if (input & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
 				ret1 ^= JOY_TRG7;
 		break;
 	}
@@ -201,12 +217,10 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 	JoyUpState0   = (ret0 ^ pre_ret0) & ret0;
 	pre_ret0      = ret0;
 
-	if (!is_menu)
-	{
-		JoyState0[port] = ret0;
-		JoyState1[port] = ret1;
-	}
-	else
+	JoyState0[port] = ret0;
+	JoyState1[port] = ret1;
+
+	if (is_menu)
 	{
 		/* input overrides section during Menu mode for faster menu browsing
 	 	 * by pressing and holding key or button aka turbo mode */
@@ -220,9 +234,6 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 			inbuf &= ~(JOY_LEFT | JOY_RIGHT);
 		if ((inbuf & (JOY_UP | JOY_DOWN)) == (JOY_UP | JOY_DOWN))
 			inbuf &= ~(JOY_UP | JOY_DOWN);
-
-		for (i = 0; i < 4; i++)
-			speedup_joy[1 << i] = 0;
 
 		if (last_inbuf != inbuf)
 		{
@@ -247,7 +258,7 @@ void FASTCALL Joystick_Update(int is_menu, int key, int port)
 						/* which direction? UP/DOWN/LEFT/RIGHT */
 						uint8_t tmp = (1 << i);
 						if ((inbuf & tmp) == tmp)
-							speedup_joy[tmp] = 1;
+							JoyDownState0 &= ~tmp;
 					}
 				}
 			}

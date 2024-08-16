@@ -1,6 +1,10 @@
 #ifndef _X68K_JOY_H
 #define _X68K_JOY_H
 
+#define PAD_2BUTTON  0
+#define PAD_CPSF_MD  1
+#define PAD_CPSF_SFC 2
+
 #define JOY_UP    0x01
 #define JOY_DOWN  0x02
 #define JOY_LEFT  0x04
@@ -14,6 +18,9 @@
 #define JOY_TRG7 0x08
 #define JOY_TRG8 0x20
 #define JOY_TRG6 0x40
+
+#define JOY_SELECT (JOY_UP | JOY_DOWN)
+#define JOY_START  (JOY_LEFT | JOY_RIGHT)
 
 void Joystick_Init(void);
 void Joystick_Cleanup(void);
