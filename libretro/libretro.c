@@ -250,74 +250,60 @@ static void extract_directory(char *buf, const char *path, size_t size)
 static int libretro_supports_midi_output   = 0;
 static struct retro_midi_interface midi_cb = { 0 };
 static uint64_t midi_write_time = 0;
+static midi_interface_t dummy;
 
-uint32_t midiOutClose(void *hmo) { return MMSYSERR_NOERROR; }
-uint32_t midiOutReset(void *hmo) { return MMSYSERR_NOERROR; }
-uint32_t midiOutPrepareHeader(void *hmo, MIDIHDR *pmh, uint32_t cbmh) { return !MIDIERR_STILLPLAYING; }
-uint32_t midiOutUnprepareHeader(void *hmo, MIDIHDR *pmh, uint32_t cbmh) { return MMSYSERR_NOERROR; }
+midi_interface_t *midi_interface = &dummy;
 
 /* might not be correct but whatever */
 static void midi_write(uint8_t msg)
 {
    uint64_t current_time = timeGetTime() * 1000;
    uint64_t delta_time;
+
    if (midi_write_time == 0)
       midi_write_time = current_time;
    delta_time = current_time - midi_write_time;
    midi_write_time = current_time;
    if (delta_time > 0xFFFFFFFF)
       delta_time = 0;
+
    midi_cb.write(msg, (uint32_t)delta_time);
 }
 
-uint32_t midiOutShortMsg(void *hmo, uint32_t dwMsg)
-{
-   if (libretro_supports_midi_output && midi_cb.output_enabled())
-   {  
-      switch (dwMsg & 0xf0)
-      {
-      case 0x80:
-      case 0x90:
-      case 0xa0:
-      case 0xb0:
-      case 0xe0:
-         midi_write(dwMsg & 0xff);
-         midi_write((dwMsg >> 8) & 0xff);
-         midi_write((dwMsg >> 16) & 0xff);
-         break;
-      case 0xc0:
-      case 0xd0:
-         midi_write(dwMsg & 0xff);
-         midi_write((dwMsg >> 8) & 0xff);
-         midi_write(0);
-         break;
-      }
-   }
-   return MMSYSERR_NOERROR;
-}
-
-uint32_t midiOutLongMsg(void *hmo, MIDIHDR *pmh, uint32_t cbmh)
-{
-   unsigned i;
-   if (libretro_supports_midi_output && midi_cb.output_enabled())
-   {
-      if (!pmh->dwBufferLength) return MMSYSERR_NOERROR;
-      for (i = 0; i < pmh->dwBufferLength; i++)
-         midi_write((uint8_t)pmh->lpData[i]);
-   }
-
-   return MMSYSERR_NOERROR;
-}
-
-uint32_t midiOutOpen(void **phmo, uint32_t uDeviceID, uint32_t dwCallback, uint32_t dwInstance, uint32_t fdwOpen)
+static void libretro_midi_short(uint32_t dwMsg)
 {
    if (libretro_supports_midi_output && midi_cb.output_enabled())
    {
-      *phmo = &midi_cb;
-      return MMSYSERR_NOERROR;
+      midi_write(dwMsg & 0xff);
+      midi_write((dwMsg >> 8) & 0xff);
+      midi_write((dwMsg >> 16) & 0xff);
+   }
+}
+
+static void libretro_midi_long(uint8_t *lpMsg, size_t length)
+{
+   if (libretro_supports_midi_output && midi_cb.output_enabled())
+   {
+      unsigned i;
+
+      if (!length) return;
+      for (i = 0; i < length; i++)
+         midi_write(lpMsg[i]);
+   }
+}
+
+static int libretro_midi_open(void)
+{
+   if (libretro_supports_midi_output && midi_cb.output_enabled())
+   {
+      return 1;
    }
 
-   return !MMSYSERR_NOERROR;
+   return 0;
+}
+
+static void libretro_midi_close(void)
+{
 }
 
 static void update_variable_midi_interface(void)
@@ -353,9 +339,20 @@ static void update_variable_midi_interface(void)
 
 static void midi_interface_init(void)
 {
+   static midi_interface_t midi;
+
    libretro_supports_midi_output = 0;
    if (environ_cb(RETRO_ENVIRONMENT_GET_MIDI_INTERFACE, &midi_cb))
+   {
       libretro_supports_midi_output = 1;
+
+      midi.Open = libretro_midi_open;
+      midi.Close = libretro_midi_close;
+      midi.SendShort = libretro_midi_short;
+      midi.SendLong = libretro_midi_long;
+
+      midi_interface = &midi;
+   }
 }
 
 /* END OF MIDI INTERFACE */
