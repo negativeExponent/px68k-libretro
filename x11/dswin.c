@@ -186,9 +186,6 @@ cb_start:
 
 		datalen = pbwp - pbrp;
 
-		if (datalen <= 0)
-			return;
-
 		/* needs more data */
 		if (datalen < len)
 			DSound_Send((len - datalen) / 2);
@@ -228,8 +225,8 @@ cb_start:
 			if (pbwp - pbsp < lenb)
 				DSound_Send((lenb - (pbwp - pbsp)) / 2);
 
-			if (lena > 0) memcpy(rsndbuf, pbrp, lena * 2);
-			if (lenb > 0) memcpy(&rsndbuf[lena], pbsp, lenb * 2);
+			memcpy(rsndbuf, pbrp, lena * 2);
+			memcpy(&rsndbuf[lena], pbsp, lenb * 2);
 			buf  = rsndbuf;
 			pbrp = pbsp + lenb;
 			/* TYPED: */
