@@ -139,6 +139,14 @@ uint32_t BusErrAdr      = 0;
 memory reads to set initial PC and SR on Reset */
 static uint32_t system_ram = 0x100000;
 
+void cpu_buserr(uint32_t adr, int read)
+{
+	if (read)
+		rm_buserr(adr);
+	else
+		wm_buserr(adr, 0);
+}
+
 /*
  * write function
  */

@@ -25,6 +25,8 @@ extern uint32_t BusErrAdr;
 
 void Memory_Init(void);
 
+void cpu_buserr(uint32_t adr, int read);
+
 uint32_t cpu_readmem24(uint32_t adr);
 uint32_t cpu_readmem24_word(uint32_t adr);
 
