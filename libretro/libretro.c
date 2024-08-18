@@ -27,6 +27,8 @@
 #include "../x68k/sram.h"
 #include "../x68k/x68kmemory.h"
 
+#include "../x11/joystick.h"
+
 #ifdef HAVE_MERCURY
 #include "../x68k/mercury.h"
 #endif
@@ -926,6 +928,7 @@ static void update_variables(int running)
    int i = 0, snd_opt = 0;
    char key[256]             = { 0 };
    struct retro_variable var = { 0 };
+   bool input_changed = false;
 
    if (!running)
       update_variable_midi_interface();
@@ -938,6 +941,8 @@ static void update_variables(int running)
       var.value                    = NULL;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
       {
+         int type = Config.joyType[i];
+
          if (!(strcmp(var.value, "Default (2 Buttons)")))
          {
             Config.joyType[i] = 0;
@@ -950,8 +955,24 @@ static void update_variables(int running)
          {
             Config.joyType[i] = 2;
          }
+         else if (!(strcmp(var.value, "CyberStick (Analog)")))
+         {
+            Config.joyType[i] = PAD_CYBERSTICK_ANALOG;
+         }
+         else if (!(strcmp(var.value, "CyberStick (Digital)")))
+         {
+            Config.joyType[i] = PAD_CYBERSTICK_DIGITAL;
+         }
+
+         if (type != Config.joyType[i])
+         {
+            p6logd("%d: type: %d\n", i, Config.joyType[i]);
+            input_changed = true;
+         }
       }
    }
+
+   if (input_changed) Joystick_Init();
 
    var.key   = "px68k_cpuspeed";
    var.value = NULL;

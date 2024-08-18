@@ -18,7 +18,7 @@ uint32_t tick     = 0;
  * since it's only called once per frame, so can't replace
  * timeGetTime/FAKE_GetTickCount entirely
  */
-static int64_t timeGetUsec(void)
+int64_t timeGetUsec(void)
 {
 	if (total_usec == -1)
 		return timeGetTime() * 1000;
