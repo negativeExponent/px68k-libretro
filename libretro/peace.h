@@ -7,7 +7,9 @@
 extern "C" {
 #endif
 
-uint32_t	FAKE_GetTickCount(void);
+uint64_t    millis(void);
+uint64_t    micros(void);
+uint32_t    FAKE_GetTickCount(void);
 
 #ifdef __cplusplus
 };
