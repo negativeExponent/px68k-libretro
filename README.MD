@@ -7,6 +7,7 @@ backported c68k core from https://github.com/kenyahiro/px68k/
 All credit goes to hissorii ( and kenyahiro for updating c68k core) .
 
 Changes (in no particular order):
+- Add CyberStick (analog/digital) support (wip)
 - main audio sample type changed to int16 from uint8
 - translated most japanese comments to english with google translate
 - change most files to utf-8
