@@ -928,7 +928,6 @@ static void update_variables(int running)
    int i = 0, snd_opt = 0;
    char key[256]             = { 0 };
    struct retro_variable var = { 0 };
-   bool input_changed = false;
 
    if (!running)
       update_variable_midi_interface();
@@ -945,15 +944,15 @@ static void update_variables(int running)
 
          if (!(strcmp(var.value, "Default (2 Buttons)")))
          {
-            Config.joyType[i] = 0;
+            Config.joyType[i] = PAD_2BUTTON;
          }
          else if (!(strcmp(var.value, "CPSF-MD (8 Buttons)")))
          {
-            Config.joyType[i] = 1;
+            Config.joyType[i] = PAD_CPSF_MD;
          }
          else if (!(strcmp(var.value, "CPSF-SFC (8 Buttons)")))
          {
-            Config.joyType[i] = 2;
+            Config.joyType[i] = PAD_CPSF_SFC;
          }
          else if (!(strcmp(var.value, "CyberStick (Analog)")))
          {
@@ -966,13 +965,10 @@ static void update_variables(int running)
 
          if (type != Config.joyType[i])
          {
-            p6logd("%d: type: %d\n", i, Config.joyType[i]);
-            input_changed = true;
+            Joystick_Init();
          }
       }
    }
-
-   if (input_changed) Joystick_Init();
 
    var.key   = "px68k_cpuspeed";
    var.value = NULL;
