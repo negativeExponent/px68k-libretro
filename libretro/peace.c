@@ -25,6 +25,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if !defined(__APPLE__)
+#define _POSIX_C_SOURCE 199309L
+#endif
 #include <stdint.h>
 #include <time.h>
 #include <sys/time.h>
