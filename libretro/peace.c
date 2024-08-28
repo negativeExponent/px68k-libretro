@@ -42,6 +42,15 @@
 #define NS_TO_MS(ns)    ((ns)/1000000)
 #define NS_TO_US(ns)    ((ns)/1000)
 
+#ifdef _WIN32
+uint32_t FAKE_GetTickCount(void)
+{
+	struct timeval tv;
+
+	gettimeofday(&tv, 0);
+	return tv.tv_usec / 1000 + tv.tv_sec * 1000;
+}
+#else
 static struct timespec ts;
 
 uint64_t millis(void)
@@ -60,3 +69,4 @@ uint32_t FAKE_GetTickCount(void)
 {
 	return (uint32_t)(millis() & 0xffffffff);
 }
+#endif
