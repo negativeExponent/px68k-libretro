@@ -1,4 +1,4 @@
-px68k-libretro
+PX68K_Next (Libretro)
 
 forked from https://github.com/hissorii/px68k
 backported c68k core from https://github.com/kenyahiro/px68k/ 
@@ -46,14 +46,14 @@ F12 to enter menu.
 
 You can launch content with:
 
-- retroarch -L px68k_libretro.so ./content.hdf
+- retroarch -L px68k_next_libretro.so ./content.hdf
 
-- retroarch -L px68k_libretro.so ./content.xdf
+- retroarch -L px68k_next_libretro.so ./content.xdf
 
-- retroarch -L px68k_libretro.so ./content.cmd
+- retroarch -L px68k_next_libretro.so ./content.cmd
  (cmdfile is a text file contening cmd like "px68k /somewhere/software/x68000/content1.dim /somewhere/software/x68000/content2.dim")
 
-- retroarch -L px68k_libretro.so "px68k /somewhere/software/x68000/content1.dim /somewhere/software/x68000/content2.dim"
+- retroarch -L px68k_next_libretro.so "px68k /somewhere/software/x68000/content1.dim /somewhere/software/x68000/content2.dim"
 
 - load retroarch , then load core and content from RA menu.
 
