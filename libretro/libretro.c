@@ -312,7 +312,7 @@ static void update_variable_midi_interface(void)
 {
    struct retro_variable var;
 
-   var.key   = "px68k_midi_output";
+   var.key   = "px68k_next_midi_output";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -323,7 +323,7 @@ static void update_variable_midi_interface(void)
          Config.MIDI_SW = 1;
    }
 
-   var.key   = "px68k_midi_output_type";
+   var.key   = "px68k_next_midi_output_type";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -361,7 +361,7 @@ static void midi_interface_init(void)
 
 static void update_variable_disk_drive_swap(void)
 {
-   struct retro_variable var = { "px68k_disk_drive", NULL };
+   struct retro_variable var = { "px68k_next_disk_drive", NULL };
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
@@ -932,11 +932,11 @@ static void update_variables(int running)
    if (!running)
       update_variable_midi_interface();
 
-   strcpy(key, "px68k_joytype");
+   strcpy(key, "px68k_next_joytype");
    var.key = key;
    for (i = 0; i < 2; i++)
    {
-      key[strlen("px68k_joytype")] = '1' + i;
+      key[strlen("px68k_next_joytype")] = '1' + i;
       var.value                    = NULL;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
       {
@@ -970,7 +970,7 @@ static void update_variables(int running)
       }
    }
 
-   var.key   = "px68k_cpuspeed";
+   var.key   = "px68k_next_cpuspeed";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -995,7 +995,7 @@ static void update_variables(int running)
          Config.cpuClock = 100;
    }
 
-   var.key   = "px68k_ramsize";
+   var.key   = "px68k_next_ramsize";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1014,7 +1014,7 @@ static void update_variables(int running)
          Config.ramSize = 12;
    }
 
-   var.key   = "px68k_analog";
+   var.key   = "px68k_next_analog";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1025,7 +1025,7 @@ static void update_variables(int running)
          opt_analog = true;
    }
 
-   var.key   = "px68k_adpcm_lowpassfilter";
+   var.key   = "px68k_next_adpcm_lowpassfilter";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1036,7 +1036,7 @@ static void update_variables(int running)
          Config.Sound_LPF = 0;
    }
 
-   var.key   = "px68k_adpcm_vol";
+   var.key   = "px68k_next_adpcm_vol";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1049,7 +1049,7 @@ static void update_variables(int running)
       }
    }
 
-   var.key   = "px68k_opm_vol";
+   var.key   = "px68k_next_opm_vol";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1063,7 +1063,7 @@ static void update_variables(int running)
    }
 
 #ifdef HAVE_MERCURY
-   var.key   = "px68k_mercury_vol";
+   var.key   = "px68k_next_mercury_vol";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1079,7 +1079,7 @@ static void update_variables(int running)
 
    update_variable_disk_drive_swap();
 
-   var.key   = "px68k_menufontsize";
+   var.key   = "px68k_next_menufontsize";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1090,7 +1090,7 @@ static void update_variables(int running)
          Config.menuSize = 1;
    }
 
-   var.key   = "px68k_joy1_select";
+   var.key   = "px68k_next_joy1_select";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1117,7 +1117,7 @@ static void update_variables(int running)
          Config.P1SelectMap = 0;
    }
 
-   var.key   = "px68k_save_fdd_path";
+   var.key   = "px68k_next_save_fdd_path";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1128,7 +1128,7 @@ static void update_variables(int running)
          Config.saveFDDPath = 1;
    }
 
-   var.key   = "px68k_save_hdd_path";
+   var.key   = "px68k_next_save_hdd_path";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1139,7 +1139,7 @@ static void update_variables(int running)
          Config.saveHDDPath = 1;
    }
 
-   var.key   = "px68k_rumble_on_disk_read";
+   var.key   = "px68k_next_rumble_on_disk_read";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1152,7 +1152,7 @@ static void update_variables(int running)
 
    /* PX68K Menu */
 
-   var.key   = "px68k_joy_mouse";
+   var.key   = "px68k_next_joy_mouse";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1167,7 +1167,7 @@ static void update_variables(int running)
       Mouse_StartCapture(value == 1);
    }
 
-   var.key   = "px68k_vbtn_swap";
+   var.key   = "px68k_next_vbtn_swap";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1178,7 +1178,7 @@ static void update_variables(int running)
          Config.VbtnSwap = 1;
    }
 
-   var.key   = "px68k_no_wait_mode";
+   var.key   = "px68k_next_no_wait_mode";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1189,7 +1189,7 @@ static void update_variables(int running)
          Config.NoWaitMode = 1;
    }
 
-   var.key   = "px68k_frameskip";
+   var.key   = "px68k_next_frameskip";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1218,7 +1218,7 @@ static void update_variables(int running)
          Config.FrameRate = 1;
    }
 
-   var.key   = "px68k_adjust_frame_rates";
+   var.key   = "px68k_next_adjust_frame_rates";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1235,7 +1235,7 @@ static void update_variables(int running)
       }
    }
 
-   var.key   = "px68k_audio_desync_hack";
+   var.key   = "px68k_next_audio_desync_hack";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1301,7 +1301,7 @@ void retro_get_system_info(struct retro_system_info *info)
 #define PX68K_VERSION "0.15+"
 #endif
    memset(info, 0, sizeof(*info));
-   info->library_name     = "PX68K";
+   info->library_name     = "PX68K_Next";
    info->library_version  = PX68K_VERSION GIT_VERSION;
    info->need_fullpath    = true;
    info->valid_extensions = "dim|img|d88|88d|hdm|dup|2hd|xdf|hdf|cmd|m3u";
