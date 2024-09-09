@@ -64,7 +64,7 @@ struct retro_core_option_v2_category option_cats_us[] = {
 
 struct retro_core_option_v2_definition option_defs_us[] = {
    {
-      "px68k_menufontsize",
+      "px68k_next_menufontsize",
       "Menu Font Size",
       NULL,
       "Set the built-in menu font size.",
@@ -78,7 +78,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "normal"
    },
    {
-      "px68k_cpuspeed",
+      "px68k_next_cpuspeed",
       "CPU Speed",
       NULL,
       "Configure the CPU speed. Can be used to slow down games that run too fast or to speed up floppy loading times.",
@@ -99,7 +99,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "10Mhz"
    },
    {
-      "px68k_ramsize",
+      "px68k_next_ramsize",
       "RAM Size (Restart)",
       NULL,
       "Sets the amount of RAM to be used by the system.",
@@ -117,7 +117,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "2MB"
    },
    {
-      "px68k_analog",
+      "px68k_next_analog",
       "Use Analog",
       NULL,
       NULL,
@@ -131,7 +131,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "disabled"
    },
    {
-      "px68k_joytype1",
+      "px68k_next_joytype1",
       "Player 1 Joypad Type",
       NULL,
       "Set the joypad type for player 1.",
@@ -148,7 +148,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "Default (2 Buttons)"
    },
    {
-      "px68k_joytype2",
+      "px68k_next_joytype2",
       "Player 2 Joypad Type",
       NULL,
       "Set the joypad type for player 2.",
@@ -163,7 +163,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "Default (2 Buttons)"
    },
    {
-      "px68k_joy1_select",
+      "px68k_next_joy1_select",
       "P1 Joystick Select Mapping",
       NULL,
       "Maps a certain keyboard key to joypad's SELECT button since some of these keys cannot be normally mapped to a normal US-type keyboard due to missing dedicated keys.",
@@ -185,7 +185,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "Default"
    },
    {
-      "px68k_midi_output",
+      "px68k_next_midi_output",
       "MIDI Output (Restart)",
       NULL,
       "Enable software MIDI.",
@@ -199,7 +199,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "enabled"
    },
    {
-      "px68k_midi_output_type",
+      "px68k_next_midi_output_type",
       "MIDI Output Type (Restart)",
       NULL,
       "Sets MIDI output type.",
@@ -215,7 +215,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "GM"
    },
    {
-      "px68k_adpcm_lowpassfilter",
+      "px68k_next_adpcm_lowpassfilter",
       "ADPCM Low-Pass Filter",
       NULL,
       "Enables low-pass filtering for ADPCM unit.",
@@ -229,7 +229,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "enabled"
    },
    {
-      "px68k_adpcm_vol",
+      "px68k_next_adpcm_vol",
       "ADPCM Volume",
       NULL,
       "Sets the volume of the ADPCM sound channel.",
@@ -257,7 +257,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "15"
    },
    {
-      "px68k_opm_vol",
+      "px68k_next_opm_vol",
       "OPM Volume",
       NULL,
       "Sets the volume of the OPM sound channel.",
@@ -286,7 +286,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
    },
 #ifdef HAVE_MERCURY
    {
-      "px68k_mercury_vol",
+      "px68k_next_mercury_vol",
       "Mercury Volume",
       NULL,
       "Sets the volume of the Mercury sound channel.",
@@ -315,7 +315,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
    },
 #endif
    {
-      "px68k_disk_drive",
+      "px68k_next_disk_drive",
       "Swap Disks on Drive",
       NULL,
       "By default using the native Disk Swap interface within RetroArch's menu will swap the disk in drive FDD1. Change this option to swap disks in drive FDD0.",
@@ -329,7 +329,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "FDD1"
    },
    {
-      "px68k_save_fdd_path",
+      "px68k_next_save_fdd_path",
       "Save FDD Paths",
       NULL,
       "When enabled, last loaded fdd path will be saved for each drive and then auto-loaded on startup. When disabled, FDDx starts empty.",
@@ -344,7 +344,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
    },
 
    {
-      "px68k_save_hdd_path",
+      "px68k_next_save_hdd_path",
       "Save HDD Paths",
       NULL,
       "When enabled, last loaded hdd path will be saved for each drive and then auto-loaded on startup. When disabled, HDDx starts empty.",
@@ -359,7 +359,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
    },
 
    {
-      "px68k_rumble_on_disk_read",
+      "px68k_next_rumble_on_disk_read",
       "Rumble on FDD Reads",
       NULL,
       "Produces rumble effect on supported devices when reading from floppy disks.",
@@ -373,7 +373,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "disabled"
    },
    {
-      "px68k_joy_mouse",
+      "px68k_next_joy_mouse",
       "Joy/Mouse",
       NULL,
       "Select [Mouse] or [Joypad] to control in-game mouse pointer.",
@@ -387,7 +387,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "Mouse"
    },
    {
-      "px68k_vbtn_swap",
+      "px68k_next_vbtn_swap",
       "VBtn Swap",
       NULL,
       "Swaps TRIG1 and TRIG2 buttons when a 2-button gamepad is selected.",
@@ -401,7 +401,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "TRIG1 TRIG2"
    },
    {
-      "px68k_no_wait_mode",
+      "px68k_next_no_wait_mode",
       "No Wait Mode",
       NULL,
       "When set to [enabled], core runs as fast as possible. Can cause audio desync. Setting this [disabled] is recommended.",
@@ -415,7 +415,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "disabled"
    },
    {
-      "px68k_frameskip",
+      "px68k_next_frameskip",
       "Frames Skip",
       NULL,
       "Choose how many frames will be skipped to improve performance at the expense of visual smoothness.",
@@ -438,7 +438,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "Full Frame"
    },
    {
-      "px68k_adjust_frame_rates",
+      "px68k_next_adjust_frame_rates",
       "Adjust Frame Rates",
       NULL,
       "For compatibility with modern displays, slightly adjust frame rates reported to frontend in order to reduce the chances of audio stuttering.  Disable to use actual frame rates.",
@@ -452,7 +452,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "enabled"
    },
    {
-      "px68k_audio_desync_hack",
+      "px68k_next_audio_desync_hack",
       "Audio Desync Hack",
       NULL,
       "Prevents audio from desynchronizing by simply discarding any audio samples generated past the requested amount per frame slice.  Forces 'No Wait Mode' to [enabled], use appropriate frontend settings to properly throttle content.",

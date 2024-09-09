@@ -75,7 +75,7 @@ struct retro_core_option_v2_category option_cats_fr[] = {
 
 struct retro_core_option_v2_definition option_defs_fr[] = {
    {
-      "px68k_menufontsize",
+      "px68k_next_menufontsize",
       "Taille de la police du menu",
       NULL,
       NULL,
@@ -89,7 +89,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "normale"
    },
    {
-      "px68k_cpuspeed",
+      "px68k_next_cpuspeed",
       "Vitesse du CPU",
       NULL,
       "Configurez la vitesse du processeur. Peut être utilisé pour ralentir les jeux trop rapides ou pour accélérer les temps de chargement des disquettes.",
@@ -110,7 +110,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "10Mhz"
    },
    {
-      "px68k_ramsize",
+      "px68k_next_ramsize",
       "Taille de la RAM (Redémare)",
       NULL,
       "Définit la quantité de RAM à utiliser par le système.",
@@ -134,7 +134,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "2MB"
    },
    {
-      "px68k_analog",
+      "px68k_next_analog",
       "Utiliser l'Analogique",
       NULL,
       NULL,
@@ -148,7 +148,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "désactivé"
    },
    {
-      "px68k_joytype1",
+      "px68k_next_joytype1",
       "Type de Manette du J1",
       NULL,
       "Défini le type de manette du joueur 1.",
@@ -163,7 +163,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "Default (2 Buttons)"
    },
    {
-      "px68k_joytype2",
+      "px68k_next_joytype2",
       "Type de Joypad du J2",
       NULL,
       "Défini le type de manette du joueur 2.",
@@ -178,7 +178,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "Défaut (2 Boutons)"
    },
    {
-      "px68k_joy1_select",
+      "px68k_next_joy1_select",
       "Mappage de la manette du J1",
       NULL,
       "Attribue une touche du clavier au bouton SELECT de la manette, car certains jeux utilisent ces touches comme boutons Démarrer ou Insérer une pièce.",
@@ -200,7 +200,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "Défaut"
    },
    {
-      "px68k_adpcm_vol",
+      "px68k_next_adpcm_vol",
       "Volume ADPCM",
       NULL,
       "Règlage du volume du canal audio ADPCM.",
@@ -228,7 +228,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "15"
    },
    {
-      "px68k_opm_vol",
+      "px68k_next_opm_vol",
       "Volume OPM",
       NULL,
       "Règlage du volume du canal audio OPM.",
@@ -257,7 +257,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
    },
 #ifdef HAVE_MERCURY
    {
-      "px68k_mercury_vol",
+      "px68k_next_mercury_vol",
       "Volume Mercury",
       NULL,
       "Règlage du volume du canal sonore Mercury.",
@@ -286,7 +286,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
    },
 #endif
    {
-      "px68k_disk_drive",
+      "px68k_next_disk_drive",
       "Échange de disques sur le lecteur",
       NULL,
       "Par défaut, l'interface native de RetroArch, d'échange de disque dans le menu, échange le disque dans le lecteur FDD1. Modifiez cette option pour échanger des disques dans le lecteur FDD0.",
@@ -300,7 +300,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "FDD1"
    },
    {
-      "px68k_save_fdd_path",
+      "px68k_next_save_fdd_path",
       "Enregistrer les chemins d'accès aux disques",
       NULL,
       "Lorsqu'elle est activée, les chemins d'accès aux disques précédemment chargés seront enregistrés pour chaque lecteur, puis chargés automatiquement au démarrage. Lorsqu'elle est désactivé, FDD et HDD commencent à vide.",
@@ -316,7 +316,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
 
    /* from PX68K Menu */
    {
-      "px68k_joy_mouse",
+      "px68k_next_joy_mouse",
       "Manette /sourie",
       NULL,
       "Sélectionner la [sourie] ou la [manette] pour contrôler le pointeur de sourie dans les jeux..",
@@ -330,7 +330,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "Manette"
    },
    {
-      "px68k_vbtn_swap",
+      "px68k_next_vbtn_swap",
       "Echange des boutons",
       NULL,
       "Echange le BOUTON1 et le BOUTON2 quand une manette 2 boutons est sélectionné.",
@@ -344,7 +344,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "BOUTON1 BOUTON2"
    },
    {
-      "px68k_no_wait_mode",
+      "px68k_next_no_wait_mode",
       "Mode sans attente",
       NULL,
       "Lorsque ce mode est [activé], le cœur s'exécute aussi vite que possible. Cela peut provoquer une désynchronisation audio mais permet une avance rapide. Il est recommandé de définir ce paramètre à [désactivé].",
@@ -358,7 +358,7 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "désactivé"
    },
    {
-      "px68k_frameskip",
+      "px68k_next_frameskip",
       "Saut d'images",
       NULL,
       "Choisissez le nombre d'images à ignorer pour améliorer les performances au détriment de la fluidité visuelle.",

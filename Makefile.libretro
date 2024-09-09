@@ -55,7 +55,7 @@ ifeq ($(platform), win)
 	INCLUDES += -I Windows
 endif
 
-TARGET_NAME := px68k
+TARGET_NAME := px68k_next
 ENDIANNESS_DEFINES :=
 CORE_DIR := .
 LIBRETRO_DIR := $(CORE_DIR)/libretro

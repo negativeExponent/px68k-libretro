@@ -53,7 +53,7 @@ You can launch content with:
 - retroarch -L px68k_libretro.so ./content.cmd
  (cmdfile is a text file contening cmd like "px68k /somewhere/software/x68000/content1.dim /somewhere/software/x68000/content2.dim")
 
-- retroarch -L sdlpx68k_libretro.so "px68k /somewhere/software/x68000/content1.dim /somewhere/software/x68000/content2.dim"
+- retroarch -L px68k_libretro.so "px68k /somewhere/software/x68000/content1.dim /somewhere/software/x68000/content2.dim"
 
 - load retroarch , then load core and content from RA menu.
 
